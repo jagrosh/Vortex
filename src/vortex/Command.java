@@ -31,11 +31,14 @@ public abstract class Command {
     protected String arguments;
     protected Type type = Type.ALL;
     protected Permission[] requiredPermissions = new Permission[0];
+    protected boolean ownerCommand = false;
     
     protected abstract void execute(String args, MessageReceivedEvent event);
     
     public void run(String args, MessageReceivedEvent event)
     {
+        if(ownerCommand && !event.getAuthor().getId().equals(Constants.OWNER_ID))
+            return;
         if(type==Type.USERGUILD && event.getChannelType()==ChannelType.TEXT && event.getJDA().getAccountType()==AccountType.BOT)
             return;
         if(event.getChannelType()==ChannelType.TEXT && event.getJDA().getAccountType()==AccountType.CLIENT)

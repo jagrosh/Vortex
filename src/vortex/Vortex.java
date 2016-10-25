@@ -17,6 +17,7 @@ package vortex;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.OffsetDateTime;
 import java.util.List;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.core.*;
@@ -35,6 +36,7 @@ public class Vortex {
      */
     public static void main(String[] args) {
         List<String> tokens;
+        OffsetDateTime now = OffsetDateTime.now();
         /**
          * Tokens:
          * 0 - bot token
@@ -47,7 +49,8 @@ public class Vortex {
                 new BanCmd(),
                 new InviteCmd(),
                 new KickCmd(),
-                new PingCmd()
+                new PingCmd(),
+                new StatsCmd(now)
             };
             new JDABuilder(AccountType.BOT).setToken(tokens.get(0)).addListener(new Bot(commands)).buildAsync();
             new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new Bot(commands)).buildAsync();

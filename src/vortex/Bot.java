@@ -66,9 +66,10 @@ public class Bot extends ListenerAdapter {
                 {
                     StringBuilder builder = new StringBuilder("**"+event.getJDA().getSelfInfo().getName()+"** commands:\n");
                     for(Command command : commands)
-                        builder.append("\n`").append(Constants.PREFIX).append(command.name)
-                                .append(command.arguments==null ? "`" : " "+command.arguments+"`")
-                                .append(" - ").append(command.help);
+                        if(!command.ownerCommand || event.getAuthor().getId().equals(Constants.OWNER_ID))
+                            builder.append("\n`").append(Constants.PREFIX).append(command.name)
+                                    .append(command.arguments==null ? "`" : " "+command.arguments+"`")
+                                    .append(" - ").append(command.help);
                     builder.append("\n\nFor additional help, contact **jagrosh**#4824 or join "+Constants.SERVER_INVITE);
                     if(!event.getAuthor().hasPrivateChannel())
                         DiscordUtil.queueAndBlock(event.getAuthor().openPrivateChannel());

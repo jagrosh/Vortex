@@ -39,14 +39,12 @@ public class DiscordUtil {
     
     public static <T> void queueAndBlock(RestAction<T> action, Consumer<T> success, Consumer<Throwable> failure)
     {
-        System.out.println("flag0");
         Object lock = new Object();
         synchronized(lock)
         {
             action.queue((o) -> {
                 synchronized(lock)
                 {
-                    System.out.println("flag4");
                     if(success!=null)
                         success.accept(o);
                     lock.notifyAll();
@@ -54,18 +52,15 @@ public class DiscordUtil {
             }, (t)->{
                 synchronized(lock)
                 {
-                    System.out.println("flag3");
                     failure.accept(t);
                     lock.notifyAll();
                 }
             });
-            System.out.println("flag2");
             try{
                 lock.wait();
             }catch(InterruptedException e){
                 SimpleLog.getLog("Queue").fatal(e);
             }
         }
-        System.out.println("flag1");
     }
 }
