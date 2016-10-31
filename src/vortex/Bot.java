@@ -15,6 +15,7 @@
  */
 package vortex;
 
+import com.mashape.unirest.http.Unirest;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,7 @@ import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.ReconnectedEvent;
 import net.dv8tion.jda.core.events.ResumedEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -53,13 +55,15 @@ public class Bot extends ListenerAdapter {
 
     private final Pattern INVITES = Pattern.compile("discord(?:\\.gg|app.com\\/invite)\\/([A-Z0-9_]+)",Pattern.CASE_INSENSITIVE);
     private final Command[] commands;
+    private final String[] config;
     private final HashMap<String,Integer> antimention = new HashMap<>();
     private final HashMap<String,Action> antiinvite = new HashMap<>();
     private final HashMap<String,OffsetDateTime> warnings = new HashMap<>();
     
-    public Bot(Command[] commands)
+    public Bot(Command[] commands, String[] config)
     {
         this.commands = commands;
+        this.config = config;
     }
 
     @Override
@@ -71,6 +75,7 @@ public class Bot extends ListenerAdapter {
                 .put("afk", false);
         ((JDAImpl)event.getJDA()).getClient().send(new JSONObject().put("op", 3).put("d", content).toString());
         updateAllGuilds(event.getJDA());
+        sendStats(event.getJDA());
     }
 
     @Override
@@ -226,6 +231,25 @@ public class Bot extends ListenerAdapter {
     @Override
     public void onGuildJoin(GuildJoinEvent event) {
         updateRoleSettings(event.getGuild());
+        sendStats(event.getJDA());
+    }
+
+    @Override
+    public void onGuildLeave(GuildLeaveEvent event) {
+        sendStats(event.getJDA());
+    }
+    
+    public void sendStats(JDA jda)
+    {
+        Unirest.post("https://www.carbonitex.net/discord/data/botdata.php")
+                .field("key", config[0])
+                .field("servercount", jda.getGuilds().size())
+                .asJsonAsync();
+        Unirest.post("https://bots.discord.pw/api/bots/"+jda.getSelfInfo().getId()+"/stats")
+                .header("Authorization", config[1])
+                .header("Content-Type","application/json")
+                .body(new JSONObject().put("server_count",jda.getGuilds().size()).toString())
+                .asJsonAsync();
     }
     
     public void updateAllGuilds(JDA jda)
