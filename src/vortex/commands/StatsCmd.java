@@ -36,14 +36,14 @@ public class StatsCmd extends Command {
     }
     
     @Override
-    protected void execute(String args, MessageReceivedEvent event) {
+    protected Void execute(String args, MessageReceivedEvent event) {
         long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
-        event.getChannel().sendMessage("**"+event.getJDA().getSelfInfo().getName()+"** statistics:"
+        return reply("**"+event.getJDA().getSelfInfo().getName()+"** statistics:"
                 + "\nLast Startup: "+start.format(DateTimeFormatter.RFC_1123_DATE_TIME)
                 + "\nGuilds: "+event.getJDA().getGuilds().size()
                 + "\nMemory: "+usedMb+"Mb / "+totalMb+"Mb"
-                + "\nResponse Total: "+event.getJDA().getResponseTotal()).queue();
+                + "\nResponse Total: "+event.getJDA().getResponseTotal(),event);
     }
     
 }

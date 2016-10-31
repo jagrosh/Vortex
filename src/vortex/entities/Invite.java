@@ -13,30 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package vortex.commands;
-
-import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
+package vortex.entities;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class PingCmd extends Command {
-
-    public PingCmd()
+public class Invite {
+    private final String guildId;
+    private final String guildName;
+    public Invite(String id, String name)
     {
-        this.name = "ping";
-        this.help = "checks the bot's latency";
+        this.guildId = id;
+        this.guildName = name;
     }
-    
-    @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Ping...").queue(m -> {
-            m.editMessage("Ping: "+event.getMessage().getCreationTime().until(m.getCreationTime(), ChronoUnit.MILLIS)+"ms").queue();
-        });
-        return null;
+    public String getGuildId()
+    {
+        return guildId;
     }
-    
+    public String getGuildName()
+    {
+        return guildName;
+    }
 }

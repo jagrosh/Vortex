@@ -15,6 +15,7 @@
  */
 package vortex.commands;
 
+import net.dv8tion.jda.core.JDAInfo;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import vortex.Command;
 import vortex.Constants;
@@ -23,20 +24,22 @@ import vortex.Constants;
  *
  * @author John Grosh (jagrosh)
  */
-public class InviteCmd extends Command {
+public class AboutCmd extends Command {
 
-    public InviteCmd()
+    public AboutCmd()
     {
-        this.name = "invite";
-        this.help = "shows how to invite the bot";
+        this.name = "about";
+        this.help = "shows info about the bot";
     }
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
         return reply("Hello. I am **"+event.getJDA().getSelfInfo().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
-                + "\nYou can add me to your server with the link below:"
-                + "\n\n\uD83D\uDD17 **https://discordapp.com/oauth2/authorize?client_id=240254129333731328&permissions=403041342&scope=bot**"
-                + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
+                + "\nI'm here to help keep your server safe and make moderating easy!"
+                + "\nMy prefix is `"+Constants.PREFIX+"` and if you type `"+Constants.PREFIX+"help` I will DM you my commands."
+                + "\nI was written in Java, using the JDA library ("+JDAInfo.VERSION+")"
+                + "\nI am on **"+event.getJDA().getGuilds().size()+"** servers, and can see **"+event.getJDA().getUsers().size()+"** unique users!"
+                + "\n\nFor additional help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
     }
     
 }

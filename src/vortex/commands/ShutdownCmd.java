@@ -15,27 +15,27 @@
  */
 package vortex.commands;
 
-import java.time.temporal.ChronoUnit;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import vortex.Command;
+import vortex.Constants;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class PingCmd extends Command {
+public class ShutdownCmd extends Command {
 
-    public PingCmd()
+    public ShutdownCmd()
     {
-        this.name = "ping";
-        this.help = "checks the bot's latency";
+        this.name = "shutdown";
+        this.help = "safely shuts down the bot";
+        this.ownerCommand = true;
     }
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
-        event.getChannel().sendMessage("Ping...").queue(m -> {
-            m.editMessage("Ping: "+event.getMessage().getCreationTime().until(m.getCreationTime(), ChronoUnit.MILLIS)+"ms").queue();
-        });
+        reply(Constants.WARNING+"Shutting down...",event);
+        event.getJDA().shutdown();
         return null;
     }
     

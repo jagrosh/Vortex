@@ -67,7 +67,7 @@ public class ModLogger {
     }
     
     public enum Action {
-        BAN("banned"), KICK("kicked"), MUTE("muted");
+        BAN("banned"), KICK("kicked"), MUTE("muted"), WARN("warned"), DELETE("deleted");
         
         private final String verb;
         private Action(String verb)

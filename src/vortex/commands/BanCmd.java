@@ -24,7 +24,7 @@ import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Command;
 import vortex.Constants;
 import vortex.ModLogger;
-import vortex.utils.DiscordUtil;
+import vortex.entities.VortexStringBuilder;
 import vortex.utils.FormatUtil;
 
 /**
@@ -43,43 +43,40 @@ public class BanCmd extends Command {
     }
 
     @Override
-    protected void execute(String args, MessageReceivedEvent event) {
+    protected Void execute(String args, MessageReceivedEvent event) {
+        if(!PermissionUtil.checkPermission(event.getGuild(), event.getGuild().getSelfMember(), Permission.BAN_MEMBERS))
+            return reply(String.format(Constants.BOT_NEEDS_PERMISSION,Permission.BAN_MEMBERS,"server"),event);
         if(event.getMessage().getMentionedUsers().isEmpty())
-        {
-            event.getChannel().sendMessage(String.format(Constants.NEED_MENTION, "user")).queue();
-            return;
-        }
+            return reply(String.format(Constants.NEED_MENTION, "user"),event);
         if(event.getMessage().getMentionedUsers().size()>20)
-        {
-            event.getChannel().sendMessage(Constants.ERROR+"Up to 20 users can be banned at once.").queue();
-            return;
-        }
-        StringBuilder builder = new StringBuilder();
+            return reply(Constants.ERROR+"Up to 20 users can be banned at once.",event);
+        VortexStringBuilder builder = new VortexStringBuilder(event.getMessage().getMentionedUsers().size(), (s) -> {reply(s,event);});
         event.getMessage().getMentionedUsers().stream().forEach((User u) -> {
             Member m = event.getGuild().getMember(u);
             if(m==null || PermissionUtil.canInteract(event.getMember(), m))
             {
                 try 
                 {
-                    DiscordUtil.queueAndBlock(event.getGuild().getController().ban(u, 1),
-                            (v)->{ builder.append("\n").append(Constants.SUCCESS).append("Successfully banned ").append(u.getAsMention());}, 
-                            (t)->{
-                                if(t instanceof PermissionException)
-                                    builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(FormatUtil.formatUser(u));
-                                else
-                                    builder.append("\n").append(Constants.ERROR).append("I cannot ban ").append(FormatUtil.formatUser(u));
-                            });
+                    event.getGuild().getController().ban(m, 1).queue((v) -> {
+                        builder.append("\n").append(Constants.SUCCESS).append("Successfully banned ").append(u.getAsMention()).increment();
+                    }, (t) -> {
+                        if(t instanceof PermissionException)
+                            builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(FormatUtil.formatUser(u));
+                        else
+                            builder.append("\n").append(Constants.ERROR).append("I cannot ban ").append(FormatUtil.formatUser(u));
+                        builder.increment();
+                    });
                 } catch(PermissionException e)
                 {
-                    builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(FormatUtil.formatUser(u));
+                    builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(FormatUtil.formatUser(u)).increment();
                 }
             }
             else
             {
-                builder.append("\n").append(Constants.ERROR).append("You do not have permission to ban ").append(FormatUtil.formatUser(u));
+                builder.append("\n").append(Constants.ERROR).append("You do not have permission to ban ").append(FormatUtil.formatUser(u)).increment();
             }
         });
-        event.getChannel().sendMessage(builder.toString().trim()).queue();
         ModLogger.logCommand(event.getMessage());
+        return null;
     }
 }

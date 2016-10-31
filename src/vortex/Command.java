@@ -15,7 +15,6 @@
  */
 package vortex;
 
-import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -33,15 +32,11 @@ public abstract class Command {
     protected Permission[] requiredPermissions = new Permission[0];
     protected boolean ownerCommand = false;
     
-    protected abstract void execute(String args, MessageReceivedEvent event);
+    protected abstract Void execute(String args, MessageReceivedEvent event);
     
     public void run(String args, MessageReceivedEvent event)
     {
         if(ownerCommand && !event.getAuthor().getId().equals(Constants.OWNER_ID))
-            return;
-        if(type==Type.USERGUILD && event.getChannelType()==ChannelType.TEXT && event.getJDA().getAccountType()==AccountType.BOT)
-            return;
-        if(event.getChannelType()==ChannelType.TEXT && event.getJDA().getAccountType()==AccountType.CLIENT)
             return;
         
         if(!type.availableIn(event.getChannelType()))
@@ -76,8 +71,14 @@ public abstract class Command {
         execute(args, event);
     }
     
+    protected static Void reply(String response, MessageReceivedEvent event)
+    {
+        event.getChannel().sendMessage(response).queue();
+        return null;
+    }
+    
     public enum Type {
-        ALL, GUILDONLY, GROUPONLY, NOPRIVATE, USERGUILD;
+        ALL, GUILDONLY;
         
         public boolean availableIn(ChannelType type)
         {
@@ -85,12 +86,7 @@ public abstract class Command {
                 case ALL:
                     return true;
                 case GUILDONLY:
-                case USERGUILD:
                     return type==ChannelType.TEXT;
-                case GROUPONLY:
-                    return type==ChannelType.GROUP;
-                case NOPRIVATE:
-                    return type!=ChannelType.PRIVATE;
                 default:
                     return false;
             }

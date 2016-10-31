@@ -40,20 +40,22 @@ public class Vortex {
         /**
          * Tokens:
          * 0 - bot token
-         * 1 - user token
+         * 1 - user token *deprecated
          */
         try {
             tokens = Files.readAllLines(Paths.get("config.txt"));
             Command[] commands = new Command[]{
                 new AutomodCmd(),
                 new BanCmd(),
-                new InviteCmd(),
                 new KickCmd(),
                 new PingCmd(),
-                new StatsCmd(now)
+                new AboutCmd(),
+                new InviteCmd(),
+                new StatsCmd(now),
+                new ShutdownCmd()
             };
             new JDABuilder(AccountType.BOT).setToken(tokens.get(0)).addListener(new Bot(commands)).buildAsync();
-            new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new Bot(commands)).buildAsync();
+            //new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new Bot(commands)).buildAsync();
         } catch (IOException | ArrayIndexOutOfBoundsException | LoginException | RateLimitedException ex) {
             SimpleLog.getLog("Vortex").fatal(ex);
         }
