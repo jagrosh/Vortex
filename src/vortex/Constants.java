@@ -28,6 +28,7 @@ public class Constants {
     public final static String SERVER_INVITE = "https://discord.gg/0p9LSGoRLu6Pet0k";
     public final static String NOT_IN_X = ERROR+"That command is not available in %s Messages!";
     public final static String NEED_MENTION = ERROR+"Please mention at least 1 %s!";
+    public final static String NEED_X = ERROR+"Please include at least 1 %s";
     public final static String USER_NEEDS_PERMISSION = ERROR+"You must have the %s permission to use that in this %s!";
     public final static String BOT_NEEDS_PERMISSION = ERROR+"I do not have the %s permission in this %s";
     public final static String OWNER_ID = "113156185389092864";

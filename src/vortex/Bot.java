@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.dv8tion.jda.core.JDA;
@@ -32,6 +34,7 @@ import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.ReconnectedEvent;
 import net.dv8tion.jda.core.events.ResumedEvent;
+import net.dv8tion.jda.core.events.ShutdownEvent;
 import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
@@ -44,6 +47,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 import org.json.JSONObject;
 import vortex.ModLogger.Action;
+import vortex.commands.*;
 import vortex.entities.Invite;
 import vortex.utils.RestUtil;
 
@@ -59,10 +63,22 @@ public class Bot extends ListenerAdapter {
     private final HashMap<String,Integer> antimention = new HashMap<>();
     private final HashMap<String,Action> antiinvite = new HashMap<>();
     private final HashMap<String,OffsetDateTime> warnings = new HashMap<>();
+    private final ScheduledExecutorService threadpool = Executors.newScheduledThreadPool(0);
     
-    public Bot(Command[] commands, String[] config)
+    public Bot(String[] config)
     {
-        this.commands = commands;
+        this.commands = new Command[]{
+                new AutomodCmd(),
+                new KickCmd(),
+                new BanCmd(),
+                new SoftbanCmd(threadpool),
+                new HackbanCmd(),
+                new PingCmd(),
+                new AboutCmd(),
+                new InviteCmd(),
+                new StatsCmd(OffsetDateTime.now()),
+                new ShutdownCmd()
+            };
         this.config = config;
     }
 
@@ -87,6 +103,11 @@ public class Bot extends ListenerAdapter {
     public void onReconnect(ReconnectedEvent event) {
         updateAllGuilds(event.getJDA());
     }
+
+    @Override
+    public void onShutdown(ShutdownEvent event) {
+        threadpool.shutdown();
+    }
     
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
@@ -106,14 +127,17 @@ public class Bot extends ListenerAdapter {
                 builder.append("\n\nFor additional help, contact **jagrosh**#4824 or join "+Constants.SERVER_INVITE);
                 if(!event.getAuthor().hasPrivateChannel())
                 {
-                    event.getAuthor().openPrivateChannel().queue(pc -> pc.sendMessage(builder.toString()).queue((v)->{}, (t)->
-                        event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue()), (t)->
-                        event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because I could not open a Direct Message with you.").queue());
+                    event.getAuthor().openPrivateChannel().queue(
+                        pc -> pc.sendMessage(builder.toString()).queue( 
+                            m->{}, 
+                            t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue()), 
+                        t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because I could not open a Direct Message with you.").queue());
                 }
                 else
                 {
-                    event.getAuthor().getPrivateChannel().sendMessage(builder.toString()).queue((v)->{}, (t)->
-                        event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue());
+                    event.getAuthor().getPrivateChannel().sendMessage(builder.toString()).queue(
+                        m->{}, 
+                        t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue());
                 }
             }
             else
