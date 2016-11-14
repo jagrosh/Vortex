@@ -15,28 +15,27 @@
  */
 package vortex.commands;
 
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import vortex.Command;
-import vortex.Constants;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class InviteCmd extends Command {
+public class SetupCmd extends Command {
 
-    public InviteCmd()
+    public SetupCmd()
     {
-        this.name = "invite";
-        this.help = "shows how to invite the bot";
+        this.name = "setup";
+        this.help = "sets up the bot on the server";
+        this.type = Type.GUILDONLY;
+        this.requiredPermissions = new Permission[]{Permission.ADMINISTRATOR};
     }
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
-        return reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
-                + "\nYou can add me to your server with the link below:"
-                + "\n\n\uD83D\uDD17 **https://discordapp.com/oauth2/authorize?client_id=240254129333731328&permissions=403041342&scope=bot**"
-                + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
+        return null; //unfinished
     }
     
 }

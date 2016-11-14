@@ -35,7 +35,7 @@ public class AutomodCmd extends Command {
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
         String topic = (args==null ? "" : args.toLowerCase());
-        String response = "__**"+event.getJDA().getSelfInfo().getName()+"** Automatic Moderator:__\n\n";
+        String response = "__**"+event.getJDA().getSelfUser().getName()+"** Automatic Moderator:__\n\n";
         switch(topic)
         {
             default:

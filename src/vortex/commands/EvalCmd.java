@@ -15,35 +15,40 @@
  */
 package vortex.commands;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import vortex.Command;
+import vortex.Constants;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class StatsCmd extends Command {
+public class EvalCmd extends Command {
 
-    private final OffsetDateTime start;
-    public StatsCmd(OffsetDateTime start)
+    public EvalCmd()
     {
-        this.start = start;
-        this.name = "stats";
-        this.help = "shows some statistics on the bot";
+        this.name = "eval";
+        this.help = "evaluates nashorn code";
         this.ownerCommand = true;
     }
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
-        long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
-        long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
-        return reply("**"+event.getJDA().getSelfUser().getName()+"** statistics:"
-                + "\nLast Startup: "+start.format(DateTimeFormatter.RFC_1123_DATE_TIME)
-                + "\nGuilds: "+event.getJDA().getGuilds().size()
-                + "\nMemory: "+usedMb+"Mb / "+totalMb+"Mb"
-                + "\nResponse Total: "+event.getJDA().getResponseTotal(),event);
+        ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
+        se.put("event", event);
+        se.put("jda", event.getJDA());
+        se.put("guild", event.getGuild());
+        se.put("channel", event.getChannel());
+        try
+        {
+            return reply(Constants.SUCCESS+"Evaluated Successfully:\n```\n"+se.eval(args)+" ```", event);
+        } 
+        catch(Exception e)
+        {
+            return reply(Constants.ERROR+"An exception was thrown:\n```\n"+e+" ```", event);
+        }
     }
     
 }

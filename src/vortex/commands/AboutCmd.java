@@ -34,7 +34,7 @@ public class AboutCmd extends Command {
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
-        return reply("Hello. I am **"+event.getJDA().getSelfInfo().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
+        return reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
                 + "\nI'm here to help keep your server safe and make moderating easy!"
                 + "\nMy prefix is `"+Constants.PREFIX+"` and if you type `"+Constants.PREFIX+"help` I will DM you my commands."
                 + "\nI was written in Java, using the JDA library ("+JDAInfo.VERSION+")"

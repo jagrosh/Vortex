@@ -46,7 +46,8 @@ public class Vortex {
                 tokens.get(1),
                 tokens.get(2)
             };
-            new JDABuilder(AccountType.BOT).setToken(tokens.get(0)).addListener(new Bot(config)).buildAsync();
+            EventWaiter waiter = new EventWaiter();
+            new JDABuilder(AccountType.BOT).setToken(tokens.get(0)).addListener(new Bot(config, waiter)).addListener(waiter).buildAsync();
             //new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new Bot(commands)).buildAsync();
         } catch (IOException | ArrayIndexOutOfBoundsException | LoginException | RateLimitedException ex) {
             SimpleLog.getLog("Vortex").fatal(ex);

@@ -33,7 +33,12 @@ public class ModLogger {
     
     public static void logCommand(Message message)
     {
-        sendLog(message.getGuild(), formatCommandLog(message));
+        sendLog(message.getGuild(), formatCommandLog(message, null));
+    }
+    
+    public static void logCommand(Message message, String extra)
+    {
+        sendLog(message.getGuild(), formatCommandLog(message, extra));
     }
     
     public static void logAction(Action action, Guild guild, User user, String reason)
@@ -47,10 +52,10 @@ public class ModLogger {
         return time()+" User "+FormatUtil.formatFullUser(user)+" was automatically "+action.getVerb()+" for:\n```\n"+reason+" ```";
     }
     
-    private static String formatCommandLog(Message command)
+    private static String formatCommandLog(Message command, String extra)
     {
         return time()+" "+formatUser(command.getAuthor())+" used the following command in "+command.getTextChannel().getAsMention()
-                +":\n```\n"+command.getContent()+" ```";
+                +":\n```\n"+command.getContent()+(extra==null ? "" : extra)+" ```";
     }
     
     private static String time()

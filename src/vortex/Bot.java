@@ -41,6 +41,7 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.events.role.GenericRoleEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -64,8 +65,9 @@ public class Bot extends ListenerAdapter {
     private final HashMap<String,Action> antiinvite = new HashMap<>();
     private final HashMap<String,OffsetDateTime> warnings = new HashMap<>();
     private final ScheduledExecutorService threadpool = Executors.newScheduledThreadPool(0);
-    
-    public Bot(String[] config)
+    private final EventWaiter waiter;
+        
+    public Bot(String[] config, EventWaiter waiter)
     {
         this.commands = new Command[]{
                 new AutomodCmd(),
@@ -73,13 +75,16 @@ public class Bot extends ListenerAdapter {
                 new BanCmd(),
                 new SoftbanCmd(threadpool),
                 new HackbanCmd(),
+                new CleanCmd(waiter),
                 new PingCmd(),
                 new AboutCmd(),
                 new InviteCmd(),
                 new StatsCmd(OffsetDateTime.now()),
+                new EvalCmd(),
                 new ShutdownCmd()
             };
         this.config = config;
+        this.waiter = waiter;
     }
 
     @Override
@@ -118,7 +123,7 @@ public class Bot extends ListenerAdapter {
             String[] parts = Arrays.copyOf(event.getMessage().getRawContent().substring(Constants.PREFIX.length()).trim().split("\\s+",2), 2);
             if(parts[0].equalsIgnoreCase("help"))
             {
-                StringBuilder builder = new StringBuilder("**"+event.getJDA().getSelfInfo().getName()+"** commands:\n");
+                StringBuilder builder = new StringBuilder("**"+event.getJDA().getSelfUser().getName()+"** commands:\n");
                 for(Command command : commands)
                     if(!command.ownerCommand || event.getAuthor().getId().equals(Constants.OWNER_ID))
                         builder.append("\n`").append(Constants.PREFIX).append(command.name)
@@ -141,7 +146,7 @@ public class Bot extends ListenerAdapter {
                 }
             }
             else
-                if(event.getChannelType()!=ChannelType.TEXT || PermissionUtil.checkPermission(event.getTextChannel(), event.getGuild().getMember(event.getJDA().getSelfInfo()), Permission.MESSAGE_WRITE))
+                if(event.getChannelType()!=ChannelType.TEXT || PermissionUtil.checkPermission(event.getTextChannel(), event.getGuild().getMember(event.getJDA().getSelfUser()), Permission.MESSAGE_WRITE))
                     for(Command command : commands)
                         if(parts[0].equalsIgnoreCase(command.name))
                             command.run(parts[1], event);
@@ -269,7 +274,7 @@ public class Bot extends ListenerAdapter {
                 .field("key", config[0])
                 .field("servercount", jda.getGuilds().size())
                 .asJsonAsync();
-        Unirest.post("https://bots.discord.pw/api/bots/"+jda.getSelfInfo().getId()+"/stats")
+        Unirest.post("https://bots.discord.pw/api/bots/"+jda.getSelfUser().getId()+"/stats")
                 .header("Authorization", config[1])
                 .header("Content-Type","application/json")
                 .body(new JSONObject().put("server_count",jda.getGuilds().size()).toString())
