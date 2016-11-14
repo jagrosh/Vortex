@@ -53,7 +53,7 @@ public abstract class Command {
                 {
                     if(!PermissionUtil.checkPermission(event.getTextChannel(), event.getMember(), p))
                     {
-                        event.getChannel().sendMessage(String.format(Constants.USER_NEEDS_PERMISSION, p, "Channel")).queue();
+                        event.getChannel().sendMessage(String.format(Constants.USER_NEEDS_PERMISSION, p, "channel")).queue();
                         return;
                     }
                 }
@@ -61,7 +61,7 @@ public abstract class Command {
                 {
                     if(!PermissionUtil.checkPermission(event.getGuild(), event.getMember(), p))
                     {
-                        event.getChannel().sendMessage(String.format(Constants.USER_NEEDS_PERMISSION, p, "Guild")).queue();
+                        event.getChannel().sendMessage(String.format(Constants.USER_NEEDS_PERMISSION, p, "guild")).queue();
                         return;
                     }
                 }

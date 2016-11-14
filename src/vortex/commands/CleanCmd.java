@@ -56,11 +56,11 @@ public class CleanCmd extends Command {
     protected Void execute(String args, MessageReceivedEvent event) {
         if(args==null || args.isEmpty())
         {
-            event.getChannel().sendMessage(Constants.WARNING+"No parameters provided! Please select a cleaning option below!"
-                    + "\n"+CleanType.ROBOT.getUnicode()+" - Bot messages"
-                    + "\n"+CleanType.EMBEDS.getUnicode()+" - Embeds"
-                    + "\n"+CleanType.LINKS.getUnicode()+" - Links"
-                    + "\n"+CANCEL+" - Cancel").queue((Message m) -> {
+            event.getChannel().sendMessage("No parameters provided! Please select a cleaning option below!"
+                    + "\n"+CleanType.ROBOT.getUnicode()+" - **Bot messages**"
+                    + "\n"+CleanType.EMBEDS.getUnicode()+" - **Embeds**"
+                    + "\n"+CleanType.LINKS.getUnicode()+" - **Links**"
+                    + "\n"+CANCEL+" - **Cancel**").queue((Message m) -> {
                         for(CleanType type : CleanType.values())
                             m.addReaction(type.getUnicode()).queue();
                         m.addReaction(CANCEL).queue();

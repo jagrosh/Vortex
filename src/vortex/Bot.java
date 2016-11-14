@@ -41,7 +41,6 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.events.role.GenericRoleEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -134,14 +133,14 @@ public class Bot extends ListenerAdapter {
                 {
                     event.getAuthor().openPrivateChannel().queue(
                         pc -> pc.sendMessage(builder.toString()).queue( 
-                            m->{}, 
+                            m-> event.getMessage().addReaction("\u2611").queue(), 
                             t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue()), 
                         t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because I could not open a Direct Message with you.").queue());
                 }
                 else
                 {
                     event.getAuthor().getPrivateChannel().sendMessage(builder.toString()).queue(
-                        m->{}, 
+                        m-> event.getMessage().addReaction("\u2611").queue(), 
                         t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue());
                 }
             }
