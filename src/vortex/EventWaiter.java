@@ -31,7 +31,7 @@ import vortex.entities.WaitingEvent;
  */
 public class EventWaiter implements EventListener {
     
-    private final HashMap<Class, List<WaitingEvent>> waitingEvents;
+    private final HashMap<Class<?>, List<WaitingEvent>> waitingEvents;
     
     public EventWaiter()
     {
@@ -57,7 +57,8 @@ public class EventWaiter implements EventListener {
         if(waitingEvents.containsKey(event.getClass()))
         {
             List<WaitingEvent> list = waitingEvents.get(event.getClass());
-            list.removeAll(list.stream().filter(i -> i.attempt(event)).collect(Collectors.toList()));
+            List<WaitingEvent> ulist = new ArrayList<>(list);
+            list.removeAll(ulist.stream().filter(i -> i.attempt(event)).collect(Collectors.toList()));
         }
     }
 }
