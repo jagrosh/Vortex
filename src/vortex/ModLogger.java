@@ -17,9 +17,12 @@ package vortex;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.utils.FormatUtil;
@@ -33,17 +36,31 @@ public class ModLogger {
     
     public static void logCommand(Message message)
     {
-        sendLog(message.getGuild(), formatCommandLog(message, null));
+        logCommand(message, null);
     }
     
     public static void logCommand(Message message, String extra)
     {
-        sendLog(message.getGuild(), formatCommandLog(message, extra));
+        MessageEmbed embed = new EmbedBuilder()
+                .setColor(message.getGuild().getSelfMember().getColor())
+                .setTimestamp(message.getCreationTime())
+                .setFooter(message.getAuthor().getName()+" #"+message.getAuthor().getDiscriminator(), 
+                        message.getAuthor().getAvatarUrl()==null ? message.getAuthor().getDefaultAvatarUrl() : message.getAuthor().getAvatarUrl())
+                .setDescription(message.getTextChannel().getAsMention()+": "+message.getRawContent()+(extra==null ? "" : extra))
+                .build();
+        sendLog(message.getGuild(), embed);
     }
     
-    public static void logAction(Action action, Guild guild, User user, String reason)
+    public static void logAction(Action action, Message message, String reason)
     {
-        sendLog(guild, formatActionLog(action,user,reason));
+        MessageEmbed embed = new EmbedBuilder()
+                .setColor(message.getGuild().getSelfMember().getColor())
+                .setTimestamp(message.getCreationTime())
+                .setFooter(message.getJDA().getSelfUser().getName()+" automod", 
+                        message.getJDA().getSelfUser().getAvatarUrl()==null ? message.getJDA().getSelfUser().getDefaultAvatarUrl() : message.getJDA().getSelfUser().getAvatarUrl())
+                .setDescription(message.getAuthor().getAsMention()+" was automatically **"+action.getVerb()+"** for:\n```\n"+reason+" ```")
+                .build();
+        sendLog(message.getGuild(), embed);
     }
     
     
@@ -63,12 +80,12 @@ public class ModLogger {
         return "`["+(OffsetDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME).split("\\.")[0])+"]`";
     }
     
-    private static void sendLog(Guild guild, String toSend)
+    private static void sendLog(Guild guild, MessageEmbed embed)
     {
         guild.getTextChannels()
                 .stream().filter(tc -> ((tc.getName().startsWith("mod") && tc.getName().endsWith("log")) || tc.getName().contains("modlog")) 
                         && PermissionUtil.checkPermission(tc, guild.getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ))
-                .findFirst().ifPresent(tc -> tc.sendMessage(toSend).queue());
+                .findFirst().ifPresent(tc -> tc.sendMessage(new MessageBuilder().setEmbed(embed).build()).queue());
     }
     
     public enum Action {

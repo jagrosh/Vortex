@@ -26,8 +26,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
@@ -88,12 +90,8 @@ public class Bot extends ListenerAdapter {
 
     @Override
     public void onReady(ReadyEvent event) {
-        JSONObject content = new JSONObject()
-                .put("game", new JSONObject().put("name","Type "+Constants.PREFIX+"help"))
-                .put("status", "online")
-                .put("since", System.currentTimeMillis())
-                .put("afk", false);
-        ((JDAImpl)event.getJDA()).getClient().send(new JSONObject().put("op", 3).put("d", content).toString());
+        event.getJDA().getPresence().setGame(Game.of("Type "+Constants.PREFIX+"help"));
+        event.getJDA().getPresence().setStatus(OnlineStatus.ONLINE);
         updateAllGuilds(event.getJDA());
         sendStats(event.getJDA());
     }
@@ -186,7 +184,7 @@ public class Bot extends ListenerAdapter {
             {
                 try{
                     event.getGuild().getController().ban(event.getMember(), 1).queue(v -> {
-                            ModLogger.logAction(Action.BAN, event.getGuild(), event.getAuthor(), "Mentioning "+mentions+" users");
+                            ModLogger.logAction(Action.BAN, event.getMessage(), "Mentioning "+mentions+" users");
                         });
                 } catch(Exception e){}
             }
@@ -213,12 +211,12 @@ public class Bot extends ListenerAdapter {
                     {
                         case BAN:
                             event.getGuild().getController().ban(event.getMember(), 1).queue(v -> {
-                                ModLogger.logAction(Action.BAN, event.getGuild(), event.getAuthor(), "Posting an invite link: http://discordapp.com/invite/"+inviteCode);
+                                ModLogger.logAction(Action.BAN, event.getMessage(), "Posting an invite link: http://discordapp.com/invite/"+inviteCode);
                             });
                             break;
                         case KICK:
                             event.getGuild().getController().kick(event.getMember()).queue(v -> {
-                                ModLogger.logAction(Action.KICK, event.getGuild(), event.getAuthor(), "Posting an invite link: http://discordapp.com/invite/"+inviteCode);
+                                ModLogger.logAction(Action.KICK, event.getMessage(), "Posting an invite link: http://discordapp.com/invite/"+inviteCode);
                             });
                             break;
                         case MUTE:

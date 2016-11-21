@@ -57,10 +57,10 @@ public class CleanCmd extends Command {
         if(args==null || args.isEmpty())
         {
             event.getChannel().sendMessage("No parameters provided! Please select a cleaning option below!"
-                    + "\n"+CleanType.ROBOT.getUnicode()+" - **Bot messages**"
-                    + "\n"+CleanType.EMBEDS.getUnicode()+" - **Embeds**"
-                    + "\n"+CleanType.LINKS.getUnicode()+" - **Links**"
-                    + "\n"+CANCEL+" - **Cancel**").queue((Message m) -> {
+                    + "\n"+CleanType.ROBOT.getUnicode()+" **Bots**"
+                    + "      "+CleanType.EMBEDS.getUnicode()+" **Embeds**"
+                    + "\n"+CleanType.LINKS.getUnicode()+" **Links**"
+                    + "     "+CANCEL+" **Cancel**").queue((Message m) -> {
                         for(CleanType type : CleanType.values())
                             m.addReaction(type.getUnicode()).queue();
                         m.addReaction(CANCEL).queue();
@@ -127,7 +127,7 @@ public class CleanCmd extends Command {
             boolean embeds = newargs.contains("embeds");
             boolean links = newargs.contains("links");
             
-            if(!all && !bots && !embeds && !links && texts.isEmpty())
+            if(!all && !bots && !embeds && !links && texts.isEmpty() && event.getMessage().getMentionedUsers().isEmpty())
                 return reply(Constants.ERROR+"No valid arguments provided!\nValid arguments: `"+this.arguments+"`", event);
             
             event.getChannel().getHistory().retrievePast(100).queue(messages -> {
@@ -142,7 +142,7 @@ public class CleanCmd extends Command {
                             return true;
                         if(bots && m.getAuthor().isBot())
                             return true;
-                        if(embeds && !m.getEmbeds().isEmpty())
+                        if(embeds && !(m.getEmbeds().isEmpty() && m.getAttachments().isEmpty()))
                             return true;
                         if(links && LINK_PATTERN.matcher(m.getRawContent()).find())
                             return true;

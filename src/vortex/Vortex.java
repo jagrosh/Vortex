@@ -20,6 +20,7 @@ import java.nio.file.*;
 import java.util.List;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.core.*;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.SimpleLog;
 
@@ -47,7 +48,13 @@ public class Vortex {
                 tokens.get(2)
             };
             EventWaiter waiter = new EventWaiter();
-            new JDABuilder(AccountType.BOT).setToken(tokens.get(0)).addListener(new Bot(config, waiter)).addListener(waiter).buildAsync();
+            new JDABuilder(AccountType.BOT)
+                    .setToken(tokens.get(0))
+                    .addListener(new Bot(config, waiter))
+                    .addListener(waiter)
+                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                    .setGame(Game.of("loading..."))
+                    .buildAsync();
             //new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new Bot(commands)).buildAsync();
         } catch (IOException | ArrayIndexOutOfBoundsException | LoginException | RateLimitedException ex) {
             SimpleLog.getLog("Vortex").fatal(ex);
