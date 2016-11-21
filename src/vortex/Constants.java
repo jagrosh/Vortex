@@ -26,6 +26,7 @@ public class Constants {
     public final static String WARNING = "\u2622 ";
     public final static String ERROR = "\u274C ";
     public final static String SERVER_INVITE = "https://discord.gg/0p9LSGoRLu6Pet0k";
+    public final static String BOT_INVITE = "https://discordapp.com/oauth2/authorize?client_id=240254129333731328&permissions=403041342&scope=bot";
     public final static String NOT_IN_X = ERROR+"That command is not available in %s Messages!";
     public final static String NEED_MENTION = ERROR+"Please mention at least 1 %s!";
     public final static String NEED_X = ERROR+"Please include at least 1 %s";

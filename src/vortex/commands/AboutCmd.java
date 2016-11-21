@@ -15,8 +15,12 @@
  */
 package vortex.commands;
 
+import java.awt.Color;
+import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDAInfo;
+import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import vortex.Bot;
 import vortex.Command;
 import vortex.Constants;
 
@@ -34,12 +38,33 @@ public class AboutCmd extends Command {
     
     @Override
     protected Void execute(String args, MessageReceivedEvent event) {
-        return reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
-                + "\nI'm here to help keep your server safe and make moderating easy!"
-                + "\nMy prefix is `"+Constants.PREFIX+"` and if you type `"+Constants.PREFIX+"help` I will DM you my commands."
-                + "\nI was written in Java, using the JDA library ("+JDAInfo.VERSION+")"
-                + "\nI am on **"+event.getJDA().getGuilds().size()+"** servers, and can see **"+event.getJDA().getUsers().size()+"** unique users!"
-                + "\n\nFor additional help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
+        EmbedBuilder builder = new EmbedBuilder();
+        builder.setColor(event.getGuild()==null ? Color.CYAN : event.getGuild().getSelfMember().getColor());
+        builder.setAuthor("All about "+event.getJDA().getSelfUser().getName()+"!", null, event.getJDA().getSelfUser().getAvatarUrl());
+        builder.setDescription("Hello! I am **"+event.getJDA().getSelfUser().getName()+"** and I'm here to keep your Discord server safe and make moderating easy!"
+                + "\nI was written in Java by **jagrosh** using the JDA library ("+JDAInfo.VERSION+") <:jda:230988580904763393>"
+                + "\nTake a look at my commands by typing `"+Constants.PREFIX+"help`"
+                + "\nJoin my server [`here`]("+Constants.SERVER_INVITE+"), or [`invite`]("+Constants.BOT_INVITE+") me to your server!"
+                + "\n\nSome of my features include: ```css"
+                + "\n\u2611 Moderation commands"
+                + "\n\u2611 Configurable automoderation"
+                + "\n\u2611 Very easy setup [coming soon] ```");
+        builder.addField("Servers", Integer.toString(event.getJDA().getGuilds().size()), true);
+        builder.addField("Users", event.getJDA().getUsers().size()+" unique\n"
+                +event.getJDA().getUsers().stream().filter(u -> 
+                    {
+                        try{
+                            OnlineStatus status = event.getJDA().getGuilds().stream().filter(g -> g.isMember(u)).findAny().get().getMember(u).getOnlineStatus();
+                            return status == OnlineStatus.ONLINE || status == OnlineStatus.IDLE || status == OnlineStatus.DO_NOT_DISTURB || status == OnlineStatus.INVISIBLE;
+                        } catch(Exception e){
+                            return false;
+                        }
+                    }
+                ).count()+" online", true);
+        builder.addField("Channels", event.getJDA().getTextChannels().size()+" Text\n"+event.getJDA().getVoiceChannels().size()+" Voice", true);
+        builder.setFooter("Last restart", null);
+        builder.setTimestamp(Bot.start);
+        return reply(builder.build(),event);
     }
     
 }

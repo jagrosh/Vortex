@@ -35,7 +35,7 @@ public class InviteCmd extends Command {
     protected Void execute(String args, MessageReceivedEvent event) {
         return reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
                 + "\nYou can add me to your server with the link below:"
-                + "\n\n\uD83D\uDD17 **https://discordapp.com/oauth2/authorize?client_id=240254129333731328&permissions=403041342&scope=bot**"
+                + "\n\n\uD83D\uDD17 **"+Constants.BOT_INVITE+"**"
                 + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
     }
     

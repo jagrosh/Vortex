@@ -15,8 +15,10 @@
  */
 package vortex;
 
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 
@@ -74,6 +76,12 @@ public abstract class Command {
     protected static Void reply(String response, MessageReceivedEvent event)
     {
         event.getChannel().sendMessage(response).queue();
+        return null;
+    }
+    
+    protected static Void reply(MessageEmbed embed, MessageReceivedEvent event)
+    {
+        event.getChannel().sendMessage(new MessageBuilder().setEmbed(embed).build()).queue();
         return null;
     }
     

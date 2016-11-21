@@ -56,7 +56,7 @@ import vortex.utils.RestUtil;
  * @author John Grosh (jagrosh)
  */
 public class Bot extends ListenerAdapter {
-
+    public static final OffsetDateTime start = OffsetDateTime.now();
     private final Pattern INVITES = Pattern.compile("discord(?:\\.gg|app.com\\/invite)\\/([A-Z0-9_]+)",Pattern.CASE_INSENSITIVE);
     private final Command[] commands;
     private final String[] config;
