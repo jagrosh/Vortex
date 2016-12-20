@@ -17,9 +17,8 @@ package vortex.commands;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
-import vortex.Constants;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 
 /**
  *
@@ -32,10 +31,11 @@ public class EvalCmd extends Command {
         this.name = "eval";
         this.help = "evaluates nashorn code";
         this.ownerCommand = true;
+        this.guildOnly = false;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
+    protected void execute(CommandEvent event) {
         ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
         se.put("event", event);
         se.put("jda", event.getJDA());
@@ -43,11 +43,11 @@ public class EvalCmd extends Command {
         se.put("channel", event.getChannel());
         try
         {
-            return reply(Constants.SUCCESS+"Evaluated Successfully:\n```\n"+se.eval(args)+" ```", event);
+            event.reply(event.getClient().getSuccess()+" Evaluated Successfully:\n```\n"+se.eval(event.getArgs())+" ```");
         } 
         catch(Exception e)
         {
-            return reply(Constants.ERROR+"An exception was thrown:\n```\n"+e+" ```", event);
+            event.reply(event.getClient().getError()+" An exception was thrown:\n```\n"+e+" ```");
         }
     }
     

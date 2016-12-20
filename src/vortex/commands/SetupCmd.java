@@ -15,9 +15,9 @@
  */
 package vortex.commands;
 
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
 
 /**
  *
@@ -29,13 +29,13 @@ public class SetupCmd extends Command {
     {
         this.name = "setup";
         this.help = "sets up the bot on the server";
-        this.type = Type.GUILDONLY;
-        this.requiredPermissions = new Permission[]{Permission.ADMINISTRATOR};
+        this.guildOnly = true;
+        this.userPermissions = new Permission[]{Permission.ADMINISTRATOR};
+        this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        return null; //unfinished
+    protected void execute(CommandEvent event) {
     }
     
 }

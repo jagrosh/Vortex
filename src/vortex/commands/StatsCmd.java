@@ -17,8 +17,8 @@ package vortex.commands;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 
 /**
  *
@@ -26,24 +26,24 @@ import vortex.Command;
  */
 public class StatsCmd extends Command {
 
-    private final OffsetDateTime start;
-    public StatsCmd(OffsetDateTime start)
+    private final OffsetDateTime start = OffsetDateTime.now();
+    public StatsCmd()
     {
-        this.start = start;
         this.name = "stats";
         this.help = "shows some statistics on the bot";
         this.ownerCommand = true;
+        this.guildOnly = false;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
+    protected void execute(CommandEvent event) {
         long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
-        return reply("**"+event.getJDA().getSelfUser().getName()+"** statistics:"
+        event.reply("**"+event.getSelfUser().getName()+"** statistics:"
                 + "\nLast Startup: "+start.format(DateTimeFormatter.RFC_1123_DATE_TIME)
                 + "\nGuilds: "+event.getJDA().getGuilds().size()
                 + "\nMemory: "+usedMb+"Mb / "+totalMb+"Mb"
-                + "\nResponse Total: "+event.getJDA().getResponseTotal(),event);
+                + "\nResponse Total: "+event.getJDA().getResponseTotal());
     }
     
 }

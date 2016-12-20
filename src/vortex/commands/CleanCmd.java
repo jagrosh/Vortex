@@ -15,20 +15,20 @@
  */
 package vortex.commands;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
+import me.jagrosh.jdacommands.utils.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import vortex.Command;
-import vortex.Constants;
-import vortex.EventWaiter;
 import vortex.ModLogger;
 
 /**
@@ -48,13 +48,14 @@ public class CleanCmd extends Command {
         this.name = "clean";
         this.arguments = "@user(s) | \"text\" | bots | embeds | links | all";
         this.help = "cleans messages in the past 100, matching the given criteria";
-        this.requiredPermissions = new Permission[]{Permission.MESSAGE_MANAGE};
-        this.type = Type.GUILDONLY;
+        this.userPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
+        this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
+        this.guildOnly = true;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        if(args==null || args.isEmpty())
+    protected void execute(CommandEvent event) {
+        if(event.getArgs().isEmpty())
         {
             event.getChannel().sendMessage("No parameters provided! Please select a cleaning option below!"
                     + "\n"+CleanType.ROBOT.getUnicode()+" **Bots**"
@@ -64,22 +65,21 @@ public class CleanCmd extends Command {
                         for(CleanType type : CleanType.values())
                             m.addReaction(type.getUnicode()).queue();
                         m.addReaction(CANCEL).queue();
-                        waiter.waitForEvent(MessageReactionAddEvent.class, e -> {
+                        waiter.waitForEvent(MessageReactionAddEvent.class, (MessageReactionAddEvent e) -> {
                             return e.getUser().equals(event.getAuthor())
                                     && e.getMessageId().equals(m.getId())
                                     && (e.getReaction().getEmote().getName().equals(CANCEL)
                                         || CleanType.of(e.getReaction().getEmote().getName())!=null);
-                        }, ev -> {
+                        }, (MessageReactionAddEvent ev) -> {
                             m.deleteMessage().queue();
                             CleanType type = CleanType.of(ev.getReaction().getEmote().getName());
                             if(type!=null)
                                 executeClean(type.getText(), event, " "+type.getText());
-                        });
+                        }, 25, TimeUnit.SECONDS, () -> m.editMessage(event.getClient().getWarning()+" Cleaning timed out.").queue());
                     });
-            return null;
         }
         else
-            return executeClean(args, event, null);
+            executeClean(event.getArgs(), event, null);
     }
     
     private enum CleanType {
@@ -114,65 +114,53 @@ public class CleanCmd extends Command {
         }
     }
     
-    protected Void executeClean(String args, MessageReceivedEvent event, String extra) {
+    protected void executeClean(String args, CommandEvent event, String extra) {
         List<String> texts = new ArrayList<>();
         Matcher ma = QUOTES_PATTERN.matcher(args);
         while(ma.find())
             texts.add(ma.group(1).trim().toLowerCase());
         String newargs = args.replaceAll(QUOTES_REGEX, " ").toLowerCase();
-        try
+        boolean all = newargs.contains("all");
+        boolean bots = newargs.contains("bots");
+        boolean embeds = newargs.contains("embeds");
+        boolean links = newargs.contains("links");
+
+        if(!all && !bots && !embeds && !links && texts.isEmpty() && event.getMessage().getMentionedUsers().isEmpty())
         {
-            boolean all = newargs.contains("all");
-            boolean bots = newargs.contains("bots");
-            boolean embeds = newargs.contains("embeds");
-            boolean links = newargs.contains("links");
-            
-            if(!all && !bots && !embeds && !links && texts.isEmpty() && event.getMessage().getMentionedUsers().isEmpty())
-                return reply(Constants.ERROR+"No valid arguments provided!\nValid arguments: `"+this.arguments+"`", event);
-            
-            event.getChannel().getHistory().retrievePast(100).queue(messages -> {
-                List<Message> toClean;
-                if(all)
-                    toClean = messages;
-                else
-                {
-                    toClean = messages.stream().filter(m -> {
-                        String lowerCaseContent = m.getRawContent().toLowerCase();
-                        if(event.getMessage().getMentionedUsers().contains(m.getAuthor()))
-                            return true;
-                        if(bots && m.getAuthor().isBot())
-                            return true;
-                        if(embeds && !(m.getEmbeds().isEmpty() && m.getAttachments().isEmpty()))
-                            return true;
-                        if(links && LINK_PATTERN.matcher(m.getRawContent()).find())
-                            return true;
-                        return texts.stream().anyMatch(str -> lowerCaseContent.contains(str));
-                    }).collect(Collectors.toList());
-                }
-                toClean.remove(event.getMessage());
-                if(toClean.isEmpty())
-                {
-                    reply(Constants.WARNING+"No messages found matching the given criteria!", event);
-                    return;
-                }
-                try
-                {
-                    if(toClean.size()==1)
-                        toClean.get(0).deleteMessage().queue(v -> reply("Cleaned "+toClean.size()+" messages.",event));
-                    else
-                        ((TextChannel)event.getChannel()).deleteMessages(toClean).queue(v -> reply("Cleaned "+toClean.size()+" messages.",event));
-                    ModLogger.logCommand(event.getMessage(), extra);
-                }
-                catch(PermissionException ex)
-                {
-                    reply(String.format(Constants.BOT_NEEDS_PERMISSION, Permission.MESSAGE_MANAGE, "channel"), event);
-                }
-            });
-        } 
-        catch(PermissionException e)
-        {
-            return reply(String.format(Constants.BOT_NEEDS_PERMISSION, Permission.MESSAGE_HISTORY, "channel"), event);
+            event.reply(event.getClient().getError()+" No valid arguments provided!\nValid arguments: `"+this.arguments+"`");
+            return;
         }
-        return null;
+
+        event.getChannel().getHistory().retrievePast(100).queue(messages -> {
+            List<Message> toClean;
+            if(all)
+                toClean = messages;
+            else
+            {
+                toClean = messages.stream().filter(m -> {
+                    String lowerCaseContent = m.getRawContent().toLowerCase();
+                    if(event.getMessage().getMentionedUsers().contains(m.getAuthor()))
+                        return true;
+                    if(bots && m.getAuthor().isBot())
+                        return true;
+                    if(embeds && !(m.getEmbeds().isEmpty() && m.getAttachments().isEmpty()))
+                        return true;
+                    if(links && LINK_PATTERN.matcher(m.getRawContent()).find())
+                        return true;
+                    return texts.stream().anyMatch(str -> lowerCaseContent.contains(str));
+                }).collect(Collectors.toList());
+            }
+            toClean.remove(event.getMessage());
+            if(toClean.isEmpty())
+            {
+                event.reply(event.getClient().getWarning()+" No messages found matching the given criteria!");
+                return;
+            }
+            if(toClean.size()==1)
+                toClean.get(0).deleteMessage().queue(v -> event.reply(event.getClient().getSuccess()+" Cleaned "+toClean.size()+" messages."));
+            else
+                ((TextChannel)event.getChannel()).deleteMessages(toClean).queue(v -> event.reply(event.getClient().getSuccess()+" Cleaned "+toClean.size()+" messages."));
+            ModLogger.logCommand(event.getMessage(), extra);
+        });
     }
 }

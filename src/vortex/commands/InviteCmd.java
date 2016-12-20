@@ -15,8 +15,8 @@
  */
 package vortex.commands;
 
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import vortex.Constants;
 
 /**
@@ -29,14 +29,15 @@ public class InviteCmd extends Command {
     {
         this.name = "invite";
         this.help = "shows how to invite the bot";
+        this.guildOnly = false;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        return reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
+    protected void execute(CommandEvent event) {
+        event.reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
                 + "\nYou can add me to your server with the link below:"
                 + "\n\n\uD83D\uDD17 **"+Constants.BOT_INVITE+"**"
-                + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE,event);
+                + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE);
     }
     
 }

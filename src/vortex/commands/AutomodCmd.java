@@ -15,8 +15,8 @@
  */
 package vortex.commands;
 
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import vortex.Constants;
 
 /**
@@ -30,16 +30,16 @@ public class AutomodCmd extends Command {
         this.name = "automod";
         this.arguments = "[topic]";
         this.help = "shows details about the automod system";
+        this.guildOnly = false;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        String topic = (args==null ? "" : args.toLowerCase());
+    protected void execute(CommandEvent event) {
         String response = "__**"+event.getJDA().getSelfUser().getName()+"** Automatic Moderator:__\n\n";
-        switch(topic)
+        switch(event.getArgs())
         {
             default:
-                response += "Unknown automod topic `"+args+"`\n\n";
+                response += "Unknown automod topic `"+event.getArgs()+"`\n\n";
             case "":
                 response += "The automoderator system is an easy and simple way to stop spammers. "
                     + "Each feature can be enabled by assigning the bot a role with the correct formatting. See the following topics for more information:\n"
@@ -70,7 +70,7 @@ public class AutomodCmd extends Command {
                     + "Manage Messages, Kick Members, Ban Members, Manage Server, Administrator"
                     + "\nAlso, anyone with a role called `VortexShield` is immune to the automoderator.";
         }
-        return reply(response,event);
+        event.reply(response);
     }
     
 }

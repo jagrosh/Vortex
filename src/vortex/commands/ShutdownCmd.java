@@ -15,8 +15,8 @@
  */
 package vortex.commands;
 
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import vortex.Command;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import vortex.Constants;
 
 /**
@@ -30,13 +30,13 @@ public class ShutdownCmd extends Command {
         this.name = "shutdown";
         this.help = "safely shuts down the bot";
         this.ownerCommand = true;
+        this.guildOnly = false;
     }
     
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        reply(Constants.WARNING+"Shutting down...",event);
+    protected void execute(CommandEvent event) {
+        event.reply(event.getClient().getWarning()+" Shutting down...");
         event.getJDA().shutdown();
-        return null;
     }
     
 }

@@ -16,17 +16,16 @@
 package vortex.commands;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.PermissionUtil;
-import vortex.Command;
 import vortex.Constants;
 import vortex.ModLogger;
-import vortex.entities.VortexStringBuilder;
 import vortex.utils.FormatUtil;
 
 /**
@@ -39,16 +38,15 @@ public class HackbanCmd extends Command {
     {
         this.name = "hackban";
         this.arguments = "userId [userId...]";
-        this.help = "bans all the listed user IDs";
-        this.requiredPermissions = new Permission[]{Permission.BAN_MEMBERS};
-        this.type = Type.GUILDONLY;
+        this.help = "bans all listed user IDs";
+        this.userPermissions = new Permission[]{Permission.BAN_MEMBERS};
+        this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
+        this.guildOnly = true;
     }
 
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        if(!PermissionUtil.checkPermission(event.getGuild(), event.getGuild().getSelfMember(), Permission.BAN_MEMBERS))
-            return reply(String.format(Constants.BOT_NEEDS_PERMISSION,Permission.BAN_MEMBERS,"server"),event);
-        String[] words = args.split("\\s+");
+    protected void execute(CommandEvent event) {
+        String[] words = event.getArgs().split("\\s+");
         List<String> ids = new ArrayList<>();
         for(String word: words)
         {
@@ -60,42 +58,56 @@ public class HackbanCmd extends Command {
                 ids.add(word.substring(3, word.length()-1));
         }
         if(ids.isEmpty())
-            return reply(String.format(Constants.NEED_X, "User ID"),event);
-        if(ids.size()>20)
-            return reply(Constants.ERROR+"Up to 20 users can be banned at once.",event);
-        VortexStringBuilder builder = new VortexStringBuilder(event.getMessage().getMentionedUsers().size(), (s) -> {reply(s,event);});
-        ids.stream().forEach(id -> {
-            Member m;
-            User u = event.getJDA().getUserById(id);
-            if(u!=null)
-                m = event.getGuild().getMember(u);
-            else
-                m = null;
-            String formatted = (u==null ? "User with ID "+id : FormatUtil.formatUser(u));
-            if(m==null || PermissionUtil.canInteract(event.getMember(), m))
+        {
+            event.reply(String.format(Constants.NEED_X, "User ID"));
+            return;
+        }
+        if(event.getMessage().getMentionedUsers().size()>20)
+        {
+            event.reply(event.getClient().getError()+" Up to 20 users can be banned at once.");
+            return;
+        }
+        StringBuilder builder = new StringBuilder();
+        LinkedList<String> banIds = new LinkedList<>();
+        ids.stream().forEach((id) -> {
+            Member m = event.getGuild().getMemberById(id);
+            if(m==null)
             {
-                try 
-                {
-                    event.getGuild().getController().ban(id, 1).queue((v) -> {
-                        builder.append("\n").append(Constants.SUCCESS).append("Successfully banned ").append("<@"+id+">").increment();
-                    }, (t) -> {
-                        if(t instanceof PermissionException)
-                            builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(formatted);
-                        else
-                            builder.append("\n").append(Constants.ERROR).append("I cannot ban ").append(formatted);
-                        builder.increment();
-                    });
-                } catch(PermissionException e)
-                {
-                    builder.append("\n").append(Constants.ERROR).append("I do not have permission to ban ").append(formatted).increment();
-                }
+                banIds.add(id);
+            }
+            else if(!PermissionUtil.canInteract(event.getMember(), m))
+            {
+                builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to ban ").append(FormatUtil.formatUser(m.getUser()));
+            }
+            else if (!PermissionUtil.canInteract(event.getSelfMember(), m))
+            {
+                builder.append("\n").append(event.getClient().getError()).append(" I do not have permission to ban ").append(FormatUtil.formatUser(m.getUser()));
             }
             else
             {
-                builder.append("\n").append(Constants.ERROR).append("You do not have permission to ban ").append(formatted).increment();
+                banIds.add(id);
             }
         });
+        if(banIds.isEmpty())
+            event.reply(builder.toString());
+        else
+        {
+            for(int i=0; i<banIds.size(); i++)
+            {
+                String id = banIds.get(i);
+                User u = event.getJDA().getUserById(id);
+                boolean last = i+1==banIds.size();
+                event.getGuild().getController().ban(id, 1).queue((v) -> {
+                        builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned ").append(u==null ? "User with ID `"+id+"`" : u.getAsMention());
+                        if(last)
+                            event.reply(builder.toString());
+                    }, (t) -> {
+                        builder.append("\n").append(event.getClient().getError()).append(" I failed to ban ").append(u==null ? "User with ID `"+id+"`" : FormatUtil.formatUser(u));
+                        if(last)
+                            event.reply(builder.toString());
+                    });
+            }
+        }
         ModLogger.logCommand(event.getMessage());
-        return null;
     }
 }

@@ -15,40 +15,30 @@
  */
 package vortex;
 
-import com.mashape.unirest.http.Unirest;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import me.jagrosh.jdacommands.Command;
 import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.ReconnectedEvent;
 import net.dv8tion.jda.core.events.ResumedEvent;
 import net.dv8tion.jda.core.events.ShutdownEvent;
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.role.GenericRoleEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.utils.PermissionUtil;
-import org.json.JSONObject;
-import vortex.ModLogger.Action;
 import vortex.commands.*;
 import vortex.entities.Invite;
 import vortex.utils.RestUtil;
@@ -57,43 +47,21 @@ import vortex.utils.RestUtil;
  *
  * @author John Grosh (jagrosh)
  */
-public class Bot extends ListenerAdapter {
-    public static final OffsetDateTime start = OffsetDateTime.now();
+public class AutoMod extends ListenerAdapter {
     private final Pattern INVITES = Pattern.compile("discord(?:\\.gg|app.com\\/invite)\\/([A-Z0-9_]+)",Pattern.CASE_INSENSITIVE);
-    private final Command[] commands;
-    private final String[] config;
     private final HashMap<String,Integer> antimention = new HashMap<>();
     private final HashMap<String,Action> antiinvite = new HashMap<>();
     private final HashMap<String,OffsetDateTime> warnings = new HashMap<>();
-    private final ScheduledExecutorService threadpool = Executors.newScheduledThreadPool(0);
-    private final EventWaiter waiter;
+    private final ScheduledExecutorService threadpool;
         
-    public Bot(String[] config, EventWaiter waiter)
+    public AutoMod(ScheduledExecutorService threadpool)
     {
-        this.commands = new Command[]{
-                new AutomodCmd(),
-                new KickCmd(),
-                new BanCmd(),
-                new SoftbanCmd(threadpool),
-                new HackbanCmd(),
-                new CleanCmd(waiter),
-                new PingCmd(),
-                new AboutCmd(),
-                new InviteCmd(),
-                new StatsCmd(OffsetDateTime.now()),
-                new EvalCmd(),
-                new ShutdownCmd()
-            };
-        this.config = config;
-        this.waiter = waiter;
+        this.threadpool = threadpool;
     }
 
     @Override
     public void onReady(ReadyEvent event) {
-        event.getJDA().getPresence().setGame(Game.of("Type "+Constants.PREFIX+"help"));
-        event.getJDA().getPresence().setStatus(OnlineStatus.ONLINE);
         updateAllGuilds(event.getJDA());
-        sendStats(event.getJDA());
     }
 
     @Override
@@ -109,45 +77,6 @@ public class Bot extends ListenerAdapter {
     @Override
     public void onShutdown(ShutdownEvent event) {
         threadpool.shutdown();
-    }
-    
-    @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        if(event.getAuthor().isBot())
-            return;
-        if(event.getMessage().getRawContent().toLowerCase().startsWith(Constants.PREFIX))
-        {
-            String[] parts = Arrays.copyOf(event.getMessage().getRawContent().substring(Constants.PREFIX.length()).trim().split("\\s+",2), 2);
-            if(parts[0].equalsIgnoreCase("help"))
-            {
-                StringBuilder builder = new StringBuilder("**"+event.getJDA().getSelfUser().getName()+"** commands:\n");
-                for(Command command : commands)
-                    if(!command.ownerCommand || event.getAuthor().getId().equals(Constants.OWNER_ID))
-                        builder.append("\n`").append(Constants.PREFIX).append(command.name)
-                                .append(command.arguments==null ? "`" : " "+command.arguments+"`")
-                                .append(" - ").append(command.help);
-                builder.append("\n\nFor additional help, contact **jagrosh**#4824 or join "+Constants.SERVER_INVITE);
-                if(!event.getAuthor().hasPrivateChannel())
-                {
-                    event.getAuthor().openPrivateChannel().queue(
-                        pc -> pc.sendMessage(builder.toString()).queue( 
-                            m-> event.getMessage().addReaction("\u2611").queue(), 
-                            t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue()), 
-                        t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because I could not open a Direct Message with you.").queue());
-                }
-                else
-                {
-                    event.getAuthor().getPrivateChannel().sendMessage(builder.toString()).queue(
-                        m-> event.getMessage().addReaction("\u2611").queue(), 
-                        t-> event.getChannel().sendMessage(Constants.WARNING+"I cannot send you help because you are blocking Direct Messages.").queue());
-                }
-            }
-            else
-                if(event.getChannelType()!=ChannelType.TEXT || PermissionUtil.checkPermission(event.getTextChannel(), event.getGuild().getMember(event.getJDA().getSelfUser()), Permission.MESSAGE_WRITE))
-                    for(Command command : commands)
-                        if(parts[0].equalsIgnoreCase(command.name))
-                            command.run(parts[1], event);
-        }
     }
 
     @Override
@@ -249,34 +178,12 @@ public class Bot extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
+    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event)
+    {
         if(event.getMember().equals(event.getGuild().getSelfMember()))
             updateRoleSettings(event.getGuild());
     }
-
-    @Override
-    public void onGuildJoin(GuildJoinEvent event) {
-        updateRoleSettings(event.getGuild());
-        sendStats(event.getJDA());
-    }
-
-    @Override
-    public void onGuildLeave(GuildLeaveEvent event) {
-        sendStats(event.getJDA());
-    }
     
-    public void sendStats(JDA jda)
-    {
-        Unirest.post("https://www.carbonitex.net/discord/data/botdata.php")
-                .field("key", config[0])
-                .field("servercount", jda.getGuilds().size())
-                .asJsonAsync();
-        Unirest.post("https://bots.discord.pw/api/bots/"+jda.getSelfUser().getId()+"/stats")
-                .header("Authorization", config[1])
-                .header("Content-Type","application/json")
-                .body(new JSONObject().put("server_count",jda.getGuilds().size()).toString())
-                .asJsonAsync();
-    }
     
     public void updateAllGuilds(JDA jda)
     {

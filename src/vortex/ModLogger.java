@@ -44,9 +44,9 @@ public class ModLogger {
         MessageEmbed embed = new EmbedBuilder()
                 .setColor(message.getGuild().getSelfMember().getColor())
                 .setTimestamp(message.getCreationTime())
-                .setFooter(message.getAuthor().getName()+" #"+message.getAuthor().getDiscriminator(), 
-                        message.getAuthor().getAvatarUrl()==null ? message.getAuthor().getDefaultAvatarUrl() : message.getAuthor().getAvatarUrl())
-                .setDescription(message.getTextChannel().getAsMention()+": "+message.getRawContent()+(extra==null ? "" : extra))
+                .setFooter("#"+message.getTextChannel().getName(), null)
+                .setAuthor(message.getAuthor().getName()+" #"+message.getAuthor().getDiscriminator(), null, message.getAuthor().getEffectiveAvatarUrl())
+                .setDescription(message.getRawContent()+(extra==null ? "" : extra))
                 .build();
         sendLog(message.getGuild(), embed);
     }
@@ -86,19 +86,5 @@ public class ModLogger {
                 .stream().filter(tc -> ((tc.getName().startsWith("mod") && tc.getName().endsWith("log")) || tc.getName().contains("modlog")) 
                         && PermissionUtil.checkPermission(tc, guild.getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ))
                 .findFirst().ifPresent(tc -> tc.sendMessage(new MessageBuilder().setEmbed(embed).build()).queue());
-    }
-    
-    public enum Action {
-        BAN("banned"), KICK("kicked"), MUTE("muted"), WARN("warned"), DELETE("deleted");
-        
-        private final String verb;
-        private Action(String verb)
-        {
-            this.verb = verb;
-        }
-        public String getVerb()
-        {
-            return verb;
-        }
     }
 }

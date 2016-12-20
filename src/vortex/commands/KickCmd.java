@@ -15,16 +15,14 @@
  */
 package vortex.commands;
 
+import java.util.LinkedList;
+import me.jagrosh.jdacommands.Command;
+import me.jagrosh.jdacommands.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.PermissionUtil;
-import vortex.Command;
 import vortex.Constants;
 import vortex.ModLogger;
-import vortex.entities.VortexStringBuilder;
 import vortex.utils.FormatUtil;
 
 /**
@@ -38,45 +36,63 @@ public class KickCmd extends Command {
         this.name = "kick";
         this.arguments = "@user [@user...]";
         this.help = "kicks all mentioned users";
-        this.requiredPermissions = new Permission[]{Permission.KICK_MEMBERS};
-        this.type = Type.GUILDONLY;
+        this.userPermissions = new Permission[]{Permission.KICK_MEMBERS};
+        this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
+        this.guildOnly = true;
     }
-    
+
     @Override
-    protected Void execute(String args, MessageReceivedEvent event) {
-        if(!PermissionUtil.checkPermission(event.getGuild(), event.getGuild().getSelfMember(), Permission.KICK_MEMBERS))
-            return reply(String.format(Constants.BOT_NEEDS_PERMISSION,Permission.KICK_MEMBERS,"server"),event);
+    protected void execute(CommandEvent event) {
         if(event.getMessage().getMentionedUsers().isEmpty())
-            return reply(String.format(Constants.NEED_MENTION, "user"),event);
+        {
+            event.reply(String.format(Constants.NEED_MENTION, "user"));
+            return;
+        }
         if(event.getMessage().getMentionedUsers().size()>20)
-            return reply(Constants.ERROR+"Up to 20 users can be kicked at once.",event);
-        VortexStringBuilder builder = new VortexStringBuilder(event.getMessage().getMentionedUsers().size(), (s) -> {reply(s,event);});
-        event.getMessage().getMentionedUsers().stream().forEach((User u) -> {
+        {
+            event.reply(event.getClient().getError()+" Up to 20 users can be kicked at once.");
+            return;
+        }
+        StringBuilder builder = new StringBuilder();
+        LinkedList<Member> users = new LinkedList<>();
+        event.getMessage().getMentionedUsers().stream().forEach((u) -> {
             Member m = event.getGuild().getMember(u);
-            if(m==null || PermissionUtil.canInteract(event.getMember(), m))
+            if(m==null)
             {
-                try 
-                {
-                    event.getGuild().getController().kick(m).queue((v) -> {
-                        builder.append("\n").append(Constants.SUCCESS).append("Successfully kicked ").append(u.getAsMention()).increment();
-                    }, (t) -> {
-                        if(t instanceof PermissionException)
-                            builder.append("\n").append(Constants.ERROR).append("I do not have permission to kick ").append(FormatUtil.formatUser(u));
-                        else
-                            builder.append("\n").append(Constants.ERROR).append("I cannot kick ").append(FormatUtil.formatUser(u));
-                        builder.increment();
-                    });
-                } catch(PermissionException e)
-                {
-                    builder.append("\n").append(Constants.ERROR).append("I do not have permission to kick ").append(FormatUtil.formatUser(u)).increment();
-                }
+                builder.append("\n").append(event.getClient().getWarning()).append(" ").append(u.getAsMention()).append(" cannot be kicked because they are not in the current guild.");
+            }
+            else if(!PermissionUtil.canInteract(event.getMember(), m))
+            {
+                builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to kick ").append(FormatUtil.formatUser(u));
+            }
+            else if (!PermissionUtil.canInteract(event.getSelfMember(), m))
+            {
+                builder.append("\n").append(event.getClient().getError()).append(" I do not have permission to kick ").append(FormatUtil.formatUser(u));
             }
             else
             {
-                builder.append("\n").append(Constants.ERROR).append("You do not have permission to kick ").append(FormatUtil.formatUser(u)).increment();
+                users.add(m);
             }
         });
+        if(users.isEmpty())
+            event.reply(builder.toString());
+        else
+        {
+            for(int i=0; i<users.size(); i++)
+            {
+                Member m = users.get(i);
+                boolean last = i+1==users.size();
+                event.getGuild().getController().kick(m).queue((v) -> {
+                        builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(m.getAsMention());
+                        if(last)
+                            event.reply(builder.toString());
+                    }, (t) -> {
+                        builder.append("\n").append(event.getClient().getError()).append(" I failed to kick ").append(FormatUtil.formatUser(m.getUser()));
+                        if(last)
+                            event.reply(builder.toString());
+                    });
+            }
+        }
         ModLogger.logCommand(event.getMessage());
-        return null;
     }
 }
