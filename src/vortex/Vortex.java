@@ -22,10 +22,11 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import javax.security.auth.login.LoginException;
-import me.jagrosh.jdacommands.CommandClientBuilder;
-import me.jagrosh.jdacommands.examples.*;
-import me.jagrosh.jdacommands.utils.EventWaiter;
+import me.jagrosh.jdautilities.commandclient.CommandClientBuilder;
+import me.jagrosh.jdautilities.commandclient.examples.*;
+import me.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.*;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.commands.*;
@@ -44,8 +45,7 @@ public class Vortex {
         /**
          * Tokens:
          * 0 - bot token
-         * 1 - carbonitex key
-         * 2 - bots.discord.pw token
+         * 1 - bots.discord.pw token
          */
         try {
             tokens = Files.readAllLines(Paths.get("config.txt"));
@@ -68,21 +68,27 @@ public class Vortex {
                                     new CleanCmd(waiter),
                                     new MagnetCmd(waiter),
                                     new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
-                                            Constants.BOT_INVITE, new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"}),
+                                            new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
+                                            Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
+                                            Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
+                                            Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
+                                            Permission.MESSAGE_MANAGE, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS, Permission.VOICE_DEAF_OTHERS, 
+                                            Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE),
                                     new PingCommand(),
                                     new InviteCmd(),
                                     
+                                    new GuildlistCommand(waiter),
                                     new StatsCmd(),
                                     new EvalCmd(),
-                                    new ShutdownCmd()
+                                    new ShutdownCommand()
                             )
-                            .setCarbonitexKey(tokens.get(1))
-                            .setDiscordBotsKey(tokens.get(2))
-                            .setGame(null) //remove this for actual code
+                            //.setCarbonitexKey(tokens.get(1))
+                            .setDiscordBotsKey(tokens.get(1))
+                            .setGame(Game.of("Type >>help", "https://twitch.tv/jagrosh")) //remove this for actual code
                             .build())
                     .addListener(waiter)
-                    //.setStatus(OnlineStatus.DO_NOT_DISTURB)
-                    //.setGame(Game.of("loading..."))
+                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                    .setGame(Game.of("loading..."))
                     .buildAsync();
             //new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new AutoMod(commands)).buildAsync();
         } catch (IOException | ArrayIndexOutOfBoundsException | LoginException | RateLimitedException ex) {

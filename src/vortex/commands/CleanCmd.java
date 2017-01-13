@@ -15,16 +15,15 @@
  */
 package vortex.commands;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import me.jagrosh.jdacommands.Command;
-import me.jagrosh.jdacommands.CommandEvent;
-import me.jagrosh.jdacommands.utils.EventWaiter;
+import me.jagrosh.jdautilities.commandclient.Command;
+import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import me.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;

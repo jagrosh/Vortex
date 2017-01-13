@@ -19,11 +19,9 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import me.jagrosh.jdacommands.Command;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
@@ -34,12 +32,13 @@ import net.dv8tion.jda.core.events.ResumedEvent;
 import net.dv8tion.jda.core.events.ShutdownEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.core.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.events.role.GenericRoleEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.utils.PermissionUtil;
-import vortex.commands.*;
 import vortex.entities.Invite;
 import vortex.utils.RestUtil;
 
@@ -80,7 +79,16 @@ public class AutoMod extends ListenerAdapter {
     }
 
     @Override
+    public void onGuildMessageUpdate(GuildMessageUpdateEvent event) {
+        performAutomod(event);
+    }
+
+    @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+        performAutomod(event);
+    }
+    
+    public void performAutomod(GenericGuildMessageEvent event) {
         //simple automod
         
         //ignore bots
@@ -202,7 +210,7 @@ public class AutoMod extends ListenerAdapter {
                 try{
                     int maxmentions = Integer.parseInt(r.getName().split(":",2)[1].trim());
                     antimention.put(guild.getId(), maxmentions);
-                }catch(Exception e){}
+                }catch(NumberFormatException | ArrayIndexOutOfBoundsException | NullPointerException e){}
             }
             else if(r.getName().toLowerCase().startsWith("antiinvite"))
             {

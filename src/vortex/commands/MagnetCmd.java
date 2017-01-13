@@ -16,9 +16,9 @@
 package vortex.commands;
 
 import java.util.List;
-import me.jagrosh.jdacommands.Command;
-import me.jagrosh.jdacommands.CommandEvent;
-import me.jagrosh.jdacommands.utils.EventWaiter;
+import me.jagrosh.jdautilities.commandclient.Command;
+import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import me.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;

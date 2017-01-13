@@ -16,8 +16,8 @@
 package vortex.commands;
 
 import java.util.LinkedList;
-import me.jagrosh.jdacommands.Command;
-import me.jagrosh.jdacommands.CommandEvent;
+import me.jagrosh.jdautilities.commandclient.Command;
+import me.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.utils.PermissionUtil;
