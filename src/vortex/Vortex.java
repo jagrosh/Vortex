@@ -18,6 +18,7 @@ package vortex;
 import java.awt.Color;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,16 +45,21 @@ public class Vortex {
         List<String> tokens;
         /**
          * Tokens:
-         * 0 - bot token
-         * 1 - bots.discord.pw token
+         * 0  - bot token
+         * 1  - bots.discord.pw token
+         * 2+ - user tokens
          */
         try {
             tokens = Files.readAllLines(Paths.get("config.txt"));
             EventWaiter waiter = new EventWaiter();
             ScheduledExecutorService threadpool = Executors.newSingleThreadScheduledExecutor();
+            List<JDA> jdas = new ArrayList<>();
+            for(int i=2; i<tokens.size(); i++)
+                jdas.add(new JDABuilder(AccountType.CLIENT).setToken(tokens.get(i)).setAudioEnabled(false).buildAsync());
+            AutoMod automod = new AutoMod(threadpool, jdas);
             new JDABuilder(AccountType.BOT)
                     .setToken(tokens.get(0))
-                    .addListener(new AutoMod(threadpool))
+                    .addListener(automod)
                     .addListener(new CommandClientBuilder()
                             .setPrefix(Constants.PREFIX)
                             .setOwnerId(Constants.OWNER_ID)
@@ -61,12 +67,15 @@ public class Vortex {
                             .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                             .addCommands(
                                     new AutomodCmd(),
+                                    new SetupCmd(waiter),
                                     new KickCmd(),
                                     new BanCmd(),
                                     new SoftbanCmd(threadpool),
                                     new HackbanCmd(),
                                     new CleanCmd(waiter),
                                     new MagnetCmd(waiter),
+                                    new MuteCmd(),
+                                    new UnmuteCmd(),
                                     new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
                                             new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
                                             Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
@@ -76,15 +85,18 @@ public class Vortex {
                                             Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE),
                                     new PingCommand(),
                                     new InviteCmd(),
+                                    new BlockedCmd(automod,waiter),
+                                    new SettingsCmd(automod),
                                     
-                                    new GuildlistCommand(waiter),
-                                    new StatsCmd(),
                                     new EvalCmd(),
+                                    new GuildlistCommand(waiter),
+                                    new ReloadCmd(automod),
+                                    new StatsCmd(),
                                     new ShutdownCommand()
                             )
                             //.setCarbonitexKey(tokens.get(1))
                             .setDiscordBotsKey(tokens.get(1))
-                            .setGame(Game.of("Type >>help", "https://twitch.tv/jagrosh")) //remove this for actual code
+                            .setGame(Game.of("Type >>help"/*, "https://twitch.tv/jagrosh"*/)) //remove this for actual code
                             .build())
                     .addListener(waiter)
                     .setStatus(OnlineStatus.DO_NOT_DISTURB)

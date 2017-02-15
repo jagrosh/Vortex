@@ -36,7 +36,7 @@ public class AutomodCmd extends Command {
     @Override
     protected void execute(CommandEvent event) {
         String response = "__**"+event.getJDA().getSelfUser().getName()+"** Automatic Moderator:__\n\n";
-        switch(event.getArgs())
+        switch(event.getArgs().toLowerCase())
         {
             default:
                 response += "Unknown automod topic `"+event.getArgs()+"`\n\n";
@@ -46,6 +46,7 @@ public class AutomodCmd extends Command {
                         + "\n`"+Constants.PREFIX+"automod ModLog` - log actions to a channel"
                         + "\n`"+Constants.PREFIX+"automod AntiMention` - prevent mass-mention spammers"
                         + "\n`"+Constants.PREFIX+"automod AntiInvite` - prevent invite links to other servers"
+                        + "\n`"+Constants.PREFIX+"automod AntiSpam` - prevents most spam"
                         + "\n`"+Constants.PREFIX+"automod Shield` - protect users from the automoderator"
                         ;
                 break;
@@ -62,8 +63,19 @@ public class AutomodCmd extends Command {
             case "antiinvite":
                 response += "**AntiInvite** - The bot will automatically remove messages with invite links, and warn or punish the user. "
                     + "To enable this, give the bot a role called `AntiInvite:X`, where X is one of the following actions: `Ban` (deletes the message and bans the user) "
-                    + "`Kick` (deletes the message and kicks the user) `Warn` (deletes the message and warns the user) `Delete` (deletes the message)"
+                    + "`Kick` (deletes the message and kicks the user) `Mute` (applies a 'Muted' role if it exists) `Warn` (deletes the message and warns the user) "
+                    + "`Delete` (deletes the message)"
                     + "\nExample role name: `AntiInvite:Warn`\nAdditionally, any channel with `{invites}` in the topic will be ignored by the anti-invite system.";
+                break;
+            case "antispam":
+                response += "**AntiSpam** - The bot will automatically remove messages if a user is spamming them, warn them to stop spamming, and then perform "
+                        + "a specified action after repeating the same message the provided number of times. When this filter is enabled, if a user sends the same message "
+                        + "three times in a row (within 1 minute of each other), the third one will be deleted. The fourth time, all the users' previous iterations will "
+                        + "be removed and a warning will be sent. Any messages after that will also be removed, and when the amount reaches the provided number, the action will "
+                        + "be performed and logged. The available actions are: `Mute` (adds the 'Muted' role to a user if it exists), `Kick` (kicks the user from the server), and "
+                        + "`Ban` (bans the user from the server)."
+                        + "\nExample role name: `AntiSpam:Mute|6` (mutes a user after sending the same message 6 times)"
+                        + "\nAdditionally, any channel with `{spam}` in the topic will be ignored by the anti-spam system.";
                 break;
             case "shield":
                 response += "**VortexShield** (automod immunity) - The bot will not perform automoderator actions against users with any of the following permissions: "

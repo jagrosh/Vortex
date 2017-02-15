@@ -16,6 +16,7 @@
 package vortex.commands;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import me.jagrosh.jdautilities.commandclient.Command;
 import me.jagrosh.jdautilities.commandclient.CommandEvent;
 import me.jagrosh.jdautilities.waiter.EventWaiter;
@@ -97,6 +98,9 @@ public class MagnetCmd extends Command {
                 (GuildVoiceMoveEvent e) -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
                     e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().getController().moveVoiceMember(m, e.getChannelJoined()).queue());
+                }, 1, TimeUnit.MINUTES, () -> {
+                    event.getGuild().getAudioManager().closeAudioConnection();
+                    event.reply(event.getClient().getWarning()+" You waited too long, "+event.getMember().getAsMention());
                 });
         event.reply("\uD83C\uDF9B Now, move me and I'll drag users to a new voice channel.");
     }

@@ -21,10 +21,14 @@ import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.PermissionUtil;
+import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.utils.FormatUtil;
 import static vortex.utils.FormatUtil.formatUser;
 
@@ -33,6 +37,8 @@ import static vortex.utils.FormatUtil.formatUser;
  * @author John Grosh (jagrosh)
  */
 public class ModLogger {
+    
+    public static SimpleLog LOG = SimpleLog.getLog("ModLogger");
     
     public static void logCommand(Message message)
     {
@@ -61,8 +67,21 @@ public class ModLogger {
                 .setDescription(message.getAuthor().getAsMention()+" was automatically **"+action.getVerb()+"** for:\n```\n"+reason+" ```")
                 .build();
         sendLog(message.getGuild(), embed);
+        LOG.debug("Automatically "+action.getVerb()+" "+message.getAuthor()+"on"+message.getGuild()+" for "+reason);
     }
     
+    public static void logAction(Action action, Member member, String reason)
+    {
+        MessageEmbed embed = new EmbedBuilder()
+                .setColor(member.getGuild().getSelfMember().getColor())
+                .setTimestamp(OffsetDateTime.now())
+                .setFooter(member.getJDA().getSelfUser().getName()+" automod", 
+                        member.getJDA().getSelfUser().getEffectiveAvatarUrl())
+                .setDescription(member.getAsMention()+" was automatically **"+action.getVerb()+"** for:\n```\n"+reason+" ```")
+                .build();
+        sendLog(member.getGuild(), embed);
+        LOG.debug("Automatically "+action.getVerb()+" "+member.getUser()+"on"+member.getGuild()+" for "+reason);
+    }
     
     private static String formatActionLog(Action action, User user, String reason)
     {
@@ -86,5 +105,18 @@ public class ModLogger {
                 .stream().filter(tc -> ((tc.getName().startsWith("mod") && tc.getName().endsWith("log")) || tc.getName().contains("modlog")) 
                         && PermissionUtil.checkPermission(tc, guild.getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ))
                 .findFirst().ifPresent(tc -> tc.sendMessage(new MessageBuilder().setEmbed(embed).build()).queue());
+    }
+    
+    public static TextChannel getLogChannel(Guild guild)
+    {
+        return guild.getTextChannels()
+                .stream().filter(tc -> ((tc.getName().startsWith("mod") && tc.getName().endsWith("log")) || tc.getName().contains("modlog")) 
+                        && PermissionUtil.checkPermission(tc, guild.getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ))
+                .findFirst().orElse(null);
+    }
+    
+    public static Role getMutedRole(Guild guild)
+    {
+        return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("muted")).findFirst().orElse(null);
     }
 }
