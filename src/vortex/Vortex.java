@@ -76,6 +76,7 @@ public class Vortex {
                                     new MagnetCmd(waiter),
                                     new MuteCmd(),
                                     new UnmuteCmd(),
+                                    new UserinfoCmd(),
                                     new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
                                             new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
                                             Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,

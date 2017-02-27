@@ -157,9 +157,9 @@ public class AutoMod extends ListenerAdapter {
     public void onBlockedGuildJoin(GuildMemberJoinEvent event)
     {
         User user = thisJda.getUserById(event.getMember().getUser().getId());
-        if(user==null)
+        if(user==null || user.isBot())
             return;
-        List<Guild> block = thisJda.getGuilds().stream().filter(g -> g.isMember(user) && nojoins.containsKey(g.getId()) && nojoins.get(g.getId()).contains(event.getGuild().getId()))
+        List<Guild> block = thisJda.getGuilds().stream().filter(g -> g.isMember(user) && nojoins.containsKey(g.getId()) && nojoins.get(g.getId()).contains(event.getGuild().getId()) && shouldPerformAutomod(g.getMember(user),null))
                 .collect(Collectors.toList());
         if(!block.isEmpty())
         {
@@ -182,7 +182,7 @@ public class AutoMod extends ListenerAdapter {
                     User user = thisJda.getUserById(userId);
                     if(user!=null)
                     {
-                        List<Guild> block = thisJda.getGuilds().stream().filter(g -> g.isMember(user) && nojoins.containsKey(g.getId()) && nojoins.get(g.getId()).contains(blockedGuildId))
+                        List<Guild> block = thisJda.getGuilds().stream().filter(g -> g.isMember(user) && nojoins.containsKey(g.getId()) && nojoins.get(g.getId()).contains(blockedGuildId) && shouldPerformAutomod(g.getMember(user),null))
                             .collect(Collectors.toList());
                         block.stream().forEach(g -> {
                             try {
@@ -241,22 +241,32 @@ public class AutoMod extends ListenerAdapter {
         performAutomod(event);
     }
     
+    private boolean shouldPerformAutomod(Member member, TextChannel channel)
+    {
+        Member me = member.getGuild().getSelfMember();
+        if(member.getUser().isBot())
+            return false;
+        if(!PermissionUtil.canInteract(me, member))
+            return false;
+        if(member.getRoles().stream().anyMatch(r -> r.getName().toLowerCase().equals("vortexshield")))
+            return false;
+        if(PermissionUtil.checkPermission(member.getGuild(), member, Permission.KICK_MEMBERS))
+            return false;
+        if(PermissionUtil.checkPermission(member.getGuild(), member, Permission.BAN_MEMBERS))
+            return false;
+        if(PermissionUtil.checkPermission(member.getGuild(), member, Permission.MANAGE_SERVER))
+            return false;
+        if(channel!=null && PermissionUtil.checkPermission(channel, member, Permission.MESSAGE_MANAGE))
+            return false;
+        return true;
+    }
+    
     public void performAutomod(GenericGuildMessageEvent event) {
         //simple automod
         LOG.trace("Message recieved: "+event.getMessage().getId()+" "+event.getGuild()+" "+event.getAuthor());
-        //ignore bots
-        if(event.getAuthor().isBot())
-            return;
-        
-        Member me = event.getGuild().getSelfMember();
         
         //ignore users with Manage Messages, Kick Members, Ban Members, Manage Server, or anyone the bot can't interact with
-        if(!PermissionUtil.canInteract(me, event.getMember()) ||
-                event.getMember().getRoles().stream().anyMatch(r -> r.getName().toLowerCase().equals("vortexshield")) ||
-                PermissionUtil.checkPermission(event.getChannel(), event.getMember(), Permission.MESSAGE_MANAGE) ||
-                PermissionUtil.checkPermission(event.getGuild(), event.getMember(), Permission.KICK_MEMBERS) ||
-                PermissionUtil.checkPermission(event.getGuild(), event.getMember(), Permission.BAN_MEMBERS) ||
-                PermissionUtil.checkPermission(event.getGuild(), event.getMember(), Permission.MANAGE_SERVER))
+        if(!shouldPerformAutomod(event.getMember(),event.getChannel()))
             return;
         LOG.trace("User not ignored.");
         /*
