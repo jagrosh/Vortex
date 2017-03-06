@@ -128,7 +128,7 @@ public class AutoMod extends ListenerAdapter {
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        if(event.getMember().getUser().isBot())
+        if(event.getMember().getUser().isBot() || isImmune(event.getMember().getUser()))
             return;
         List<String> bannedServers = nojoins.get(event.getGuild().getId());
         if(bannedServers!=null)
@@ -156,8 +156,10 @@ public class AutoMod extends ListenerAdapter {
     
     public void onBlockedGuildJoin(GuildMemberJoinEvent event)
     {
+        if(thisJda==null)
+            return;
         User user = thisJda.getUserById(event.getMember().getUser().getId());
-        if(user==null || user.isBot())
+        if(user==null || user.isBot() || isImmune(event.getMember().getUser()))
             return;
         List<Guild> block = thisJda.getGuilds().stream().filter(g -> g.isMember(user) && nojoins.containsKey(g.getId()) && nojoins.get(g.getId()).contains(event.getGuild().getId()) && shouldPerformAutomod(g.getMember(user),null))
                 .collect(Collectors.toList());
@@ -211,6 +213,14 @@ public class AutoMod extends ListenerAdapter {
         return list;
     }
     
+    private boolean isImmune(User user)
+    {
+        Guild g = thisJda.getGuildById("204100839806205953");
+        if(g!=null && g.getMemberById(user.getId())!=null)
+            return true;
+        return false;
+    }
+    
     public List<Member> getBlockedKickableMembers(Guild guild, String blockedId)
     {
         if(!nojoins.containsKey(guild.getId()))
@@ -220,8 +230,11 @@ public class AutoMod extends ListenerAdapter {
         List<Member> list = new LinkedList<>();
         jdas.stream().filter(jda -> jda.getGuildById(blockedId)!=null).findAny().ifPresent(jda -> {
             Guild blocked = jda.getGuildById(blockedId);
-            blocked.getMembers().stream().filter(mem -> guild.getMemberById(mem.getUser().getId())!=null)
-                    .forEach(mem -> list.add(guild.getMemberById(mem.getUser().getId())));
+            blocked.getMembers().stream().forEach(mem -> {
+                Member m = guild.getMemberById(mem.getUser().getId());
+                if(m!=null && shouldPerformAutomod(m, null) && !isImmune(m.getUser()))
+                    list.add(m);
+            });
         });
         return list;
     }
@@ -243,6 +256,8 @@ public class AutoMod extends ListenerAdapter {
     
     private boolean shouldPerformAutomod(Member member, TextChannel channel)
     {
+        if(member==null || member.getGuild()==null)
+            return false;
         Member me = member.getGuild().getSelfMember();
         if(member.getUser().isBot())
             return false;

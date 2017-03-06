@@ -55,7 +55,7 @@ public class Vortex {
             ScheduledExecutorService threadpool = Executors.newSingleThreadScheduledExecutor();
             List<JDA> jdas = new ArrayList<>();
             for(int i=2; i<tokens.size(); i++)
-                jdas.add(new JDABuilder(AccountType.CLIENT).setToken(tokens.get(i)).setAudioEnabled(false).buildAsync());
+                jdas.add(new JDABuilder(AccountType.CLIENT).setToken(tokens.get(i)).setAudioEnabled(false).setStatus(OnlineStatus.IDLE).buildAsync());
             AutoMod automod = new AutoMod(threadpool, jdas);
             new JDABuilder(AccountType.BOT)
                     .setToken(tokens.get(0))
