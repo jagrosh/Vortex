@@ -17,8 +17,8 @@ package vortex.commands;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
 /**
  *

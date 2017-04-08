@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 
 /**
@@ -52,6 +53,36 @@ public class FinderUtil {
                 startswith.add(vc);
             else if (vc.getName().toLowerCase().contains(lowerquery) && startswith.isEmpty())
                 contains.add(vc);
+        });
+        if(!exact.isEmpty())
+            return exact;
+        if(!wrongcase.isEmpty())
+            return wrongcase;
+        if(!startswith.isEmpty())
+            return startswith;
+        return contains;
+    }
+    
+    public static List<Role> findRole(String query, Guild guild)
+    {
+        String id= query.replaceAll("<@&(\\d+)>", "$1");
+        Role roler = guild.getRoleById(id);
+        if(roler!=null)
+            return Collections.singletonList(roler);
+        ArrayList<Role> exact = new ArrayList<>();
+        ArrayList<Role> wrongcase = new ArrayList<>();
+        ArrayList<Role> startswith = new ArrayList<>();
+        ArrayList<Role> contains = new ArrayList<>();
+        String lowerquery = query.toLowerCase();
+        guild.getRoles().stream().forEach((role) -> {
+            if(role.getName().equals(lowerquery))
+                exact.add(role);
+            else if (role.getName().equalsIgnoreCase(lowerquery) && exact.isEmpty())
+                wrongcase.add(role);
+            else if (role.getName().toLowerCase().startsWith(lowerquery) && wrongcase.isEmpty())
+                startswith.add(role);
+            else if (role.getName().toLowerCase().contains(lowerquery) && startswith.isEmpty())
+                contains.add(role);
         });
         if(!exact.isEmpty())
             return exact;

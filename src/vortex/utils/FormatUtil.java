@@ -16,6 +16,7 @@
 package vortex.utils;
 
 import java.util.List;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import vortex.Constants;
@@ -26,7 +27,7 @@ import vortex.Constants;
  */
 public class FormatUtil {
     
-    private final static String MULTIPLE_FOUND = Constants.WARNING+"**Multiple %s found matching \"%s\":**";
+    private final static String MULTIPLE_FOUND = Constants.WARNING+" **Multiple %s found matching \"%s\":**";
     
     public static String filterEveryone(String input)
     {
@@ -45,7 +46,17 @@ public class FormatUtil {
     
     public static String listOfVoice(List<VoiceChannel> list, String query)
     {
-        String out = String.format(MULTIPLE_FOUND, "servers", query);
+        String out = String.format(MULTIPLE_FOUND, "voice channels", query);
+        for(int i=0; i<6 && i<list.size(); i++)
+            out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
+        if(list.size()>6)
+            out+="\n**And "+(list.size()-6)+" more...**";
+        return out;
+    }
+    
+    public static String listOfRoles(List<Role> list, String query)
+    {
+        String out = String.format(MULTIPLE_FOUND, "roles", query);
         for(int i=0; i<6 && i<list.size(); i++)
             out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
         if(list.size()>6)

@@ -18,19 +18,19 @@ package vortex;
 import java.awt.Color;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import javax.security.auth.login.LoginException;
-import me.jagrosh.jdautilities.commandclient.CommandClientBuilder;
-import me.jagrosh.jdautilities.commandclient.examples.*;
-import me.jagrosh.jdautilities.waiter.EventWaiter;
+import com.jagrosh.jdautilities.commandclient.CommandClientBuilder;
+import com.jagrosh.jdautilities.commandclient.examples.*;
+import com.jagrosh.jdautilities.waiter.EventWaiter;
+import java.sql.SQLException;
+import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.commands.*;
+import vortex.data.DatabaseManager;
 
 /**
  *
@@ -40,73 +40,83 @@ public class Vortex {
 
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
+     * @throws javax.security.auth.login.LoginException
+     * @throws net.dv8tion.jda.core.exceptions.RateLimitedException
+     * @throws java.sql.SQLException
      */
-    public static void main(String[] args) {
-        List<String> tokens;
+    public static void main(String[] args) throws IOException, LoginException, IllegalArgumentException, RateLimitedException, SQLException {
         /**
          * Tokens:
          * 0  - bot token
          * 1  - bots.discord.pw token
-         * 2+ - user tokens
+         * 2  - database location
+         * 3  - database username
+         * 4  - database password
          */
-        try {
-            tokens = Files.readAllLines(Paths.get("config.txt"));
-            EventWaiter waiter = new EventWaiter();
-            ScheduledExecutorService threadpool = Executors.newSingleThreadScheduledExecutor();
-            List<JDA> jdas = new ArrayList<>();
-            for(int i=2; i<tokens.size(); i++)
-                jdas.add(new JDABuilder(AccountType.CLIENT).setToken(tokens.get(i)).setAudioEnabled(false).setStatus(OnlineStatus.IDLE).buildAsync());
-            AutoMod automod = new AutoMod(threadpool, jdas);
-            new JDABuilder(AccountType.BOT)
-                    .setToken(tokens.get(0))
-                    .addListener(automod)
-                    .addListener(new CommandClientBuilder()
-                            .setPrefix(Constants.PREFIX)
-                            .setOwnerId(Constants.OWNER_ID)
-                            .setServerInvite(Constants.SERVER_INVITE)
-                            .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
-                            .addCommands(
-                                    new AutomodCmd(),
-                                    new SetupCmd(waiter),
-                                    new KickCmd(),
-                                    new BanCmd(),
-                                    new SoftbanCmd(threadpool),
-                                    new HackbanCmd(),
-                                    new CleanCmd(waiter),
-                                    new MagnetCmd(waiter),
-                                    new MuteCmd(),
-                                    new UnmuteCmd(),
-                                    new UserinfoCmd(),
-                                    new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
-                                            new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
-                                            Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
-                                            Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
-                                            Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
-                                            Permission.MESSAGE_MANAGE, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS, Permission.VOICE_DEAF_OTHERS, 
-                                            Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE),
-                                    new PingCommand(),
-                                    new InviteCmd(),
-                                    new BlockedCmd(automod,waiter),
-                                    new SettingsCmd(automod),
-                                    
-                                    new EvalCmd(),
-                                    new GuildlistCommand(waiter),
-                                    new ReloadCmd(automod),
-                                    new StatsCmd(),
-                                    new ShutdownCommand()
-                            )
-                            //.setCarbonitexKey(tokens.get(1))
-                            .setDiscordBotsKey(tokens.get(1))
-                            .setGame(Game.of("Type >>help"/*, "https://twitch.tv/jagrosh"*/)) //remove this for actual code
-                            .build())
-                    .addListener(waiter)
-                    .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                    .setGame(Game.of("loading..."))
-                    .buildAsync();
-            //new JDABuilder(AccountType.CLIENT).setToken(tokens.get(1)).addListener(new AutoMod(commands)).buildAsync();
-        } catch (IOException | ArrayIndexOutOfBoundsException | LoginException | RateLimitedException ex) {
-            SimpleLog.getLog("Vortex").fatal(ex);
-        }
+        List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
+        EventWaiter waiter = new EventWaiter();
+        ScheduledExecutorService threadpool = Executors.newSingleThreadScheduledExecutor();
+        DatabaseManager manager = new DatabaseManager(tokens.get(2), tokens.get(3), tokens.get(4));
+        ModLogger modlog = new ModLogger(manager);
+        AutoMod automod = new AutoMod(modlog, threadpool, manager);
+        new JDABuilder(AccountType.BOT)
+                .setToken(tokens.get(0))
+                .addListener(automod)
+                //.useSharding(0, 1)
+                .addListener(new CommandClientBuilder()
+                        .setPrefix(Constants.PREFIX)
+                        .setOwnerId(Constants.OWNER_ID)
+                        .setServerInvite(Constants.SERVER_INVITE)
+                        .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
+                        .addCommands(
+                                
+                                new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
+                                        new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
+                                        Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
+                                        Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
+                                        Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
+                                        Permission.MESSAGE_MANAGE, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS, Permission.VOICE_DEAF_OTHERS, 
+                                        Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE),
+                                new AutomodCmd(),
+                                new InviteCmd(),
+                                new PingCommand(),
+                                new UserinfoCmd(),
+                                
+                                // Settings
+                                new ModlogCmd(manager, modlog),
+                                new SettingsCmd(automod),
+                                new SetupCmd(waiter,manager),
+                                
+                                // Moderation
+                                new KickCmd(modlog),
+                                new BanCmd(modlog),
+                                new SoftbanCmd(modlog, threadpool),
+                                new HackbanCmd(modlog),
+                                new CleanCmd(modlog,threadpool),
+                                new MagnetCmd(waiter),
+                                new MuteCmd(modlog),
+                                new UnmuteCmd(modlog),
+                                
+                                // Automoderation
+                                new AntiinviteCmd(manager, modlog),
+                                new AntimentionCmd(manager, modlog),
+                                new AntispamCmd(manager, modlog),
+                                new IgnoreCmd(manager, modlog),
+                                new UnignoreCmd(manager, modlog),
+                                
+                                // Owner
+                                new EvalCmd(),
+                                new GuildlistCommand(waiter),
+                                new StatsCmd(),
+                                new ShutdownCommand()
+                        )
+                        //.setCarbonitexKey(tokens.get(1))
+                        .setDiscordBotsKey(tokens.get(1))
+                        .build())
+                .addListener(waiter)
+                .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                .setGame(Game.of("loading..."))
+                .buildAsync();
     }
-    
 }

@@ -17,9 +17,9 @@ package vortex.commands;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
-import me.jagrosh.jdautilities.waiter.EventWaiter;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
@@ -38,6 +38,7 @@ public class MagnetCmd extends Command {
     {
         this.waiter = waiter;
         this.name = "magnet";
+        this.category = new Category("Moderation");
         this.help = "mass-moves voice channel users";
         this.arguments = "[channel to connect to] (or just be in a channel)";
         this.guildOnly = true;

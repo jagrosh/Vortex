@@ -16,8 +16,8 @@
 package vortex.commands;
 
 import java.util.LinkedList;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
@@ -32,9 +32,12 @@ import vortex.utils.FormatUtil;
  */
 public class BanCmd extends Command {
     
-    public BanCmd()
+    private final ModLogger modlog;
+    public BanCmd(ModLogger modlog)
     {
+        this.modlog = modlog;
         this.name = "ban";
+        this.category = new Category("Moderation");
         this.arguments = "@user [@user...]";
         this.help = "bans all mentioned users";
         this.userPermissions = new Permission[]{Permission.BAN_MEMBERS};
@@ -53,6 +56,10 @@ public class BanCmd extends Command {
         {
             event.reply(event.getClient().getError()+" Up to 20 users can be banned at once.");
             return;
+        }
+        if(event.getMessage().getMentionedUsers().size()>5)
+        {
+            event.reactSuccess();
         }
         StringBuilder builder = new StringBuilder();
         LinkedList<User> users = new LinkedList<>();
@@ -94,6 +101,6 @@ public class BanCmd extends Command {
                     });
             }
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }

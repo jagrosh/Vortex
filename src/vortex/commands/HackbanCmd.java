@@ -18,8 +18,8 @@ package vortex.commands;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
@@ -34,9 +34,12 @@ import vortex.utils.FormatUtil;
  */
 public class HackbanCmd extends Command {
     
-    public HackbanCmd()
+    private final ModLogger modlog;
+    public HackbanCmd(ModLogger modlog)
     {
+        this.modlog = modlog;
         this.name = "hackban";
+        this.category = new Category("Moderation");
         this.arguments = "userId [userId...]";
         this.help = "bans all listed user IDs";
         this.userPermissions = new Permission[]{Permission.BAN_MEMBERS};
@@ -108,6 +111,6 @@ public class HackbanCmd extends Command {
                     });
             }
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }

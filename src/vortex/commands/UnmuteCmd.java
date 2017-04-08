@@ -17,8 +17,8 @@ package vortex.commands;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
@@ -33,11 +33,14 @@ import vortex.utils.FormatUtil;
  */
 public class UnmuteCmd extends Command {
     
-    public UnmuteCmd()
+    private final ModLogger modlog;
+    public UnmuteCmd(ModLogger modlog)
     {
+        this.modlog = modlog;
         this.name = "unmute";
         this.arguments = "@user [@user...]";
         this.help = "removes a muted role all mentioned users";
+        this.category = new Category("Moderation");
         this.userPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
@@ -105,6 +108,6 @@ public class UnmuteCmd extends Command {
                         event.reply(builder.toString());
             });
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }

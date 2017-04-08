@@ -17,8 +17,8 @@ package vortex.commands;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 
 /**
  *

@@ -21,7 +21,12 @@ package vortex;
  */
 public enum Action {
     
-    BAN("banned", "\uD83D\uDD28"), KICK("kicked", "\uD83D\uDC62"), MUTE("muted", "\uD83D\uDD07"), WARN("warned", "\uD83D\uDDE3"), DELETE("deleted", "\uD83D\uDDD1");
+    BAN("banned", "\uD83D\uDD28"), 
+    KICK("kicked", "\uD83D\uDC62"), 
+    MUTE("muted", "\uD83D\uDD07"), 
+    WARN("warned", "\uD83D\uDDE3"), 
+    DELETE("deleted", "\uD83D\uDDD1"), 
+    NONE("did not act", "");
 
     private final String verb;
     private final String emoji;
@@ -42,16 +47,37 @@ public enum Action {
         return emoji;
     }
     
+    public String getLetter()
+    {
+        return Character.toString(name().charAt(0));
+    }
+    
     public static Action of(String action)
     {
         switch(action.toLowerCase())
         {
-            case "ban": return BAN;
-            case "kick": return KICK;
-            case "mute": return MUTE;
-            case "warn": return WARN;
-            case "delete": return DELETE;
-            default: return null;
+            case "ban": 
+            case "b":
+                return BAN;
+                
+            case "k":
+            case "kick":
+                return KICK;
+                
+            case "mute": 
+            case "m":
+                return MUTE;
+                
+            case "warn":
+            case "w":
+                return WARN;
+                
+            case "delete":
+            case "d":
+                return DELETE;
+                
+            default: 
+                return NONE;
         }
     }
 }

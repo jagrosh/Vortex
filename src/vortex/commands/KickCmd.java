@@ -16,8 +16,8 @@
 package vortex.commands;
 
 import java.util.LinkedList;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.utils.PermissionUtil;
@@ -31,11 +31,14 @@ import vortex.utils.FormatUtil;
  */
 public class KickCmd extends Command {
     
-    public KickCmd()
+    private final ModLogger modlog;
+    public KickCmd(ModLogger modlog)
     {
+        this.modlog = modlog;
         this.name = "kick";
         this.arguments = "@user [@user...]";
         this.help = "kicks all mentioned users";
+        this.category = new Category("Moderation");
         this.userPermissions = new Permission[]{Permission.KICK_MEMBERS};
         this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
         this.guildOnly = true;
@@ -52,6 +55,10 @@ public class KickCmd extends Command {
         {
             event.reply(event.getClient().getError()+" Up to 20 users can be kicked at once.");
             return;
+        }
+        if(event.getMessage().getMentionedUsers().size()>5)
+        {
+            event.reactSuccess();
         }
         StringBuilder builder = new StringBuilder();
         LinkedList<Member> users = new LinkedList<>();
@@ -93,6 +100,6 @@ public class KickCmd extends Command {
                     });
             }
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }

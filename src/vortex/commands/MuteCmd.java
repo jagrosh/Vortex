@@ -17,8 +17,8 @@ package vortex.commands;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
@@ -33,11 +33,14 @@ import vortex.utils.FormatUtil;
  */
 public class MuteCmd extends Command {
     
-    public MuteCmd()
+    private final ModLogger modlog;
+    public MuteCmd(ModLogger modlog)
     {
+        this.modlog = modlog;
         this.name = "mute";
         this.arguments = "@user [@user...]";
         this.help = "applies a muted role all mentioned users";
+        this.category = new Category("Moderation");
         this.userPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
@@ -77,7 +80,7 @@ public class MuteCmd extends Command {
                 .filter((Member m) -> {
                     if(m==null)
                     {
-                        builder.append("\n").append(event.getClient().getWarning()).append(" User ").append(FormatUtil.formatUser(m.getUser())).append(" is not in the server!");
+                        builder.append("\n").append(event.getClient().getWarning()).append(" User is not in the server!");
                         return false;
                     }
                     if(m.equals(event.getSelfMember()))
@@ -110,6 +113,6 @@ public class MuteCmd extends Command {
                         event.reply(builder.toString());
             });
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }

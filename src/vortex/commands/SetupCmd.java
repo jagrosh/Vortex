@@ -17,10 +17,10 @@ package vortex.commands;
 
 import java.awt.Color;
 import java.util.concurrent.TimeUnit;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
-import me.jagrosh.jdautilities.menu.buttonmenu.ButtonMenuBuilder;
-import me.jagrosh.jdautilities.waiter.EventWaiter;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.menu.buttonmenu.ButtonMenuBuilder;
+import com.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -28,6 +28,7 @@ import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.ModLogger;
+import vortex.data.DatabaseManager;
 
 /**
  *
@@ -35,18 +36,21 @@ import vortex.ModLogger;
  */
 public class SetupCmd extends Command {
 
+    private final DatabaseManager manager;
     private final ButtonMenuBuilder buttons;
     private final ButtonMenuBuilder confirmation;
     private final String MUTE = "\uD83D\uDD07";
     private final String MODLOG = "\uD83D\uDCD3";
     private final String CANCEL = "\u274C";
     private final String CONFIRM = "\u2611";
-    public SetupCmd(EventWaiter waiter)
+    public SetupCmd(EventWaiter waiter, DatabaseManager manager)
     {
+        this.manager = manager;
         this.name = "setup";
+        this.category = new Category("Settings");
         this.help = "does server setup";
         this.guildOnly = true;
-        this.userPermissions = new Permission[]{Permission.ADMINISTRATOR};
+        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ADD_REACTION};
         this.buttons = new ButtonMenuBuilder()
                 .setText("Please select a setup option!")
@@ -108,7 +112,7 @@ public class SetupCmd extends Command {
                             break;
                             
                         case MODLOG:
-                            TextChannel tc = ModLogger.getLogChannel(event.getGuild());
+                            TextChannel tc = manager.getModlogChannel(event.getGuild());
                             if(tc!=null)
                                 event.reply(event.getClient().getError()+" A modlog channel already exists: <#"+tc.getId()+">");
                             else
@@ -124,6 +128,12 @@ public class SetupCmd extends Command {
                                             {
                                                 event.getGuild().getController().createTextChannel("modlog").queue(tchan -> {
                                                     tchan.getManager().setTopic("Log of moderation actions").queue();
+                                                    tchan.createPermissionOverride(tchan.getGuild().getSelfMember()).queue(po -> {
+                                                        po.getManager().grant(Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS).queue();
+                                                    });
+                                                    tchan.createPermissionOverride(tchan.getGuild().getPublicRole()).queue(po -> {
+                                                        po.getManager().deny(Permission.MESSAGE_WRITE).queue();
+                                                    });
                                                 }, t -> {
                                                     event.reply(event.getClient().getError()+" I failed to create the modlog channel.");
                                                 });

@@ -15,8 +15,8 @@
  */
 package vortex.commands;
 
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
@@ -33,9 +33,10 @@ public class SettingsCmd extends Command {
     {
         this.automod = automod;
         this.name = "settings";
+        this.category = new Category("Settings");
         this.help = "shows current settings";
         this.guildOnly = true;
-        this.userPermissions = new Permission[]{Permission.ADMINISTRATOR};
+        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
     
     @Override

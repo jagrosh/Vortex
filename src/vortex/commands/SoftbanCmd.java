@@ -16,10 +16,11 @@
 package vortex.commands;
 
 import java.util.LinkedList;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import me.jagrosh.jdautilities.commandclient.Command;
-import me.jagrosh.jdautilities.commandclient.CommandEvent;
+import com.jagrosh.jdautilities.commandclient.Command;
+import com.jagrosh.jdautilities.commandclient.CommandEvent;
+import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
@@ -35,11 +36,14 @@ import vortex.utils.FormatUtil;
 public class SoftbanCmd extends Command {
     
     private final ScheduledExecutorService threadpool;
+    private final ModLogger modlog;
     
-    public SoftbanCmd(ScheduledExecutorService threadpool)
+    public SoftbanCmd(ModLogger modlog, ScheduledExecutorService threadpool)
     {
         this.threadpool = threadpool;
+        this.modlog = modlog;
         this.name = "softban";
+        this.category = new Category("Moderation");
         this.arguments = "@user [@user...]";
         this.help = "softbans all mentioned users (bans and unbans to remove messages)";
         this.userPermissions = new Permission[]{Permission.BAN_MEMBERS};
@@ -102,6 +106,6 @@ public class SoftbanCmd extends Command {
                     });
             }
         }
-        ModLogger.logCommand(event.getMessage());
+        modlog.logCommand(event.getMessage());
     }
 }
