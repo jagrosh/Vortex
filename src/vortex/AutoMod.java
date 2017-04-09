@@ -248,6 +248,7 @@ public class AutoMod extends ListenerAdapter {
                             OffsetDateTime lastWarning = warnings.get(key);
                             if(lastWarning==null || lastWarning.isBefore(event.getMessage().getCreationTime().minusMinutes(1)))
                             {
+                                shouldDelete = true;
                                 event.getChannel().sendMessage(event.getMember().getAsMention()+": Please do not post invite links here.").queue();
                                 warnings.put(key, event.getMessage().getCreationTime());
                             }
@@ -267,6 +268,9 @@ public class AutoMod extends ListenerAdapter {
                                         Role mutedRole = ModLogger.getMutedRole(event.getGuild());
                                         if(mutedRole!=null)
                                             ra = event.getGuild().getController().addRolesToMember(event.getMember(), mutedRole);
+                                        break;
+                                    case WARN:
+                                        shouldDelete = true;
                                         break;
                                 }
                                 if(ra!=null)

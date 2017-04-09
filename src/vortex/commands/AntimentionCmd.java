@@ -29,7 +29,7 @@ public class AntimentionCmd extends Command {
         this.guildOnly = true;
         this.name = "antimention";
         this.category = new Category("AutoMod");
-        this.arguments = "<maximum>";
+        this.arguments = "<maximum or OFF>";
         this.help = "sets the maximum number of unique, non-bot mentions a user can send";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER,Permission.BAN_MEMBERS};
     }

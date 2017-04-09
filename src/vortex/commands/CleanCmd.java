@@ -48,10 +48,10 @@ public class CleanCmd extends Command {
                 + " `bots` - cleans messages by bots\n"
                 + " `embeds` - cleans messages with embeds\n"
                 + " `links` - cleans messages containing links\n"
-                + " `images` - cleans messages with uploaded or embeded images or video\ns"
+                + " `images` - cleans messages with uploaded or embeded images or videos\n"
                 + " `@user` - cleans messages only from the provided user\n"
                 + " `userId` - cleans messages only from the provided user (via id)\n"
-                + " `\"quotes\" - cleans messages containing the text in quotes\n"
+                + " `\"quotes\"` - cleans messages containing the text in quotes\n"
                 + " `` `regex` `` - cleans messages that match the regex";
     
     private final ModLogger modlog;
@@ -63,7 +63,7 @@ public class CleanCmd extends Command {
         this.threadpool = threadpool;
         this.category = new Category("Moderation");
         this.name = "clean";
-        this.arguments = "@user(s) | \"text\" | bots | embeds | links | all";
+        this.arguments = "@user(s) | \"text\" | bots | embeds | links | images | <number>";
         this.help = "cleans messages in the past 100, matching the given criteria";
         this.userPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
