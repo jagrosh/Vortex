@@ -30,6 +30,7 @@ import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import vortex.commands.*;
+import vortex.data.DMSpamManager;
 import vortex.data.DatabaseManager;
 
 /**
@@ -53,26 +54,28 @@ public class Vortex {
          * 2  - database location
          * 3  - database username
          * 4  - database password
+         * 5+ - dmspam block bots
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         EventWaiter waiter = new EventWaiter();
         ScheduledExecutorService threadpool = Executors.newSingleThreadScheduledExecutor();
         DatabaseManager manager = new DatabaseManager(tokens.get(2), tokens.get(3), tokens.get(4));
+        manager.startupCheck();
         ModLogger modlog = new ModLogger(manager);
-        AutoMod automod = new AutoMod(modlog, threadpool, manager);
+        DMSpamManager dmspam = new DMSpamManager(tokens.subList(5, tokens.size()));
+        AutoMod automod = new AutoMod(modlog, threadpool, manager, dmspam);
         new JDABuilder(AccountType.BOT)
                 .setToken(tokens.get(0))
-                .addListener(automod)
+                .addEventListener(automod)
                 //.useSharding(0, 1)
-                .addListener(new CommandClientBuilder()
+                .addEventListener(new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .addCommands(
-                                
                                 new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
-                                        new String[]{"Moderation commands","Configurable automoderation","Very easy setup [coming soon]"},
+                                        new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},
                                         Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
                                         Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
                                         Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
@@ -96,12 +99,15 @@ public class Vortex {
                                 new CleanCmd(modlog,threadpool),
                                 new MagnetCmd(waiter),
                                 new MuteCmd(modlog),
+                                new RaidCmd(automod),
                                 new UnmuteCmd(modlog),
                                 
                                 // Automoderation
                                 new AntiinviteCmd(manager, modlog),
                                 new AntimentionCmd(manager, modlog),
                                 new AntispamCmd(manager, modlog),
+                                new AutoraidmodeCmd(manager),
+                                new AntidmspamCmd(manager, dmspam),
                                 new IgnoreCmd(manager, modlog),
                                 new UnignoreCmd(manager, modlog),
                                 
@@ -109,12 +115,12 @@ public class Vortex {
                                 new EvalCmd(),
                                 new GuildlistCommand(waiter),
                                 new StatsCmd(),
-                                new ShutdownCommand()
+                                new ShutdownCmd(automod, dmspam)
                         )
                         //.setCarbonitexKey(tokens.get(1))
                         .setDiscordBotsKey(tokens.get(1))
                         .build())
-                .addListener(waiter)
+                .addEventListener(waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setGame(Game.of("loading..."))
                 .buildAsync();

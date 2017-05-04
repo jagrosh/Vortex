@@ -36,7 +36,7 @@ public class InviteCmd extends Command {
     protected void execute(CommandEvent event) {
         event.reply("Hello. I am **"+event.getJDA().getSelfUser().getName()+"**, a simple moderation bot built by **jagrosh**#4824."
                 + "\nYou can add me to your server with the link below:"
-                + "\n\n\uD83D\uDD17 **"+Constants.BOT_INVITE+"**"
+                + "\n\n\uD83D\uDD17 **<"+Constants.BOT_INVITE+">**"
                 + "\n\nFor help or suggestions, please join the support server: "+Constants.SERVER_INVITE);
     }
     

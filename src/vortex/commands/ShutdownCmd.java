@@ -17,7 +17,8 @@ package vortex.commands;
 
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
-import vortex.Constants;
+import vortex.AutoMod;
+import vortex.data.DMSpamManager;
 
 /**
  *
@@ -25,8 +26,12 @@ import vortex.Constants;
  */
 public class ShutdownCmd extends Command {
 
-    public ShutdownCmd()
+    private final AutoMod automod;
+    private final DMSpamManager dmspam;
+    public ShutdownCmd(AutoMod automod, DMSpamManager dmspam)
     {
+        this.automod = automod;
+        this.dmspam = dmspam;
         this.name = "shutdown";
         this.help = "safely shuts down the bot";
         this.ownerCommand = true;
@@ -35,8 +40,16 @@ public class ShutdownCmd extends Command {
     
     @Override
     protected void execute(CommandEvent event) {
-        event.reply(event.getClient().getWarning()+" Shutting down...");
-        event.getJDA().shutdown();
+        automod.shutdownAllRaidMode(event.getJDA());
+        dmspam.shutdown();
+        event.replyWarning("Shutting down...");
+        new Thread(){
+            @Override
+            public void run() {
+                try{Thread.sleep(3000);}catch(InterruptedException e){}
+                event.getJDA().shutdown();
+            }
+        }.start();
     }
     
 }

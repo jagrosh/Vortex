@@ -10,10 +10,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
@@ -29,11 +33,35 @@ public class DatabaseManager {
     
     private final Connection connection;
     private final SimpleLog LOG = SimpleLog.getLog("SQL");
-    private final GuildSettings DEFAULT = new GuildSettings((short)0, (short)0, Action.NONE.getLetter(), Action.NONE.getLetter(), "0", "0");
+    private final GuildSettings DEFAULT = new GuildSettings((short)0, (short)0, Action.NONE.getLetter(), Action.NONE.getLetter(), "0", "0", false, false);
     
     public DatabaseManager (String host, String user, String pass) throws SQLException
     {
         connection = DriverManager.getConnection(host, user, pass);
+    }
+    
+    public void startupCheck()
+    {
+        try {
+            if(!connection.getMetaData().getColumns(null, null, "GUILD_SETTINGS", "AUTO_RAID_MODE").next())
+            {
+                LOG.info("Creating column 'auto_raid_mode`");
+                Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                statement.closeOnCompletion();
+                statement.execute( "ALTER TABLE GUILD_SETTINGS\n" +
+                                    "ADD COLUMN auto_raid_mode BOOLEAN NOT NULL WITH DEFAULT FALSE");
+            }
+            if(!connection.getMetaData().getColumns(null, null, "GUILD_SETTINGS", "BLOCK_DM_SPAM").next())
+            {
+                LOG.info("Creating column 'block_dm_spam`");
+                Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                statement.closeOnCompletion();
+                statement.execute( "ALTER TABLE GUILD_SETTINGS\n" +
+                                    "ADD COLUMN block_dm_spam BOOLEAN NOT NULL WITH DEFAULT FALSE");
+            }
+        } catch( SQLException e) {
+            LOG.fatal(e);
+        }
     }
     
     public GuildSettings getSettings(Guild guild)
@@ -51,7 +79,9 @@ public class DatabaseManager {
                             results.getString("spam_action"),
                             results.getString("invite_action"),
                             Long.toString(results.getLong("mod_role_id")),
-                            Long.toString(results.getLong("modlog_channel_id")));
+                            Long.toString(results.getLong("modlog_channel_id")),
+                            results.getBoolean("auto_raid_mode"),
+                            results.getBoolean("block_dm_spam"));
                 }
                 else gs = DEFAULT;
             }
@@ -129,6 +159,66 @@ public class DatabaseManager {
         }
     }
     
+    public boolean isAutoRaidMode(Guild guild)
+    {
+        try {
+            Statement statement = connection.createStatement();
+            statement.closeOnCompletion();
+            try (ResultSet results = statement.executeQuery(String.format("SELECT auto_raid_mode FROM GUILD_SETTINGS WHERE GUILD_ID = %s", guild.getId())))
+            {
+                if(results.next())
+                {
+                    return results.getBoolean("auto_raid_mode");
+                }
+            }
+            return false;
+        } catch( SQLException e) {
+            LOG.warn(e);
+            return false;
+        }
+    }
+    
+    public boolean isDMSpamPrevention(Guild guild)
+    {
+        try {
+            Statement statement = connection.createStatement();
+            statement.closeOnCompletion();
+            try (ResultSet results = statement.executeQuery(String.format("SELECT block_dm_spam FROM GUILD_SETTINGS WHERE GUILD_ID = %s", guild.getId())))
+            {
+                if(results.next())
+                {
+                    return results.getBoolean("block_dm_spam");
+                }
+            }
+            return false;
+        } catch( SQLException e) {
+            LOG.warn(e);
+            return false;
+        }
+    }
+    
+    public List<Guild> getDMSpamPreventionGuilds(JDA jda)
+    {
+        try {
+            Statement statement = connection.createStatement();
+            statement.closeOnCompletion();
+            try (ResultSet results = statement.executeQuery("SELECT GUILD_ID FROM GUILD_SETTINGS WHERE block_dm_spam = TRUE"))
+            {
+                List<Guild> guilds = new LinkedList<>();
+                while(results.next())
+                {
+                    Guild g = jda.getGuildById(results.getLong("guild_id"));
+                    if(g!=null)
+                        guilds.add(g);
+                }
+                return guilds;
+            }
+        } catch( SQLException e) {
+            LOG.warn(e);
+            return Collections.EMPTY_LIST;
+        }
+    }
+    
     public boolean isIgnored(Member member)
     {
         Set<Role> ignored = getIgnoredRoles(member.getGuild());
@@ -139,6 +229,8 @@ public class DatabaseManager {
     
     public boolean isIgnored(TextChannel channel)
     {
+        if(channel==null)
+            return false;
         try {
             Statement statement = connection.createStatement();
             statement.closeOnCompletion();
@@ -162,9 +254,9 @@ public class DatabaseManager {
                 if(!results.next())
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(tc.getGuild().getId()));
+                    results.updateLong("guild_id", tc.getGuild().getIdLong());
                     results.updateString("type", "C");
-                    results.updateLong("entity_id", Long.parseLong(tc.getId()));
+                    results.updateLong("entity_id", tc.getIdLong());
                     results.insertRow();
                 }
             }
@@ -247,7 +339,7 @@ public class DatabaseManager {
                 else
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(guild.getId()));
+                    results.updateLong("guild_id", guild.getIdLong());
                     results.updateShort("max_mentions", maxMentions);
                     results.insertRow();
                 }
@@ -273,7 +365,7 @@ public class DatabaseManager {
                 else
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(guild.getId()));
+                    results.updateLong("guild_id", guild.getIdLong());
                     results.updateShort("spam_limit", spamLimit);
                     results.updateString("spam_action", spamAction.getLetter());
                     results.insertRow();
@@ -299,8 +391,58 @@ public class DatabaseManager {
                 else
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(guild.getId()));
+                    results.updateLong("guild_id", guild.getIdLong());
                     results.updateString("invite_action", inviteAction.getLetter());
+                    results.insertRow();
+                }
+            }
+        } catch( SQLException e) {
+            LOG.warn(e);
+        }
+    }
+    
+    public void setAutoRaidmode(Guild guild, boolean auto)
+    {
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.closeOnCompletion();
+            try(ResultSet results = statement.executeQuery(String.format("SELECT guild_id, auto_raid_mode FROM GUILD_SETTINGS WHERE guild_id = %s", guild.getId())))
+            {
+                if(results.next())
+                {
+                    results.updateBoolean("auto_raid_mode", auto);
+                    results.updateRow();
+                }
+                else
+                {
+                    results.moveToInsertRow();
+                    results.updateLong("guild_id", guild.getIdLong());
+                    results.updateBoolean("auto_raid_mode", auto);
+                    results.insertRow();
+                }
+            }
+        } catch( SQLException e) {
+            LOG.warn(e);
+        }
+    }
+    
+    public void setBlockDmSpam(Guild guild, boolean block)
+    {
+        try {
+            Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.closeOnCompletion();
+            try(ResultSet results = statement.executeQuery(String.format("SELECT guild_id, block_dm_spam FROM GUILD_SETTINGS WHERE guild_id = %s", guild.getId())))
+            {
+                if(results.next())
+                {
+                    results.updateBoolean("block_dm_spam", block);
+                    results.updateRow();
+                }
+                else
+                {
+                    results.moveToInsertRow();
+                    results.updateLong("guild_id", guild.getIdLong());
+                    results.updateBoolean("block_dm_spam", block);
                     results.insertRow();
                 }
             }
@@ -318,14 +460,14 @@ public class DatabaseManager {
             {
                 if(results.next())
                 {
-                    results.updateLong("modlog_channel_id", tc==null ? 0l : Long.parseLong(tc.getId()));
+                    results.updateLong("modlog_channel_id", tc==null ? 0l : tc.getIdLong());
                     results.updateRow();
                 }
                 else
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(guild.getId()));
-                    results.updateLong("modlog_channel_id", tc==null ? 0l : Long.parseLong(tc.getId()));
+                    results.updateLong("guild_id", guild.getIdLong());
+                    results.updateLong("modlog_channel_id", tc==null ? 0l : tc.getIdLong());
                     results.insertRow();
                 }
             }
@@ -349,7 +491,7 @@ public class DatabaseManager {
                 else
                 {
                     results.moveToInsertRow();
-                    results.updateLong("guild_id", Long.parseLong(guild.getId()));
+                    results.updateLong("guild_id", guild.getIdLong());
                     results.updateLong("mod_role_id", Long.parseLong(role.getId()));
                     results.insertRow();
                 }
@@ -375,7 +517,9 @@ public class DatabaseManager {
         public final Action inviteAction;
         public final String modRoleId;
         public final String modlogChannelId;
-        private GuildSettings(short maxMentions, short spamLimit, String spamAction, String inviteAction, String modRoleId, String modlogChannelId)
+        public final boolean autoRaidMode;
+        public final boolean blockDmSpam;
+        private GuildSettings(short maxMentions, short spamLimit, String spamAction, String inviteAction, String modRoleId, String modlogChannelId, boolean autoRaidMode, boolean blockDmSpam)
         {
             this.maxMentions = maxMentions;
             this.spamLimit = spamLimit;
@@ -383,6 +527,8 @@ public class DatabaseManager {
             this.inviteAction = Action.of(inviteAction);
             this.modRoleId = modRoleId;
             this.modlogChannelId = modlogChannelId;
+            this.autoRaidMode = autoRaidMode;
+            this.blockDmSpam = blockDmSpam;
         }
     }
 }
