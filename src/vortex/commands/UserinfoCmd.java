@@ -44,7 +44,11 @@ public class UserinfoCmd extends Command {
         Member member;
         if(event.getMessage().getMentionedUsers().isEmpty())
         {
-            member = event.getGuild().getMemberById(event.getArgs());
+            try {
+                member = event.getGuild().getMemberById(event.getArgs());
+            } catch(Exception e) {
+                member = null;
+            }
         }
         else
             member = event.getGuild().getMember(event.getMessage().getMentionedUsers().get(0));

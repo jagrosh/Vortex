@@ -43,9 +43,10 @@ public class ModlogCmd extends Command {
             return;
         }
         String id = event.getArgs().replaceAll("<#(\\d+)>", "$1");
-        TextChannel tc = event.getGuild().getTextChannelById(id);
-        if(tc==null)
-        {
+        TextChannel tc;
+        try{
+            tc = event.getGuild().getTextChannelById(id);
+        } catch(Exception e) {
             event.replyError("No text channel found from `"+event.getArgs()+"`");
             return;
         }

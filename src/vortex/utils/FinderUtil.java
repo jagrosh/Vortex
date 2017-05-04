@@ -66,9 +66,12 @@ public class FinderUtil {
     public static List<Role> findRole(String query, Guild guild)
     {
         String id= query.replaceAll("<@&(\\d+)>", "$1");
-        Role roler = guild.getRoleById(id);
-        if(roler!=null)
-            return Collections.singletonList(roler);
+        try {
+            Role roler = guild.getRoleById(id);
+            if(roler!=null)
+                return Collections.singletonList(roler);
+        } catch(Exception e) {}
+        
         ArrayList<Role> exact = new ArrayList<>();
         ArrayList<Role> wrongcase = new ArrayList<>();
         ArrayList<Role> startswith = new ArrayList<>();

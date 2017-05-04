@@ -124,7 +124,7 @@ public class DatabaseManager {
                 roles = new HashSet<>();
                 while(results.next())
                 {
-                    Role role = guild.getRoleById(Long.toString(results.getLong("entity_id")));
+                    Role role = guild.getRoleById(results.getLong("entity_id"));
                     if(role!=null)
                         roles.add(role);
                 }
@@ -147,7 +147,7 @@ public class DatabaseManager {
                 channels = new HashSet<>();
                 while(results.next())
                 {
-                    TextChannel channel = guild.getTextChannelById(Long.toString(results.getLong("entity_id")));
+                    TextChannel channel = guild.getTextChannelById(results.getLong("entity_id"));
                     if(channel!=null)
                         channels.add(channel);
                 }

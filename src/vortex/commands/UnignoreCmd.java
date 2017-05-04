@@ -51,7 +51,12 @@ public class UnignoreCmd extends Command {
         }
         
         String id = event.getArgs().replaceAll("<#(\\d{17,20})>", "$1");
-        TextChannel tc = event.getGuild().getTextChannelById(id);
+        TextChannel tc;
+        try {
+            tc = event.getGuild().getTextChannelById(id);
+        } catch(Exception e) {
+            tc = null;
+        }
         if(tc!=null)
         {
             if(manager.removeIgnore(tc))
