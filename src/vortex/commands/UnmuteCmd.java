@@ -98,7 +98,7 @@ public class UnmuteCmd extends Command {
         {
             Member m = members.get(i);
             boolean last = i+1==members.size();
-            event.getGuild().getController().removeRolesFromMember(m, muteRole).queue(v -> {
+            event.getGuild().getController().removeRolesFromMember(m, muteRole).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the unmute command.").queue(v -> {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unmuted ").append(FormatUtil.formatUser(m.getUser()));
                     if(last)
                         event.reply(builder.toString());

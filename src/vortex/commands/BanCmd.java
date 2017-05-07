@@ -90,7 +90,7 @@ public class BanCmd extends Command {
             {
                 User u = users.get(i);
                 boolean last = i+1==users.size();
-                event.getGuild().getController().ban(u, 1).queue((v) -> {
+                event.getGuild().getController().ban(u, 1).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the ban command.").queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned ").append(u.getAsMention());
                         if(last)
                             event.reply(builder.toString());

@@ -100,7 +100,7 @@ public class HackbanCmd extends Command {
                 String id = banIds.get(i);
                 User u = event.getJDA().getUserById(id);
                 boolean last = i+1==banIds.size();
-                event.getGuild().getController().ban(id, 1).queue((v) -> {
+                event.getGuild().getController().ban(id, 1).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the hackban command.").queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned ").append(u==null ? "User with ID `"+id+"`" : u.getAsMention());
                         if(last)
                             event.reply(builder.toString());

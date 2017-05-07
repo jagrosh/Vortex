@@ -43,13 +43,8 @@ public class ShutdownCmd extends Command {
         automod.shutdownAllRaidMode(event.getJDA());
         dmspam.shutdown();
         event.replyWarning("Shutting down...");
-        new Thread(){
-            @Override
-            public void run() {
-                try{Thread.sleep(3000);}catch(InterruptedException e){}
-                event.getJDA().shutdown();
-            }
-        }.start();
+        event.getChannel().sendMessage(event.getClient().getWarning()+" Shutting down...").complete();
+        event.getJDA().shutdown();
     }
     
 }

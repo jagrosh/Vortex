@@ -39,12 +39,11 @@ import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.ShutdownEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.core.events.message.guild.GenericGuildMessageEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import net.dv8tion.jda.core.requests.RestAction;
+import net.dv8tion.jda.core.requests.restaction.AuditableRestAction;
 import net.dv8tion.jda.core.utils.PermissionUtil;
 import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.data.DMSpamManager;
@@ -150,7 +149,7 @@ public class AutoMod extends ListenerAdapter {
             return;
         kicks.forEach(g -> {
             try{
-                g.getController().kick(user.getId(), "Being on a DM-spam server.").queue();
+                g.getController().kick(user.getId()).reason("Being on a DM-spam server.").queue();
                 modlog.logAutomod(g.getMemberById(user.getId()), Action.KICK, "Joining a DM-spam server: "+spammers.get(0).getName()+" ("+spammers.get(0).getId()+")");
             } catch(Exception e) {}
         });
@@ -174,21 +173,12 @@ public class AutoMod extends ListenerAdapter {
                 sb.append("\n\nThe listed server(s) are known to be the origin of large amounts of direct-message spam "
                         + "and advertisements, and therefore all members are prevented from joining. Please leave those "
                         + "server(s) if you would like to join **").append(event.getGuild().getName()).append("**.");
-                try{
-                    event.getMember().getUser().openPrivateChannel().queue(pc -> pc.sendMessage(sb.toString()).queue(m -> {
-                        try{event.getGuild().getController().kick(event.getMember(), "Being on a DM-spam server.").queue();}catch(PermissionException ex){}
+                sendPrivateMessageThen(event.getMember().getUser(), sb.toString(), () -> {
+                    try{
+                        event.getGuild().getController().kick(event.getMember()).reason("Being on a DM-spam server.").queue();
                         modlog.logAutomod(event.getMember(), Action.KICK, "Being on a DM-spam server: "+guilds.get(0).getName()+" ("+guilds.get(0).getId()+")");
-                    }, v -> {
-                        try{event.getGuild().getController().kick(event.getMember(), "Being on a DM-spam server.").queue();}catch(PermissionException ex){}
-                        modlog.logAutomod(event.getMember(), Action.KICK, "Being on a DM-spam server: "+guilds.get(0).getName()+" ("+guilds.get(0).getId()+")");
-                    }), v -> {
-                        try{event.getGuild().getController().kick(event.getMember(), "Being on a DM-spam server.").queue();}catch(PermissionException ex){}
-                        modlog.logAutomod(event.getMember(), Action.KICK, "Being on a DM-spam server: "+guilds.get(0).getName()+" ("+guilds.get(0).getId()+")");
-                    });
-                } catch(PermissionException e) {
-                    try{event.getGuild().getController().kick(event.getMember(), "Being on a DM-spam server.").queue();}catch(PermissionException ex){}
-                    modlog.logAutomod(event.getMember(), Action.KICK, "Being on a DM-spam server: "+guilds.get(0).getName()+" ("+guilds.get(0).getId()+")");
-                }
+                    }catch(PermissionException ex){}
+                });
                 return;
             }
         }
@@ -196,15 +186,8 @@ public class AutoMod extends ListenerAdapter {
         {
             if(event.getGuild().getSelfMember().hasPermission(Permission.KICK_MEMBERS))
             {
-                event.getMember().getUser().openPrivateChannel().queue(pc -> {
-                    pc.sendMessage("Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.").queue(s -> {
-                        event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
-                    }, f -> {
-                        event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
-                    });
-                }, v -> {
-                    event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
-                });
+                sendPrivateMessageThen(event.getMember().getUser(), "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.", 
+                        () -> event.getGuild().getController().kick(event.getMember()).reason("Anti-Raid Mode").queue());
                 raidmode.get(event.getGuild().getId()).append(" <@").append(event.getMember().getUser().getId()).append(">");
             }
         }
@@ -390,14 +373,14 @@ public class AutoMod extends ListenerAdapter {
                     default:
                         if(offenses >= settings.spamLimit)
                         {
-                            RestAction ra = null;
+                            AuditableRestAction ra = null;
                             switch(settings.spamAction) {
                                 case BAN:
-                                    ra = message.getGuild().getController().ban(message.getMember(), 1, "Spamming: "+message.getRawContent());
+                                    ra = message.getGuild().getController().ban(message.getMember(), 1);
                                     break;
                                 case KICK:
                                     shouldDelete = true;
-                                    ra = message.getGuild().getController().kick(message.getMember(), "Spamming: "+message.getRawContent());
+                                    ra = message.getGuild().getController().kick(message.getMember());
                                     break;
                                 case MUTE:
                                     shouldDelete = true;
@@ -410,7 +393,10 @@ public class AutoMod extends ListenerAdapter {
                                     break;
                             }
                             if(ra!=null)
+                            {
+                                ra.reason("Spamming: "+message.getRawContent());
                                 ra.queue(v -> modlog.logAutomod(message, settings.spamAction, "spamming: ```\n"+message.getRawContent()+" ```"));
+                            }
                         }
                 }
             }
@@ -421,7 +407,7 @@ public class AutoMod extends ListenerAdapter {
         if(mentions >= settings.maxMentions && mentions >= MENTION_MINIMUM)
         {
             try{
-                message.getGuild().getController().ban(message.getMember(), 1, "Mentioning "+mentions+" users.").queue(v -> {
+                message.getGuild().getController().ban(message.getMember(), 1).reason("Mentioning "+mentions+" users.").queue(v -> {
                     modlog.logAutomod(message, Action.BAN, "mentioning **"+mentions+"** users.");
                     });
                 message.getTextChannel().sendMessage(message.getAuthor().getAsMention()+" has been banned for mentioning "+mentions+" users");
@@ -459,14 +445,14 @@ public class AutoMod extends ListenerAdapter {
                             }
                             else 
                             {
-                                RestAction ra = null;
+                                AuditableRestAction ra = null;
                                 switch(settings.inviteAction) {
                                     case BAN:
-                                        ra = message.getGuild().getController().ban(message.getMember(), 1, "Posting invite link: "+inviteCode);
+                                        ra = message.getGuild().getController().ban(message.getMember(), 1);
                                         break;
                                     case KICK:
                                         shouldDelete = true;
-                                        ra = message.getGuild().getController().kick(message.getMember(), "Posting invite link: "+inviteCode);
+                                        ra = message.getGuild().getController().kick(message.getMember());
                                         break;
                                     case MUTE:
                                         shouldDelete = true;
@@ -479,7 +465,10 @@ public class AutoMod extends ListenerAdapter {
                                         break;
                                 }
                                 if(ra!=null)
+                                {
+                                    ra.reason("Posting invite link: "+inviteCode);
                                     ra.queue(v -> modlog.logAutomod(message, settings.inviteAction, "posting an invite link: ```\n"+inviteCode+" ```"));
+                                }
                             }
                         }
                         break;
@@ -489,7 +478,7 @@ public class AutoMod extends ListenerAdapter {
         }
         if(shouldDelete)
         {
-            try{message.delete().queue();}catch(PermissionException e){}
+            try{message.delete().reason("Automod").queue();}catch(PermissionException e){}
         }
     }
 
@@ -508,6 +497,7 @@ public class AutoMod extends ListenerAdapter {
     
     public void updateRoleSettings(Guild guild)
     {
+        try{
         guild.getSelfMember().getRoles().stream().forEach(r -> {
             if(r.getName().toLowerCase().startsWith("antimention"))
             {
@@ -546,12 +536,22 @@ public class AutoMod extends ListenerAdapter {
                 }catch(Exception e){}
             }
         });
-        /*TextChannel modchan = guild.getTextChannels()
-                .stream().filter(tc -> ((tc.getName().startsWith("mod") && tc.getName().endsWith("log")) || tc.getName().contains("modlog")) 
-                        && PermissionUtil.checkPermission(tc, guild.getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ))
-                        .findFirst().orElse(null);
-        if(modchan!=null)
-            manager.setModlogChannel(guild, modchan);*/
+        }catch(NullPointerException e) {
+            LOG.fatal("Somehow there was no selfmember on "+guild);
+        }
+    }
+    
+    public static void sendPrivateMessageThen(User user, String message, Runnable runnable)
+    {
+        try{
+            user.openPrivateChannel().queue(
+                    pc -> pc.sendMessage(message).queue(
+                            m -> runnable.run(), 
+                            v -> runnable.run()), 
+                    v -> runnable.run());
+        } catch(PermissionException e) {
+            runnable.run();
+        }
     }
     
     private class RaidmodeStatus {

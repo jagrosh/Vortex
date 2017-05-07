@@ -89,7 +89,7 @@ public class KickCmd extends Command {
             {
                 Member m = users.get(i);
                 boolean last = i+1==users.size();
-                event.getGuild().getController().kick(m).queue((v) -> {
+                event.getGuild().getController().kick(m).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the kick command.").queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(m.getAsMention());
                         if(last)
                             event.reply(builder.toString());

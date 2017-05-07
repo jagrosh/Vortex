@@ -103,7 +103,7 @@ public class MuteCmd extends Command {
         {
             Member m = members.get(i);
             boolean last = i+1==members.size();
-            event.getGuild().getController().addRolesToMember(m, muteRole).queue(v -> {
+            event.getGuild().getController().addRolesToMember(m, muteRole).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the mute command.").queue(v -> {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser()));
                     if(last)
                         event.reply(builder.toString());
