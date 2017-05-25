@@ -16,7 +16,6 @@
 package vortex.commands;
 
 import java.util.LinkedList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
@@ -24,7 +23,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Constants;
 import vortex.ModLogger;
 import vortex.utils.FormatUtil;
@@ -71,11 +69,11 @@ public class SoftbanCmd extends Command {
             {
                 users.add(u);
             }
-            else if(!PermissionUtil.canInteract(event.getMember(), m))
+            else if(!event.getMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to softban ").append(FormatUtil.formatUser(u));
             }
-            else if (!PermissionUtil.canInteract(event.getSelfMember(), m))
+            else if (!event.getSelfMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" I do not have permission to softban ").append(FormatUtil.formatUser(u));
             }
@@ -84,6 +82,9 @@ public class SoftbanCmd extends Command {
                 users.add(u);
             }
         });
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [softban]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        if(reason.length()>512)
+            reason = reason.substring(0,512);
         if(users.isEmpty())
             event.reply(builder.toString());
         else
@@ -92,10 +93,10 @@ public class SoftbanCmd extends Command {
             {
                 User u = users.get(i);
                 boolean last = i+1==users.size();
-                event.getGuild().getController().ban(u, 1).queue((v) -> {
+                event.getGuild().getController().ban(u, 1).reason(reason).queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully softbanned ").append(u.getAsMention());
                         threadpool.schedule(()->{
-                            event.getGuild().getController().unban(u.getId()).queue();
+                            event.getGuild().getController().unban(u.getId()).reason("Softban Unban").queue();
                         }, 5, TimeUnit.SECONDS);
                         if(last)
                             event.reply(builder.toString());

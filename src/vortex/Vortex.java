@@ -26,6 +26,8 @@ import com.jagrosh.jdautilities.commandclient.examples.*;
 import com.jagrosh.jdautilities.waiter.EventWaiter;
 import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
@@ -124,5 +126,6 @@ public class Vortex {
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setGame(Game.of("loading..."))
                 .buildAsync();
+        Logger.getLogger("org.apache.http.client.protocol.ResponseProcessCookies").setLevel(Level.OFF);
     }
 }

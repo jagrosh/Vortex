@@ -22,7 +22,6 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Constants;
 import vortex.ModLogger;
 import vortex.utils.FormatUtil;
@@ -64,12 +63,12 @@ public class MuteCmd extends Command {
             event.reply(event.getClient().getError()+" No role called 'Muted' exists!");
             return;
         }
-        if(!PermissionUtil.canInteract(event.getMember(), muteRole))
+        if(!event.getMember().canInteract(muteRole))
         {
             event.reply(event.getClient().getError()+" You do not have permissions to assign the 'Muted' role!");
             return;
         }
-        if(!PermissionUtil.canInteract(event.getSelfMember(), muteRole))
+        if(!event.getSelfMember().canInteract(muteRole))
         {
             event.reply(event.getClient().getError()+" I do not have permissions to assign the 'Muted' role!");
             return;
@@ -95,6 +94,9 @@ public class MuteCmd extends Command {
                     }
                     return true;
                 }).collect(Collectors.toList());
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [mute]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        if(reason.length()>512)
+            reason = reason.substring(0,512);
         if(members.isEmpty())
         {
             event.reply(builder.toString());
@@ -103,7 +105,7 @@ public class MuteCmd extends Command {
         {
             Member m = members.get(i);
             boolean last = i+1==members.size();
-            event.getGuild().getController().addRolesToMember(m, muteRole).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the mute command.").queue(v -> {
+            event.getGuild().getController().addRolesToMember(m, muteRole).reason(reason).queue(v -> {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser()));
                     if(last)
                         event.reply(builder.toString());

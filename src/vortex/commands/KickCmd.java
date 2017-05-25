@@ -20,7 +20,6 @@ import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Constants;
 import vortex.ModLogger;
 import vortex.utils.FormatUtil;
@@ -68,11 +67,11 @@ public class KickCmd extends Command {
             {
                 builder.append("\n").append(event.getClient().getWarning()).append(" ").append(u.getAsMention()).append(" cannot be kicked because they are not in the current guild.");
             }
-            else if(!PermissionUtil.canInteract(event.getMember(), m))
+            else if(!event.getMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to kick ").append(FormatUtil.formatUser(u));
             }
-            else if (!PermissionUtil.canInteract(event.getSelfMember(), m))
+            else if (!event.getSelfMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" I do not have permission to kick ").append(FormatUtil.formatUser(u));
             }
@@ -81,6 +80,9 @@ public class KickCmd extends Command {
                 users.add(m);
             }
         });
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [kick]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        if(reason.length()>512)
+            reason = reason.substring(0,512);
         if(users.isEmpty())
             event.reply(builder.toString());
         else
@@ -89,7 +91,7 @@ public class KickCmd extends Command {
             {
                 Member m = users.get(i);
                 boolean last = i+1==users.size();
-                event.getGuild().getController().kick(m).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the kick command.").queue((v) -> {
+                event.getGuild().getController().kick(m).reason(reason).queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(m.getAsMention());
                         if(last)
                             event.reply(builder.toString());

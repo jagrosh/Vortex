@@ -184,17 +184,20 @@ public class CleanCmd extends Command {
                 event.replyWarning("There were no messages to clean!"+(week2?week2limit:""));
                 return;
             }
+            String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [clean]: "+event.getMessage().getRawContent();
+            if(reason.length()>512)
+                reason = reason.substring(0,512);
             try{
                 int index = 0;
                 while(index < del.size())
                 {
                     if(index+100>del.size())
                         if(index+1==del.size())
-                            del.get(del.size()-1).delete().complete();
+                            del.get(del.size()-1).delete().reason(reason).complete();
                         else
-                            event.getTextChannel().deleteMessages(del.subList(index, del.size())).complete();
+                            event.getTextChannel().deleteMessages(del.subList(index, del.size())).reason(reason).complete();
                     else
-                        event.getTextChannel().deleteMessages(del.subList(index, index+100)).complete();
+                        event.getTextChannel().deleteMessages(del.subList(index, index+100)).reason(reason).complete();
                     index+=100;
                 }
             }catch(Exception e)

@@ -23,7 +23,6 @@ import com.jagrosh.jdautilities.waiter.EventWaiter;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.utils.FinderUtil;
 import vortex.utils.FormatUtil;
 
@@ -77,12 +76,12 @@ public class MagnetCmd extends Command {
         {
             vc = event.getMember().getVoiceState().getChannel();
         }
-        if(!PermissionUtil.checkPermission(vc, event.getMember(), Permission.VOICE_MOVE_OTHERS))
+        if(!event.getMember().hasPermission(Permission.VOICE_MOVE_OTHERS))
         {
             event.reply(event.getClient().getError()+" You don't have permission to move users out of **"+vc.getName()+"**!");
             return;
         }
-        if(!PermissionUtil.checkPermission(vc, event.getSelfMember(), Permission.VOICE_MOVE_OTHERS))
+        if(!event.getSelfMember().hasPermission(Permission.VOICE_MOVE_OTHERS))
         {
             event.reply(event.getClient().getError()+" I don't have permission to move users out of **"+vc.getName()+"**!");
             return;

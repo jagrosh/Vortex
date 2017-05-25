@@ -26,7 +26,6 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.data.DatabaseManager;
 
@@ -47,7 +46,7 @@ public class ModLogger {
     public void logCommand(Message msg)
     {
         TextChannel tc = manager.getModlogChannel(msg.getGuild());
-        if(tc==null || !PermissionUtil.checkPermission(tc, tc.getGuild().getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
+        if(tc==null || !tc.getGuild().getSelfMember().hasPermission(tc, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
             return;
         tc.sendMessage(new EmbedBuilder()
                 .setColor(tc.getGuild().getSelfMember().getColor())
@@ -60,7 +59,7 @@ public class ModLogger {
     public void logAutomod(Message msg, Action action, String reason)
     {
         TextChannel tc = manager.getModlogChannel(msg.getGuild());
-        if(tc==null || !PermissionUtil.checkPermission(tc, tc.getGuild().getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
+        if(tc==null || !tc.getGuild().getSelfMember().hasPermission(tc, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
             return;
         tc.sendMessage(new EmbedBuilder()
                 .setColor(tc.getGuild().getSelfMember().getColor())
@@ -73,7 +72,7 @@ public class ModLogger {
     public void logAutomod(Member member, Action action, String reason)
     {
         TextChannel tc = manager.getModlogChannel(member.getGuild());
-        if(tc==null || !PermissionUtil.checkPermission(tc, tc.getGuild().getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
+        if(tc==null || !tc.getGuild().getSelfMember().hasPermission(tc, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
             return;
         tc.sendMessage(new EmbedBuilder()
                 .setColor(tc.getGuild().getSelfMember().getColor())
@@ -86,7 +85,7 @@ public class ModLogger {
     public void logEmbed(Guild guild, MessageEmbed embed)
     {
         TextChannel tc = manager.getModlogChannel(guild);
-        if(tc==null || !PermissionUtil.checkPermission(tc, tc.getGuild().getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
+        if(tc==null || !tc.getGuild().getSelfMember().hasPermission(tc, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
             return;
         tc.sendMessage(embed).queue();
     }
@@ -94,7 +93,7 @@ public class ModLogger {
     public void logMessage(Guild guild, String message)
     {
         TextChannel tc = manager.getModlogChannel(guild);
-        if(tc==null || !PermissionUtil.checkPermission(tc, tc.getGuild().getSelfMember(), Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
+        if(tc==null || !tc.getGuild().getSelfMember().hasPermission(tc, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS))
             return;
         List<String> msgs = CommandEvent.splitMessage(message);
         msgs.forEach(msg -> tc.sendMessage(msg).queue());

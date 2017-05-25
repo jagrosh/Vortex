@@ -23,7 +23,6 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Constants;
 import vortex.ModLogger;
 import vortex.utils.FormatUtil;
@@ -78,11 +77,11 @@ public class HackbanCmd extends Command {
             {
                 banIds.add(id);
             }
-            else if(!PermissionUtil.canInteract(event.getMember(), m))
+            else if(!event.getMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to ban ").append(FormatUtil.formatUser(m.getUser()));
             }
-            else if (!PermissionUtil.canInteract(event.getSelfMember(), m))
+            else if (!event.getSelfMember().canInteract(m))
             {
                 builder.append("\n").append(event.getClient().getError()).append(" I do not have permission to ban ").append(FormatUtil.formatUser(m.getUser()));
             }
@@ -91,6 +90,9 @@ public class HackbanCmd extends Command {
                 banIds.add(id);
             }
         });
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [hackban]: "+event.getMessage().getRawContent().replaceAll("\\d{17,20}", "");
+                if(reason.length()>512)
+                    reason = reason.substring(0,512);
         if(banIds.isEmpty())
             event.reply(builder.toString());
         else
@@ -100,7 +102,7 @@ public class HackbanCmd extends Command {
                 String id = banIds.get(i);
                 User u = event.getJDA().getUserById(id);
                 boolean last = i+1==banIds.size();
-                event.getGuild().getController().ban(id, 1).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the hackban command.").queue((v) -> {
+                event.getGuild().getController().ban(id, 1).reason(reason).queue((v) -> {
                         builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned ").append(u==null ? "User with ID `"+id+"`" : u.getAsMention());
                         if(last)
                             event.reply(builder.toString());

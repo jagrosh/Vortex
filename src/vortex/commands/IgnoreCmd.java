@@ -13,7 +13,6 @@ import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Action;
 import vortex.ModLogger;
 import vortex.data.DatabaseManager;
@@ -55,7 +54,7 @@ public class IgnoreCmd extends Command {
             event.getGuild().getRoles().stream().forEach(r -> {
                 if(roles.contains(r))
                     builder.append("\n").append(r.getAsMention());
-                else if(!PermissionUtil.canInteract(event.getSelfMember(), r))
+                else if(!event.getSelfMember().canInteract(r))
                     builder.append("\n").append(r.getAsMention()).append(" [can't interact]");
                 else if(r.getPermissions().contains(Permission.ADMINISTRATOR) 
                         || r.getPermissions().contains(Permission.MANAGE_SERVER) 

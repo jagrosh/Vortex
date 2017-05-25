@@ -8,11 +8,7 @@ package vortex.commands;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.AutoMod;
-import vortex.ModLogger;
-import vortex.data.DatabaseManager;
 
 /**
  *

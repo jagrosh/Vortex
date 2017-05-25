@@ -26,7 +26,6 @@ import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.ModLogger;
 import vortex.data.DatabaseManager;
 
@@ -56,6 +55,7 @@ public class SetupCmd extends Command {
                 .setText("Please select a setup option!")
                 .setDescription(MUTE+" 'Muted' Role\n"+MODLOG+" Moderation Log\n"+CANCEL+" Cancel")
                 .setChoices(MUTE,MODLOG,CANCEL)
+                
                 .setEventWaiter(waiter)
                 .setTimeout(1, TimeUnit.MINUTES)
                 ;
@@ -72,19 +72,19 @@ public class SetupCmd extends Command {
                     switch(e.getName()) {
                         case MUTE:
                             Role m = ModLogger.getMutedRole(event.getGuild());
-                            if(!PermissionUtil.checkPermission(event.getGuild(), event.getSelfMember(), Permission.MANAGE_ROLES))
+                            if(!event.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
                             {
                                 event.reply(event.getClient().getError()+" I need the "+Permission.MANAGE_ROLES+" permission to set up the muted role!");
                                 return;
                             }
                             if(m!=null)
                             {
-                                if(!PermissionUtil.canInteract(event.getSelfMember(), m))
+                                if(!event.getSelfMember().canInteract(m))
                                 {
                                     event.reply(event.getClient().getError()+" I cannot interact with the muted role!");
                                     return;
                                 }
-                                if(!PermissionUtil.canInteract(event.getMember(), m))
+                                if(!event.getMember().canInteract(m))
                                 {
                                     event.reply(event.getClient().getError()+" You do not have permission to interact with the muted role!");
                                     return;
@@ -117,7 +117,7 @@ public class SetupCmd extends Command {
                                 event.reply(event.getClient().getError()+" A modlog channel already exists: <#"+tc.getId()+">");
                             else
                             {
-                                if(!PermissionUtil.checkPermission(event.getGuild(), event.getSelfMember(), Permission.MANAGE_CHANNEL))
+                                if(!event.getSelfMember().hasPermission(Permission.MANAGE_CHANNEL))
                                 {
                                     event.reply(event.getClient().getError()+" I need the "+Permission.MANAGE_CHANNEL+" permission to set up the moderation log!");
                                     return;
@@ -127,6 +127,7 @@ public class SetupCmd extends Command {
                                             if(e2.getName().equals(CONFIRM))
                                             {
                                                 event.getGuild().getController().createTextChannel("modlog").queue(tchan -> {
+                                                    manager.setModlogChannel(event.getGuild(), (TextChannel)tchan);
                                                     tchan.getManager().setTopic("Log of moderation actions").queue();
                                                     tchan.createPermissionOverride(tchan.getGuild().getSelfMember()).queue(po -> {
                                                         po.getManager().grant(Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_EMBED_LINKS).queue();

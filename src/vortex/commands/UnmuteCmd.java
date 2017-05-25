@@ -22,7 +22,6 @@ import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import vortex.Constants;
 import vortex.ModLogger;
 import vortex.utils.FormatUtil;
@@ -64,12 +63,12 @@ public class UnmuteCmd extends Command {
             event.reply(event.getClient().getError()+" No role called 'Muted' exists!");
             return;
         }
-        if(!PermissionUtil.canInteract(event.getMember(), muteRole))
+        if(!event.getMember().canInteract(muteRole))
         {
             event.reply(event.getClient().getError()+" You do not have permissions to remove the 'Muted' role!");
             return;
         }
-        if(!PermissionUtil.canInteract(event.getSelfMember(), muteRole))
+        if(!event.getSelfMember().canInteract(muteRole))
         {
             event.reply(event.getClient().getError()+" I do not have permissions to remove the 'Muted' role!");
             return;
@@ -80,7 +79,7 @@ public class UnmuteCmd extends Command {
                 .filter((Member m) -> {
                     if(m==null)
                     {
-                        builder.append("\n").append(event.getClient().getWarning()).append(" User ").append(FormatUtil.formatUser(m.getUser())).append(" is not in the server!");
+                        builder.append("\n").append(event.getClient().getWarning()).append(" User is not in the server!");
                         return false;
                     }
                     if(!m.getRoles().contains(muteRole))
@@ -90,6 +89,9 @@ public class UnmuteCmd extends Command {
                     }
                     return true;
                 }).collect(Collectors.toList());
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [unmute]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        if(reason.length()>512)
+            reason = reason.substring(0,512);
         if(members.isEmpty())
         {
             event.reply(builder.toString());
@@ -98,7 +100,7 @@ public class UnmuteCmd extends Command {
         {
             Member m = members.get(i);
             boolean last = i+1==members.size();
-            event.getGuild().getController().removeRolesFromMember(m, muteRole).reason(event.getAuthor().getName()+" #"+event.getAuthor().getDiscriminator()+" used the unmute command.").queue(v -> {
+            event.getGuild().getController().removeRolesFromMember(m, muteRole).reason(reason).queue(v -> {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unmuted ").append(FormatUtil.formatUser(m.getUser()));
                     if(last)
                         event.reply(builder.toString());

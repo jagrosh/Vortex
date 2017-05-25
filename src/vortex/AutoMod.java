@@ -44,7 +44,6 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 import net.dv8tion.jda.core.requests.restaction.AuditableRestAction;
-import net.dv8tion.jda.core.utils.PermissionUtil;
 import net.dv8tion.jda.core.utils.SimpleLog;
 import vortex.data.DMSpamManager;
 import vortex.data.DatabaseManager;
@@ -55,7 +54,7 @@ import vortex.data.DatabaseManager.GuildSettings;
  * @author John Grosh (jagrosh)
  */
 public class AutoMod extends ListenerAdapter {
-    private final Pattern INVITES = Pattern.compile("discord(?:\\.gg|app.com\\/invite)\\/([A-Z0-9_]{2,16})",Pattern.CASE_INSENSITIVE);
+    private final Pattern INVITES = Pattern.compile("discord(?:\\.gg|app.com\\/invite)\\/([A-Z0-9-]{2,16})",Pattern.CASE_INSENSITIVE);
     public static final int MENTION_MINIMUM = 6;
     private final SimpleLog LOG = SimpleLog.getLog("AutoMod");
     
@@ -292,7 +291,7 @@ public class AutoMod extends ListenerAdapter {
             return false;
         
         // ignore users vortex cant interact with
-        if(!PermissionUtil.canInteract(member.getGuild().getSelfMember(), member))
+        if(!member.getGuild().getSelfMember().canInteract(member))
             return false;
         
         // ignore users that can kick
@@ -394,7 +393,10 @@ public class AutoMod extends ListenerAdapter {
                             }
                             if(ra!=null)
                             {
-                                ra.reason("Spamming: "+message.getRawContent());
+                                String str = "Spamming: "+message.getRawContent();
+                                if(str.length()>512)
+                                    str = str.substring(0, 500)+" (...)";
+                                ra.reason(str);
                                 ra.queue(v -> modlog.logAutomod(message, settings.spamAction, "spamming: ```\n"+message.getRawContent()+" ```"));
                             }
                         }
