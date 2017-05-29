@@ -8,8 +8,6 @@ package vortex.commands;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
-import vortex.AutoMod;
-import vortex.ModLogger;
 import vortex.data.DatabaseManager;
 
 /**
@@ -28,7 +26,7 @@ public class AutoraidmodeCmd extends Command {
         this.aliases = new String[]{"autoraid"};
         this.category = new Category("AutoMod");
         this.arguments = "<ON or OFF>";
-        this.help = "enables or disabled auto-raidmode";
+        this.help = "enables/disables auto-raidmode";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER,Permission.KICK_MEMBERS};
         this.botPermissions = new Permission[]{Permission.MANAGE_SERVER,Permission.KICK_MEMBERS};
     }

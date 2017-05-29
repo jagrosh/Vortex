@@ -30,7 +30,7 @@ public class AntiinviteCmd extends Command {
         this.aliases = new String[]{"antinvite"};
         this.category = new Category("AutoMod");
         this.arguments = "<action or OFF>";
-        this.help = "sets the action to perform after a user is warned for posting an invite";
+        this.help = "sets the action to perform (after a warning) for posting an invite";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 

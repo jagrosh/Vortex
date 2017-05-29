@@ -63,7 +63,7 @@ public class CleanCmd extends Command {
         this.threadpool = threadpool;
         this.category = new Category("Moderation");
         this.name = "clean";
-        this.arguments = "@user(s) | \"text\" | bots | embeds | links | images | <number>";
+        this.arguments = "<parameters>";
         this.help = "cleans messages in the past 100, matching the given criteria";
         this.userPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};

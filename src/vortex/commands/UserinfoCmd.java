@@ -41,6 +41,11 @@ public class UserinfoCmd extends Command {
     
     @Override
     protected void execute(CommandEvent event) {
+        if(event.getArgs().isEmpty())
+        {
+            event.replyError("Please include a member ID, or an `@mention` of a member.");
+            return;
+        }
         Member member;
         if(event.getMessage().getMentionedUsers().isEmpty())
         {

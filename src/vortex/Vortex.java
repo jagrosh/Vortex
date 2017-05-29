@@ -83,7 +83,6 @@ public class Vortex {
                                         Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
                                         Permission.MESSAGE_MANAGE, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS, Permission.VOICE_DEAF_OTHERS, 
                                         Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE),
-                                new AutomodCmd(),
                                 new InviteCmd(),
                                 new PingCommand(),
                                 new UserinfoCmd(),
@@ -91,7 +90,7 @@ public class Vortex {
                                 // Settings
                                 new ModlogCmd(manager, modlog),
                                 new SettingsCmd(automod),
-                                new SetupCmd(waiter,manager),
+                                //new SetupCmd(waiter,manager),
                                 
                                 // Moderation
                                 new KickCmd(modlog),

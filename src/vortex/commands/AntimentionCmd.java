@@ -8,7 +8,6 @@ package vortex.commands;
 import com.jagrosh.jdautilities.commandclient.Command;
 import com.jagrosh.jdautilities.commandclient.CommandEvent;
 import net.dv8tion.jda.core.Permission;
-import vortex.Action;
 import vortex.AutoMod;
 import vortex.ModLogger;
 import vortex.data.DatabaseManager;
@@ -30,7 +29,7 @@ public class AntimentionCmd extends Command {
         this.name = "antimention";
         this.category = new Category("AutoMod");
         this.arguments = "<maximum or OFF>";
-        this.help = "sets the maximum number of unique, non-bot mentions a user can send";
+        this.help = "sets maximum number of unique, non-bot mentions a user can send";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER,Permission.BAN_MEMBERS};
     }
 

@@ -35,8 +35,7 @@ public class AntidmspamCmd extends Command {
         this.name = "antidmspam";
         this.aliases = new String[]{"antidm","block"};
         this.category = new Category("AutoMod");
-        this.arguments = "<ON|OFF|REMOVE|REMOVEALL>";
-        this.help = "enables or disabled auto-raidmode";
+        this.help = "enables/disables anti-dm-spam";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER,Permission.KICK_MEMBERS};
         this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
     }

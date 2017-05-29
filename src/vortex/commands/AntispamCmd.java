@@ -29,7 +29,7 @@ public class AntispamCmd extends Command {
         this.guildOnly = true;
         this.category = new Category("AutoMod");
         this.arguments = "<action> <number> or OFF";
-        this.help = "sets the action to perform at the specified number of repeated messages";
+        this.help = "sets action to perform at the specified number of repeated messages";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 
