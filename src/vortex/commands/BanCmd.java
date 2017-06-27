@@ -89,7 +89,7 @@ public class BanCmd extends Command {
             {
                 User u = users.get(i);
                 boolean last = i+1==users.size();
-                String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [ban]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+                String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [ban]: "+event.getArgs().replaceAll("<@!?\\d+>", "");
                 if(reason.length()>512)
                     reason = reason.substring(0,512);
                 event.getGuild().getController().ban(u, 1).reason(reason).queue((v) -> {

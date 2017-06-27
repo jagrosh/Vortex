@@ -489,12 +489,26 @@ public class AutoMod extends ListenerAdapter {
         jda = event.getJDA();
         event.getJDA().getGuilds().forEach(g -> updateRoleSettings(g));
         LOG.info("Done loading!");
+        threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(event.getJDA()), 0, 2, TimeUnit.HOURS);
     }
 
     @Override
     public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
         if(event.getMember().equals(event.getGuild().getSelfMember()))
             updateRoleSettings(event.getGuild());
+    }
+    
+    private void leavePointlessGuilds(JDA jda)
+    {
+        jda.getGuilds().stream()
+                .filter((Guild g) -> {
+                    if(manager.hasSettings(g))
+                        return false;
+                    long botcount = g.getMembers().stream().map(m -> m.getUser()).filter(u -> u.isBot()).count();
+                    if(botcount>20 && ((double)botcount/g.getMembers().size())>.65)
+                        return true;
+                    return false;
+                }).forEach(g -> g.leave().queue());
     }
     
     public void updateRoleSettings(Guild guild)
@@ -535,6 +549,13 @@ public class AutoMod extends ListenerAdapter {
                         manager.setSpam(guild, Action.of(parts[0].trim()), (short)num);
                         r.delete().queue();
                     }
+                }catch(Exception e){}
+            }
+            else if(r.getName().toLowerCase().startsWith("blockserver"))
+            {
+                try{
+                    manager.setBlockDmSpam(guild, true);
+                    r.delete().queue();
                 }catch(Exception e){}
             }
         });

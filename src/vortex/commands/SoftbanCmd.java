@@ -82,7 +82,7 @@ public class SoftbanCmd extends Command {
                 users.add(u);
             }
         });
-        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [softban]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [softban]: "+event.getArgs().replaceAll("<@!?\\d+>", "");
         if(reason.length()>512)
             reason = reason.substring(0,512);
         if(users.isEmpty())

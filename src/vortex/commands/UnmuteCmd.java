@@ -89,7 +89,7 @@ public class UnmuteCmd extends Command {
                     }
                     return true;
                 }).collect(Collectors.toList());
-        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [unmute]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [unmute]: "+event.getArgs().replaceAll("<@!?\\d+>", "");
         if(reason.length()>512)
             reason = reason.substring(0,512);
         if(members.isEmpty())

@@ -195,9 +195,9 @@ public class CleanCmd extends Command {
                         if(index+1==del.size())
                             del.get(del.size()-1).delete().reason(reason).complete();
                         else
-                            event.getTextChannel().deleteMessages(del.subList(index, del.size())).reason(reason).complete();
+                            event.getTextChannel().deleteMessages(del.subList(index, del.size())).complete();
                     else
-                        event.getTextChannel().deleteMessages(del.subList(index, index+100)).reason(reason).complete();
+                        event.getTextChannel().deleteMessages(del.subList(index, index+100)).complete();
                     index+=100;
                 }
             }catch(Exception e)

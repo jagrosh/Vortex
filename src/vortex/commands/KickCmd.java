@@ -80,7 +80,7 @@ public class KickCmd extends Command {
                 users.add(m);
             }
         });
-        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [kick]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [kick]: "+event.getArgs().replaceAll("<@!?\\d+>", "");
         if(reason.length()>512)
             reason = reason.substring(0,512);
         if(users.isEmpty())

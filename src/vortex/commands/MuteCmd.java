@@ -94,7 +94,7 @@ public class MuteCmd extends Command {
                     }
                     return true;
                 }).collect(Collectors.toList());
-        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [mute]: "+event.getMessage().getRawContent().replaceAll("<@!?\\d+>", "");
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [mute]: "+event.getArgs().replaceAll("<@!?\\d+>", "");
         if(reason.length()>512)
             reason = reason.substring(0,512);
         if(members.isEmpty())

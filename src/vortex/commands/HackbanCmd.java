@@ -90,7 +90,7 @@ public class HackbanCmd extends Command {
                 banIds.add(id);
             }
         });
-        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [hackban]: "+event.getMessage().getRawContent().replaceAll("\\d{17,20}", "");
+        String reason = event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator()+" [hackban]: "+event.getArgs().replaceAll("\\d{17,20}", "");
                 if(reason.length()>512)
                     reason = reason.substring(0,512);
         if(banIds.isEmpty())

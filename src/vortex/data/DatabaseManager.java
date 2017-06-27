@@ -15,8 +15,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
@@ -89,6 +87,22 @@ public class DatabaseManager {
         } catch( SQLException e) {
             LOG.warn(e);
             return DEFAULT;
+        }
+    }
+    
+    public boolean hasSettings(Guild guild)
+    {
+        try {
+            Statement statement = connection.createStatement();
+            statement.closeOnCompletion();
+            GuildSettings gs;
+            try (ResultSet results = statement.executeQuery(String.format("SELECT * FROM GUILD_SETTINGS WHERE GUILD_ID = %s", guild.getId())))
+            {
+                return results.next();
+            }
+        } catch( SQLException e) {
+            LOG.warn(e);
+            return false;
         }
     }
     
