@@ -2,8 +2,7 @@
 Vortex is an easy-to-use moderation bot. It requires no configuration for the commands; instead, it just checks the users' native Discord permissions.
 
 # Invite
-If you'd like to invite Vortex to your server, click here: **http://vortex.jagrosh.me**
-
+If you'd like to invite Vortex to your server, click here: [**discordapp.com**](https://discordapp.com/oauth2/authorize?client_id=240254129333731328&permissions=500558958&scope=bot)
 # Dependencies
 If you plan to utilize the source code of this repository in any way, there are a few dependencies:
 
