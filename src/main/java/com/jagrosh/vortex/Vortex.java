@@ -15,8 +15,6 @@
  */
 package com.jagrosh.vortex;
 
-import com.jagrosh.jdautilities.command.Command;
-import com.jagrosh.jdautilities.command.Command.Category;
 import com.jagrosh.vortex.commands.automod.AntimentionCmd;
 import com.jagrosh.vortex.commands.automod.AntiduplicateCmd;
 import com.jagrosh.vortex.commands.automod.AutoraidmodeCmd;
@@ -34,7 +32,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.*;
 import com.jagrosh.vortex.automod.AutoMod;
@@ -42,18 +39,15 @@ import com.jagrosh.vortex.automod.StrikeHandler;
 import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
-import com.jagrosh.vortex.commands.*;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
-import java.util.function.Consumer;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
@@ -104,7 +98,7 @@ public class Vortex
         
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.watching("Type "+Constants.PREFIX+"help"))
+                        .setGame(Game.watching("Type "+Constants.PREFIX+"help | Vortex Beta (Formerly Spectra Beta)"))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -138,7 +132,9 @@ public class Vortex
                             new MessagelogCmd(this),
                             new ModlogCmd(this),
                             new ServerlogCmd(this),
+                            new TimezoneCmd(this),
                             new ModroleCmd(this),
+                            new PrefixCmd(this),
                             new SettingsCmd(this),
 
                             // Automoderation
@@ -158,7 +154,7 @@ public class Vortex
                             if(event.isFromType(ChannelType.TEXT))
                                 try
                                 {
-                                    event.getMessage().addReaction(Constants.SUCCESS.replaceAll("<a?:(.+):(\\d+)>", "$1:$2")).queue();
+                                    event.getMessage().addReaction(Constants.HELP_REACTION).queue();
                                 } catch(PermissionException ex) {}
                         }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
                         //.setDiscordBotsKey(tokens.get(1))

@@ -42,7 +42,7 @@ public class UserinfoCmd extends Command
     {
         this.name = "userinfo";
         this.aliases = new String[]{"user","uinfo"};
-        this.help = "shows info on a user in the server";
+        this.help = "shows info on a member";
         this.arguments = "[user]";
         this.guildOnly = true;
         this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};

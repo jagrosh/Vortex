@@ -31,7 +31,7 @@ public class IgnoreCmd extends Command
         this.name = "ignore";
         this.aliases = new String[]{"addignore","ignored","ignores"};
         this.category = new Category("AutoMod");
-        this.arguments = "<role or channel>";
+        this.arguments = "<role | channel>";
         this.help = "shows ignores, or sets automod to ignore a role or channel";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }

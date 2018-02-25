@@ -52,7 +52,7 @@ public class VoicemoveCmd extends ModCommand
         }
         if(event.getArgs().isEmpty() && !event.getMember().getVoiceState().inVoiceChannel())
         {
-            event.replyError("You must specify a voice channel or be in a voice channel to connect");
+            event.replyError("You must be in or specify a voice channel to move users from!");
             return;
         }
         VoiceChannel vc;

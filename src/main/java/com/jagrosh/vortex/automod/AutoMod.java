@@ -128,8 +128,13 @@ public class AutoMod
         if(kicking)
         {
             OtherUtil.safeDM(event.getUser(),
-                        "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.",
-                        () -> event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue());
+                    "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.", () -> 
+                    {
+                        try
+                        {
+                            event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
+                        }catch(Exception ex){}
+                    });
         }
         else
         {

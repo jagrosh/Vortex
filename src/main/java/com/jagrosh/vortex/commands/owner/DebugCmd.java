@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.owner;
 import java.time.OffsetDateTime;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.temporal.ChronoUnit;
@@ -29,7 +30,6 @@ import net.dv8tion.jda.core.JDA;
  */
 public class DebugCmd extends Command
 {
-    private final OffsetDateTime start = OffsetDateTime.now();
     private final Vortex vortex;
     
     public DebugCmd(Vortex vortex)
@@ -48,7 +48,7 @@ public class DebugCmd extends Command
         long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
         StringBuilder sb = new StringBuilder("**"+event.getSelfUser().getName()+"** statistics:"
-                + "\nLast Startup: "+FormatUtil.secondsToTime(start.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
+                + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
                 + "\nGuilds: **"+vortex.getShardManager().getGuildCache().size()+"**"
                 + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
                 + "\nAverage Ping: **"+vortex.getShardManager().getAveragePing()+"**ms"

@@ -100,7 +100,7 @@ public class AntiduplicateCmd extends Command
         vortex.getDatabase().automod.setDupeSettings(event.getGuild(), strikes, deleteThreshold, strikeThreshold);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
         event.replySuccess("Anti-Duplicate will now delete duplicates starting at duplicate **"+deleteThreshold
-                +"** and begin assigning **"+strikes+"** strikes for each duplicate after duplicate **"+strikeThreshold+"**."
+                +"** and begin assigning **"+strikes+"** strikes for each duplicate starting at duplicate **"+strikeThreshold+"**."
                 +(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }
 }

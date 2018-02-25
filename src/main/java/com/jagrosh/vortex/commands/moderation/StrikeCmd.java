@@ -60,9 +60,14 @@ public class StrikeCmd extends ModCommand
             return;
         }
         ResolvedArgs args = ArgsUtil.resolve(str, event.getGuild());
+        if(args.isEmpty())
+        {
+            event.replyError("Please provide at least one user!");
+            return;
+        }
         if(args.reason==null || args.reason.isEmpty())
         {
-            event.replyError("Please provide a reason!");
+            event.replyError("Please provide a reason for the strike(s)!");
             return;
         }
         StringBuilder builder = new StringBuilder();
@@ -73,20 +78,29 @@ public class StrikeCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to interact with ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to interact with ").append(FormatUtil.formatUser(m.getUser()));
+            else if(m.getUser().isBot())
+                builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(m.getUser())).append(")");
             else
                 args.ids.add(m.getUser().getIdLong());
         });
         
         args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a user ID"));
         
-        args.users.forEach(u -> args.ids.add(u.getIdLong()));
+        args.users.forEach(u -> 
+        {
+            if(u.isBot())
+                builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
+            else
+                args.ids.add(u.getIdLong());
+        });
         
         int fnumstrikes = numstrikes;
         
         args.ids.forEach(id -> 
         {
             vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), id, fnumstrikes, args.reason);
-            builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(fnumstrikes).append("` strikes to <@").append(id).append(">");
+            builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(fnumstrikes)
+                    .append("` strikes to ").append(event.getJDA().getUserById(id)==null ? "<@"+id+">" : FormatUtil.formatUser(event.getJDA().getUserById(id)));
         });
         event.reply(builder.toString());
     }

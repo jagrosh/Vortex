@@ -17,28 +17,25 @@ package com.jagrosh.vortex.commands.settings;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.utils.FormatUtil;
-import java.util.List;
+import com.jagrosh.vortex.database.managers.GuildSettingsDataManager;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class ModroleCmd extends Command
+public class PrefixCmd extends Command
 {
     private final Vortex vortex;
     
-    public ModroleCmd(Vortex vortex)
+    public PrefixCmd(Vortex vortex)
     {
         this.vortex = vortex;
-        this.name = "modrole";
-        this.help = "sets the moderator role";
-        this.aliases = new String[]{"moderatorrole"};
-        this.arguments = "<role>";
+        this.name = "prefix";
+        this.help = "sets the server prefix";
+        this.arguments = "<prefix or NONE>";
         this.category = new Category("Settings");
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
@@ -49,26 +46,25 @@ public class ModroleCmd extends Command
     {
         if(event.getArgs().isEmpty())
         {
-            event.replyError("Please include the name of a role to use as the Moderator role. Members with this role will be able to use all Moderation commands.");
+            event.replyError("Please include a prefix. The server's current prefix can be seen via the `"+Constants.PREFIX+"settings` command");
             return;
         }
         
-        else if(event.getArgs().equalsIgnoreCase("none"))
+        if(event.getArgs().equalsIgnoreCase("none"))
         {
-            vortex.getDatabase().settings.setModeratorRole(event.getGuild(), null);
-            event.replySuccess("Moderation commands can now only be used by members that can perform the actions manually.");
+            vortex.getDatabase().settings.setPrefix(event.getGuild(), null);
+            event.replySuccess("The server prefix has been reset.");
             return;
         }
         
-        List<Role> roles = FinderUtil.findRoles(event.getArgs(), event.getGuild());
-        if(roles.isEmpty())
-            event.replyError("No roles found called `"+event.getArgs()+"`");
-        else if (roles.size()==1)
+        if(event.getArgs().length()>GuildSettingsDataManager.PREFIX_MAX_LENGTH)
         {
-            vortex.getDatabase().settings.setModeratorRole(event.getGuild(), roles.get(0));
-            event.replySuccess("Users with the `"+roles.get(0).getName()+"` role can now use all Moderation commands.");
+            event.replySuccess("Prefixes cannot be longer than `"+GuildSettingsDataManager.PREFIX_MAX_LENGTH+"` characters.");
+            return;
         }
-        else
-            event.reply(FormatUtil.listOfRoles(roles, event.getArgs()));
+        
+        vortex.getDatabase().settings.setPrefix(event.getGuild(), event.getArgs());
+        event.replySuccess("The server prefix has been set to `"+event.getArgs()+"`\n"
+                + "Note that the default prefix (`"+Constants.PREFIX+"`) cannot be removed and will work in addition to the custom prefix.");
     }
 }

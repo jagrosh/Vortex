@@ -62,6 +62,6 @@ public class AntiinviteCmd extends Command
         }
         vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), numstrikes);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now receive `"+numstrikes+"` for posting invite links."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for posting invite links."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }
 }

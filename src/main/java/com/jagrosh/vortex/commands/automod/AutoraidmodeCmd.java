@@ -17,6 +17,7 @@ package com.jagrosh.vortex.commands.automod;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
 
@@ -63,7 +64,7 @@ public class AutoraidmodeCmd extends Command
                     + "\nSetting to `OFF` means the bot will never automatically enable raid mode"
                     + "\nSetting to `ON` will use the recommended value of 10 joins per 10 seconds to rigger Anti-Raid mode"
                     + "\nSetting a customizable threshhold is possible; ex: `10/20` for 10 joins in 20 seconds"
-                    + "\nFor more information, check out the wiki: <https://github.com/jagrosh/Vortex/wiki/Raid-Mode>");
+                    + "\nFor more information, check out the wiki: <"+Constants.WIKI.RAID_MODE+">");
             return;
         }
         else
@@ -73,6 +74,6 @@ public class AutoraidmodeCmd extends Command
             seconds = Integer.parseInt(parts[1]);
         }
         vortex.getDatabase().automod.setAutoRaidMode(event.getGuild(), joins, seconds);
-        event.replySuccess("Anti-Raid mode will be enabled automatically when there are `"+joins+"` in `"+seconds+"` seconds.");
+        event.replySuccess("Anti-Raid mode will be enabled automatically when there are `"+joins+"` joins in `"+seconds+"` seconds.");
     }
 }

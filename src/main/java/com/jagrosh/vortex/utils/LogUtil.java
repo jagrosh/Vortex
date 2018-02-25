@@ -92,7 +92,7 @@ public class LogUtil
     
     public static String modlogRaidFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, boolean enabled, String reason)
     {
-        return String.format(MODLOG_RAID_FORMAT, timeF(time, zone), caseNum, Action.RAIDMODE.getEmoji(), moderator.getName(),
+        return String.format(MODLOG_RAID_FORMAT, timeF(time, zone), caseNum, enabled ? Action.RAIDMODE.getEmoji() : Action.NORAIDMODE.getEmoji(), moderator.getName(),
                 moderator.getDiscriminator(), enabled ? "ENABLED" : "DISABLED", reasonF(reason));
     }
     

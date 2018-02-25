@@ -23,7 +23,11 @@ import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
+import java.awt.Color;
+import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 /**
@@ -181,9 +185,12 @@ public class FormatUtil {
         return str;
     }
     
-    public static String formatHelp(CommandEvent event, Vortex vortex)
+    public static Message formatHelp(CommandEvent event, Vortex vortex)
     {
-        StringBuilder builder = new StringBuilder("**"+event.getSelfUser().getName()+"** commands:\n");
+        EmbedBuilder builder = new EmbedBuilder()
+            .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
+        
+        StringBuilder sb = new StringBuilder();
         Command.Category category = null;
         for(Command command : event.getClient().getCommands())
         {
@@ -193,30 +200,31 @@ public class FormatUtil {
                 {
                     if(command.getCategory()!=null)
                     {
+                        builder.addField("General Commands", sb.toString()+"\u200B", true);
+                        sb = new StringBuilder();
                         category = command.getCategory();
-                        builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
                     }
                 }
                 else
                 {
                     if(command.getCategory()==null || !command.getCategory().getName().equals(category.getName()))
                     {
+                        builder.addField(category.getName()+" Commands", sb.toString()+"\u200B", true);
+                        sb = new StringBuilder();
                         category = command.getCategory();
-                        builder.append("\n\n  __").append(category==null ? "No Category" : category.getName()).append("__:\n");
                     }
                 }
-                builder.append("\n`").append(event.getClient().getTextualPrefix()).append(event.getClient().getPrefix()==null?" ":"").append(command.getName())
-                       .append(command.getArguments()==null ? "`" : " "+command.getArguments()+"`")
-                       .append(" - ").append(command.getHelp());
+                sb.append("```fix\n").append(event.getClient().getTextualPrefix()).append(event.getClient().getPrefix()==null?" ":"").append(command.getName())
+                       .append(command.getArguments()==null ? "" : " "+command.getArguments()+"")
+                       .append(" = ").append(command.getHelp()).append("```");
             }
         }
-        User owner = vortex.getShardManager().getUserById(event.getClient().getOwnerIdLong());
-        if(owner!=null)
-        {
-            builder.append("\n\nFor additional help, contact **").append(owner.getName()).append("**#").append(owner.getDiscriminator());
-            if(event.getClient().getServerInvite()!=null)
-                builder.append(" or join ").append(event.getClient().getServerInvite());
-        }
-        return builder.toString();
+        builder.addField(category==null ? "General Commands" : category.getName()+" Commands", sb.toString()+"\u200B", true);
+        
+        builder.addField("Additional Help", "["+event.getSelfUser().getName()+" Wiki]("+Constants.WIKI.WIKI_BASE+")\n"
+                + "[Support Server]("+event.getClient().getServerInvite()+")\n"
+                + "[Full Command Reference]("+Constants.WIKI.FULL_COMMAND_REFERENCE+")", false);
+        
+        return new MessageBuilder().append(Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** Commands:").setEmbed(builder.build()).build();
     }
 }

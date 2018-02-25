@@ -44,7 +44,7 @@ public class SetstrikesCmd extends Command
     {
         this.vortex = vortex;
         this.name = "setstrikes";
-        this.help = "sets the number of strikes for a punishment";
+        this.help = "sets strikes for a punishment";
         this.aliases = new String[]{"setstrike"};
         this.arguments = "<number> <action> [time]";
         this.category = new Category("Settings");

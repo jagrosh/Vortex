@@ -106,7 +106,7 @@ public class UnmuteCmd extends ModCommand
             boolean last = i+1 == toUnmute.size();
             event.getGuild().getController().removeSingleRoleFromMember(m, muteRole).reason(reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unmuted ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unmuted ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 

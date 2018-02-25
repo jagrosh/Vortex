@@ -82,7 +82,7 @@ public class BasicLogger
             edit.addField("To:", newm.length()>1024 ? newm.substring(0,1016)+" (...)" : newm, false);
         else
             edit.appendDescription("\n**To:** "+newm);
-        log(newMessage.getEditedTime(), tc, "\u26A0", 
+        log(newMessage.getEditedTime()==null ? newMessage.getCreationTime() : newMessage.getEditedTime(), tc, "\u26A0", 
                 FormatUtil.formatUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
     }
     
@@ -110,6 +110,11 @@ public class BasicLogger
         TextChannel tc = vortex.getDatabase().settings.getSettings(text.getGuild()).getMessageLogChannel(text.getGuild());
         if(tc==null)
             return;
+        if(messages.isEmpty())
+        {
+            log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
+            return;
+        }
         vortex.getTextUploader().upload(LogUtil.logMessages("Deleted Messages", messages), "DeletedMessages", (view, download) ->
         {
             log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged):", 

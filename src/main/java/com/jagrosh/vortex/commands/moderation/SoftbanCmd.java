@@ -53,6 +53,7 @@ public class SoftbanCmd extends ModCommand
             return;
         }
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
+        String unbanreason = LogUtil.auditReasonFormat(event.getMember(), "Softban Unban");
         StringBuilder builder = new StringBuilder();
         List<Member> toSoftban = new LinkedList<>();
         
@@ -87,13 +88,13 @@ public class SoftbanCmd extends ModCommand
             boolean last = i+1 == toSoftban.size();
             event.getGuild().getController().ban(m, 1, reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully softbanned ").append(m.getUser().getAsMention());
-                event.getGuild().getController().unban(m.getUser().getId()).reason("Softban Unban").queueAfter(7, TimeUnit.SECONDS);
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully softbanned ").append(FormatUtil.formatUser(m.getUser()));
+                event.getGuild().getController().unban(m.getUser().getId()).reason(unbanreason).queueAfter(7, TimeUnit.SECONDS);
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 
             {
-                builder.append("\n").append(event.getClient().getError()).append(" Failed to softban ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getError()).append(" Failed to softban ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)
                     event.reply(builder.toString());
             });

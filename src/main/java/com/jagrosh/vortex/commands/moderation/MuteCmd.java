@@ -39,7 +39,7 @@ public class MuteCmd extends ModCommand
     {
         super(vortex, Permission.MANAGE_ROLES);
         this.name = "mute";
-        this.arguments = "<@users...> [reason]";
+        this.arguments = "<@users...> [time] [reason]";
         this.help = "applies a muted role to provided users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
@@ -115,7 +115,7 @@ public class MuteCmd extends ModCommand
             boolean last = i+1 == toMute.size();
             event.getGuild().getController().addSingleRoleToMember(m, muteRole).reason(reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser()));
                 if(minutes>0)
                     vortex.getDatabase().tempmutes.overrideMute(event.getGuild(), m.getUser().getIdLong(), unmuteTime);
                 else

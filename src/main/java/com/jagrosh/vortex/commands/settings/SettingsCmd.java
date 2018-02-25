@@ -45,6 +45,7 @@ public class SettingsCmd extends Command
         event.getChannel().sendMessage(new MessageBuilder()
                 .append("**"+event.getSelfUser().getName()+"** settings on **"+event.getGuild().getName()+"**:")
                 .setEmbed(new EmbedBuilder()
+                        .setThumbnail(event.getGuild().getIconId()==null ? event.getSelfUser().getEffectiveAvatarUrl() : event.getGuild().getIconUrl())
                         .addField(vortex.getDatabase().settings.getSettingsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().actions.getAllPunishmentsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().automod.getSettingsDisplay(event.getGuild()))

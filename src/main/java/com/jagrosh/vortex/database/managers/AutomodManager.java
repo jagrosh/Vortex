@@ -87,8 +87,9 @@ public class AutomodManager extends DataManager
                     : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "**" + settings.maxMentions + "**\n") +
                       "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "**" + settings.maxRoleMentions + "**\n\n"))
                 + "__Auto Anti-Raid Mode__\n" + (settings.useAutoRaidMode() 
-                    ? "**" + settings.raidmodeNumber + "** joins / **" + settings.raidmodeTime + "** seconds" 
-                    : "Disabled"), true);
+                    ? "**" + settings.raidmodeNumber + "** joins / **" + settings.raidmodeTime + "** seconds\n" 
+                    : "Disabled\n")
+                + "\u200B", true);
     }
     
     // Setters

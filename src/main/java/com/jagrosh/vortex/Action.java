@@ -21,6 +21,7 @@ package com.jagrosh.vortex;
  */
 public enum Action
 {
+    NORAIDMODE("", "\uD83D\uDD13", 15),
     PARDON(   "pardoned", "\uD83C\uDFF3", 14),
     RAIDMODE( "", "\uD83D\uDD12", 13),
     STRIKE(   "", "\uD83D\uDEA9", 12),

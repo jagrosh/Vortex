@@ -40,7 +40,7 @@ public class ModlogCmd extends LogCommand
     {
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getModLogChannel(event.getGuild());
         if(tc==null)
-            event.replyWarning("Moderation Logs are not currently enabled on the server.");
+            event.replyWarning("Moderation Logs are not currently enabled on the server. Please include a channel name.");
         else
             event.replySuccess("Moderation Logs are currently being sent in "+tc.getAsMention()
                     +(event.getSelfMember().hasPermission(tc, REQUIRED_PERMS) ? "" : "\n"+event.getClient().getWarning()+String.format(REQUIRED_ERROR, tc.getAsMention())));

@@ -67,7 +67,7 @@ public class KickCmd extends ModCommand
         
         args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a member"));
         
-        args.users.forEach(u -> builder.append("\n").append(event.getClient().getWarning()).append("The user ").append(u.getAsMention()).append(" is not in this server."));
+        args.users.forEach(u -> builder.append("\n").append(event.getClient().getWarning()).append("The user ").append(FormatUtil.formatUser(u)).append(" is not in this server."));
         
         args.ids.forEach(id -> builder.append("\n").append(event.getClient().getWarning()).append("The user <@").append(id).append("> is not in this server."));
         
@@ -86,12 +86,12 @@ public class KickCmd extends ModCommand
             boolean last = i+1 == toKick.size();
             event.getGuild().getController().kick(m, reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 
             {
-                builder.append("\n").append(event.getClient().getError()).append(" Failed to kick ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getError()).append(" Failed to kick ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)
                     event.reply(builder.toString());
             });

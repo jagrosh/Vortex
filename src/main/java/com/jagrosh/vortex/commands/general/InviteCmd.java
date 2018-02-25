@@ -28,7 +28,7 @@ public class InviteCmd extends Command {
     public InviteCmd()
     {
         this.name = "invite";
-        this.help = "shows how to invite the bot";
+        this.help = "invite the bot";
         this.guildOnly = false;
     }
     

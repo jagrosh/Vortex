@@ -38,8 +38,8 @@ public class AntimentionCmd extends Command
         this.name = "maxmentions";
         this.aliases = new String[]{"antimention","maxmention","mentionmax","mentionsmax"};
         this.category = new Category("AutoMod");
-        this.arguments = "<number or OFF>";
-        this.help = "sets maximum number of mentions a user can send";
+        this.arguments = "<number | OFF>";
+        this.help = "sets max mentions a user can send";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.children = new Command[]{new AntirolementionCmd()};
     }
@@ -63,13 +63,14 @@ public class AntimentionCmd extends Command
             short num = Short.parseShort(event.getArgs());
             if(num<AutomodManager.MENTION_MINIMUM)
             {
-                event.replyError("Maximum must at least `"+AutomodManager.MENTION_MINIMUM+"`");
+                event.replyError("Maximum mentions must be at least `"+AutomodManager.MENTION_MINIMUM+"`");
                 return;
             }
             vortex.getDatabase().automod.setMaxMentions(event.getGuild(), num);
             boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-            event.replySuccess("Set the maximum allowed mentions to **"+num+"** users."
-                    + "\nTo set the maximum allowed role mentions, use `"+Constants.PREFIX+name+" "+children[0].getName()+" "+children[0].getArguments()+"`"
+            event.replySuccess("Set the maximum allowed mentions to **"+num+"** users. Messages containing more than **"
+                    +num+"** mentions will be deleted and the user will obtain 1 strike for every mention above the maximum."
+                    + "\n\nTo set the maximum allowed role mentions, use `"+Constants.PREFIX+name+" "+children[0].getName()+" "+children[0].getArguments()+"`"
                     + (also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
         }
         catch(NumberFormatException e)

@@ -153,7 +153,9 @@ public class PunishmentManager extends DataManager
         for(Punishment p: punishments)
             if(p.numStrikes>max.numStrikes)
                 max = p;
-        return Collections.singletonList(max);
+        if(from>=max.numStrikes)
+            return Collections.singletonList(max);
+        return Collections.EMPTY_LIST;
     }
     
     public Field getAllPunishmentsDisplay(Guild guild)

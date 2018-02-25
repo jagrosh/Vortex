@@ -41,7 +41,20 @@ public abstract class ModCommand extends Command
             Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
             if(modrole!=null && event.getMember().getRoles().contains(modrole))
                 return true;
-            return event.getMember().hasPermission(altPerms);
+            if(event.getMember().hasPermission(altPerms))
+                return true;
+            event.replyError("You must have the following permissions to use that: "+listPerms(altPerms));
+            return false;
         });
+    }
+    
+    private static String listPerms(Permission... perms)
+    {
+        if(perms.length==0)
+            return "";
+        StringBuilder sb = new StringBuilder(perms[0].getName());
+        for(int i=1; i<perms.length; i++)
+            sb.append(", ").append(perms[i].getName());
+        return sb.toString();
     }
 }

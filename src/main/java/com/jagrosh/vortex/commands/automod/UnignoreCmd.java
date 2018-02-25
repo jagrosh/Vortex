@@ -31,8 +31,8 @@ public class UnignoreCmd extends Command {
         this.name = "unignore";
         this.aliases = new String[]{"deignore","delignore","removeignore"};
         this.category = new Category("AutoMod");
-        this.arguments = "<role or channel>";
-        this.help = "sets the automod to stop ignoring a role or channel";
+        this.arguments = "<role | channel>";
+        this.help = "stop ignoring a role or channel";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 

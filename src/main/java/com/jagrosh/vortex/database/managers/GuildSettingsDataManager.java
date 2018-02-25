@@ -88,7 +88,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nMod Log: "+(modlog==null ? "None" : modlog.getAsMention())
                 + "\nMsg Log: "+(messagelog==null ? "None" : messagelog.getAsMention())
                 + "\nServer Log: "+(serverlog==null ? "None" : serverlog.getAsMention())
-                + "\nTimezone: **"+settings.timezone+"**", true);
+                + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
     }
     
     // Setters
@@ -167,6 +167,46 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
                 MOD_ROLE_ID.updateValue(rs, role==null ? 0L : role.getIdLong());
+                rs.insertRow();
+            }
+        });
+    }
+    
+    public void setPrefix(Guild guild, String prefix)
+    {
+        invalidateCache(guild);
+        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, PREFIX), rs -> 
+        {
+            if(rs.next())
+            {
+                PREFIX.updateValue(rs, prefix);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                PREFIX.updateValue(rs, prefix);
+                rs.insertRow();
+            }
+        });
+    }
+    
+    public void setTimezone(Guild guild, ZoneId zone)
+    {
+        invalidateCache(guild);
+        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, TIMEZONE), rs -> 
+        {
+            if(rs.next())
+            {
+                TIMEZONE.updateValue(rs, zone.getId());
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                TIMEZONE.updateValue(rs, zone.getId());
                 rs.insertRow();
             }
         });
