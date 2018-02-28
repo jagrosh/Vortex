@@ -27,7 +27,6 @@ import java.awt.Color;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 /**
@@ -47,7 +46,7 @@ public class FormatUtil {
     {
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        return sb.toString();
+        return sb.length()>2048 ? sb.toString().substring(0, 2040) : sb.toString();
     }
     
     public static String formatUser(User user)
@@ -214,17 +213,19 @@ public class FormatUtil {
                         category = command.getCategory();
                     }
                 }
-                sb.append("```fix\n").append(event.getClient().getTextualPrefix()).append(event.getClient().getPrefix()==null?" ":"").append(command.getName())
-                       .append(command.getArguments()==null ? "" : " "+command.getArguments()+"")
-                       .append(" = ").append(command.getHelp()).append("```");
+                sb.append("[`").append(event.getClient().getTextualPrefix()).append(event.getClient().getPrefix()==null?" ":"").append(command.getName())
+                       .append(command.getArguments()==null ? "" : " "+command.getArguments()+"").append("`](")
+                        .append(Constants.Wiki.Shortened.fromCategory(command.getCategory())).append(") - ").append(command.getHelp()).append("\n");
             }
         }
         builder.addField(category==null ? "General Commands" : category.getName()+" Commands", sb.toString()+"\u200B", true);
         
-        builder.addField("Additional Help", "["+event.getSelfUser().getName()+" Wiki]("+Constants.WIKI.WIKI_BASE+")\n"
-                + "[Support Server]("+event.getClient().getServerInvite()+")\n"
-                + "[Full Command Reference]("+Constants.WIKI.FULL_COMMAND_REFERENCE+")", false);
+        builder.addField("Additional Help", "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"
+                + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
+                + "\uD83D\uDCDC [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
+                + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")", false);
         
         return new MessageBuilder().append(Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** Commands:").setEmbed(builder.build()).build();
     }
+    
 }

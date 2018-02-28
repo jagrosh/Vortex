@@ -33,7 +33,7 @@ public class RaidCmd extends ModCommand
         this.name = "raidmode";
         this.aliases = new String[]{"raid","antiraidmode"};
         this.arguments = "[ON|OFF] [reason]";
-        this.help = "views, enables, or disabled raidmode";
+        this.help = "view, enable, or disable raidmode";
         this.botPermissions = new Permission[]{Permission.MANAGE_SERVER, Permission.KICK_MEMBERS};
     }
 

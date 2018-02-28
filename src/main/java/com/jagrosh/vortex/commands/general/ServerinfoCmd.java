@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.general;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -47,7 +48,7 @@ public class ServerinfoCmd extends Command
         long onlineCount = guild.getMembers().stream().filter((u) -> (u.getOnlineStatus()!=OnlineStatus.OFFLINE)).count();
         long botCount = guild.getMembers().stream().filter(m -> m.getUser().isBot()).count();
         EmbedBuilder builder = new EmbedBuilder();
-        String title = FormatUtil.filterEveryone("\uD83D\uDDA5 Information about "+guild.getName()+":");
+        String title = FormatUtil.filterEveryone("\uD83D\uDDA5 Information about **"+guild.getName()+"**:");
         String verif;
         switch(guild.getVerificationLevel()) {
             case VERY_HIGH: verif = "┻━┻ミヽ(ಠ益ಠ)ノ彡┻━┻"; break;
@@ -56,7 +57,7 @@ public class ServerinfoCmd extends Command
         }
         String str = linestart+"ID: **"+guild.getId()+"**\n"
                 +linestart+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
-                +linestart+"Location: **"+guild.getRegion().getName()+"**\n"
+                +linestart+"Location: "+OtherUtil.regionToFlag(guild.getRegion())+" **"+guild.getRegion().getName()+"**\n"
                 +linestart+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 +linestart+"Users: **"+guild.getMembers().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
                 +linestart+"Channels: **"+guild.getTextChannels().size()+"** Text, **"+guild.getVoiceChannels().size()+"** Voice\n"

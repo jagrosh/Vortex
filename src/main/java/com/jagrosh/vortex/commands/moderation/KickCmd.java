@@ -36,8 +36,8 @@ public class KickCmd extends ModCommand
     {
         super(vortex, Permission.KICK_MEMBERS);
         this.name = "kick";
-        this.arguments = "<@users...> [reason]";
-        this.help = "kicks all provided users";
+        this.arguments = "<@users> [reason]";
+        this.help = "kicks users";
         this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
         this.guildOnly = true;
     }

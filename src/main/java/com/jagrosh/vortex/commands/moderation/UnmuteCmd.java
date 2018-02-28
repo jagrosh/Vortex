@@ -37,8 +37,8 @@ public class UnmuteCmd extends ModCommand
     {
         super(vortex, Permission.MANAGE_ROLES);
         this.name = "unmute";
-        this.arguments = "<@users...> [reason]";
-        this.help = "removes a muted role from provided users";
+        this.arguments = "<@users> [reason]";
+        this.help = "removes muted role from users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
     }

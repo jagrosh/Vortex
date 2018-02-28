@@ -24,7 +24,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.5.1_339</version>
+            <version>3.5.1_341</version>
         </dependency>
         <dependency>
             <groupId>com.jagrosh</groupId>

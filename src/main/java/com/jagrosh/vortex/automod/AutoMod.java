@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 public class AutoMod
 {
     private final static Pattern INVITES = Pattern.compile("discord\\s?(?:\\.\\s?gg|app\\s?.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",Pattern.CASE_INSENSITIVE);
-    private final static Pattern REF     = Pattern.compile("");
+    //private final static Pattern REF     = Pattern.compile("");
     private final static String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private final static Logger LOG = LoggerFactory.getLogger("AutoMod");
     
@@ -203,17 +203,14 @@ public class AutoMod
         if(settings==null)
             return;
         
-        /*
-            check for automod actions
-            * AntiDuplicate - prevent repeated messages
-            * AntiMention - prevent mass-mention spammers
-            * AntiInvite - prevent invite links to other servers
-        */
+        // check the channel for channel-specific settings
+        boolean preventSpam = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
+        boolean preventInvites = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}");
         
         boolean shouldDelete = false;
         
         // anti-duplicate
-        if(settings.useAntiDuplicate() && (message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}")))
+        if(settings.useAntiDuplicate() && preventSpam)
         {
             String key = message.getAuthor().getId()+"|"+message.getGuild().getId();
             String content = condensedContent(message);
@@ -241,11 +238,24 @@ public class AutoMod
         // anti-mention (users)
         if(settings.maxMentions>=AutomodManager.MENTION_MINIMUM)
         {
-            long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).count();
+            
+            long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).distinct().count();
             if(mentions > settings.maxMentions)
             {
                 vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
                         message.getAuthor(), (int)(mentions-settings.maxMentions), "Mentioning "+mentions+" users");
+                shouldDelete = true;
+            }
+        }
+        
+        // max newlines
+        if(settings.maxLines>0 && preventSpam)
+        {
+            int count = message.getContentRaw().split("\n").length;
+            if(count > settings.maxLines)
+            {
+                vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
+                        message.getAuthor(), count-settings.maxLines, "Message contained "+count+" newlines");
                 shouldDelete = true;
             }
         }
@@ -263,7 +273,7 @@ public class AutoMod
         }
         
         // anti-invite
-        if(settings.inviteStrikes > 0 && (message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}")))
+        if(settings.inviteStrikes > 0 && preventInvites)
         {
             List<String> invites = new ArrayList<>();
             Matcher m = INVITES.matcher(message.getContentRaw());
@@ -303,7 +313,7 @@ public class AutoMod
         {
             try
             {
-                m.delete().queue();
+                m.delete().queue(s->{}, f->{});
             }
             catch(PermissionException ex) {}
         });

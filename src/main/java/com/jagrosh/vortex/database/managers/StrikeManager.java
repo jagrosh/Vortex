@@ -43,11 +43,6 @@ public class StrikeManager extends DataManager
         return GUILD_ID+", "+USER_ID;
     }
     
-    public int[] addStrikes(Member target, int strikes)
-    {
-        return addStrikes(target.getGuild(), target.getUser().getIdLong(), strikes);
-    }
-    
     public int[] addStrikes(Guild guild, long targetId, int strikes)
     {
         return readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(targetId)), rs -> 
@@ -71,7 +66,7 @@ public class StrikeManager extends DataManager
         });
     }
     
-    public int[] setStrikes(Member target, int strikes)
+    /*public int[] setStrikes(Member target, int strikes)
     {
         return setStrikes(target.getGuild(), target.getUser().getIdLong(), strikes);
     }
@@ -97,7 +92,7 @@ public class StrikeManager extends DataManager
                 return new int[]{0, strikes<0 ? 0 : strikes};
             }
         });
-    }
+    }//*/
     
     public int[] removeStrikes(Member target, int strikes)
     {

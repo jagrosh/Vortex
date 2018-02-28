@@ -79,12 +79,15 @@ public class ArgsUtil
                         else
                             users.add(user);
                         found = true;
-                        args = args.substring(mat.group().length()).trim();
                         break;
                     }
                 }
+                args = args.substring(mat.group().length()).trim();
                 if(found)
                     continue;
+                unresolved.add(mat.group());
+                found = true;
+                continue;
             }
             mat = ID.matcher(args);
             if(mat.find())

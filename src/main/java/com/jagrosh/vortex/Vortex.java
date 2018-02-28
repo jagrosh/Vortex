@@ -15,13 +15,7 @@
  */
 package com.jagrosh.vortex;
 
-import com.jagrosh.vortex.commands.automod.AntimentionCmd;
-import com.jagrosh.vortex.commands.automod.AntiduplicateCmd;
-import com.jagrosh.vortex.commands.automod.AutoraidmodeCmd;
-import com.jagrosh.vortex.commands.settings.SettingsCmd;
-import com.jagrosh.vortex.commands.automod.AntiinviteCmd;
-import com.jagrosh.vortex.commands.automod.UnignoreCmd;
-import com.jagrosh.vortex.commands.automod.IgnoreCmd;
+import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
 import com.jagrosh.vortex.commands.moderation.*;
 import com.jagrosh.vortex.commands.owner.*;
@@ -104,11 +98,11 @@ public class Vortex
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
-                        .addCommands(
-                            // General
+                        .addCommands(// General
                             new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
                                                         new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
                             new InviteCmd(),
+                            new LookupCmd(this),
                             new PingCommand(),
                             new ServerinfoCmd(),
                             new UserinfoCmd(),
@@ -139,7 +133,8 @@ public class Vortex
 
                             // Automoderation
                             new AntiinviteCmd(this),
-                            new AntimentionCmd(this),
+                            new MaxlinesCmd(this),
+                            new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),
                             new AutoraidmodeCmd(this),
                             new IgnoreCmd(this),

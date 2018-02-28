@@ -41,7 +41,7 @@ public class PunishmentManager extends DataManager
     private static final String STRIKES_TITLE = Action.STRIKE.getEmoji()+" Punishments";
     
     
-    public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + "It looks like you've set up some automoderation without assigning any punishments! "
+    public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + " It looks like you've set up some automoderation without assigning any punishments! "
                                                      + "I've gone ahead and set up some default punishments; you can see the settings with `" + Constants.PREFIX 
                                                      + "settings` and set or change any punishments with the `" + Constants.PREFIX+"setstrikes` command!";
     private static final int[] DEFAULT_STRIKE_COUNTS = {2,               3,               4,           5,              6,              7};

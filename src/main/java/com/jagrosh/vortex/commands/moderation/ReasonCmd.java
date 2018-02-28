@@ -30,7 +30,7 @@ public class ReasonCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "reason";
-        this.help = "updates a reason in the mod log";
+        this.help = "updates a modlog reason";
         this.arguments = "[case] <reason>";
         this.guildOnly = true;
     }

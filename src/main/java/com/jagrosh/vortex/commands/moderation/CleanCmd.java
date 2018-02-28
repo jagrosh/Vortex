@@ -64,7 +64,7 @@ public class CleanCmd extends ModCommand
         super(vortex, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY);
         this.name = "clean";
         this.arguments = "<parameters>";
-        this.help = "cleans messages matching the given filters";
+        this.help = "cleans messages matching filters";
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.guildOnly = true;
     }
@@ -167,6 +167,8 @@ public class CleanCmd extends ModCommand
                     week2 = true;
                     break;
                 }
+                if(msg.isPinned())
+                    continue;
                 if(all || ids.contains(msg.getAuthor().getId()) || (bots && msg.getAuthor().isBot()) || (embeds && !msg.getEmbeds().isEmpty())
                     || (links && LINK_PATTERN.matcher(msg.getContentRaw()).find()) || (images && hasImage(msg)))
                 {

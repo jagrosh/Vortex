@@ -139,9 +139,9 @@ public class LogUtil
     private final static Pattern AUDIT_TIMED_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}) \\((\\d{1,9})m\\): (.*)$");
     
     // Auditlog methods
-    public static String auditStrikeReasonFormat(Member moderator, int minutes, int strikes, String reason)
+    public static String auditStrikeReasonFormat(Member moderator, int minutes, int oldstrikes, int newstrikes, String reason)
     {
-        return auditReasonFormat(moderator, minutes, "["+strikes+" strikes] "+reason);
+        return auditReasonFormat(moderator, minutes, "["+oldstrikes+" → "+newstrikes+" strikes] "+reason);
     }
     
     public static String auditReasonFormat(Member moderator, String reason)

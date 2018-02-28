@@ -269,6 +269,11 @@ public class ModLogger
                                     .replaceFirst(Action.BAN.getVerb(), Action.SOFTBAN.getVerb())).queue();
                             return;
                         }
+                        vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong());
+                    }
+                    if(act==Action.UNMUTE)
+                    {
+                        vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong());
                     }
                     modlog.sendMessage(FormatUtil.filterEveryone(minutes > 0 ? 
                             LogUtil.modlogTimeFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
@@ -327,7 +332,7 @@ public class ModLogger
                     if(num!=-1)
                     {
                         caseNum.put(tc.getGuild().getIdLong(), num+2);
-                        result.accept(num);
+                        result.accept(num+1);
                         return;
                     }
                 }

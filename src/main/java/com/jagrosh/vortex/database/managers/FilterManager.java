@@ -19,8 +19,7 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.jagrosh.vortex.automod.Filter;
 import java.util.List;
 import net.dv8tion.jda.core.entities.Guild;
 
@@ -59,18 +58,6 @@ public class FilterManager extends DataManager
     public List<Filter> getFilters(Guild guild)
     {
         return null;
-    }
-    
-    public class Filter
-    {
-        public final String value;
-        public final Type type;
-        
-        private Filter(ResultSet rs) throws SQLException
-        {
-            this.value = VALUE.getValue(rs);
-            this.type = Type.values()[TYPE.getValue(rs)];
-        }
     }
     
     public enum Type

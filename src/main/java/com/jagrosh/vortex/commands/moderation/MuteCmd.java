@@ -39,8 +39,8 @@ public class MuteCmd extends ModCommand
     {
         super(vortex, Permission.MANAGE_ROLES);
         this.name = "mute";
-        this.arguments = "<@users...> [time] [reason]";
-        this.help = "applies a muted role to provided users";
+        this.arguments = "<@users> [time] [reason]";
+        this.help = "applies muted role to users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
     }
@@ -109,13 +109,14 @@ public class MuteCmd extends ModCommand
             event.reactSuccess();
         
         Instant unmuteTime = Instant.now().plus(minutes, ChronoUnit.MINUTES);
+        String time = minutes==0 ? "" : " for "+FormatUtil.secondsToTimeCompact(minutes*60);
         for(int i=0; i<toMute.size(); i++)
         {
             Member m = toMute.get(i);
             boolean last = i+1 == toMute.size();
             event.getGuild().getController().addSingleRoleToMember(m, muteRole).reason(reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser()));
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser())).append(time);
                 if(minutes>0)
                     vortex.getDatabase().tempmutes.overrideMute(event.getGuild(), m.getUser().getIdLong(), unmuteTime);
                 else

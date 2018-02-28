@@ -33,7 +33,7 @@ public class PardonCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "pardon";
-        this.arguments = "[numstrikes] <@users...> <reason>";
+        this.arguments = "[numstrikes] <@users> <reason>";
         this.help = "removes strikes from users";
         this.guildOnly = true;
     }

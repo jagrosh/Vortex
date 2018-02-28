@@ -132,8 +132,10 @@ public class Listener implements EventListener
         }
         else if (event instanceof GuildUnbanEvent)
         {
+            GuildUnbanEvent gue = (GuildUnbanEvent) event;
             // Signal the modlogger because someone was unbanned
-            vortex.getModLogger().setNeedUpdate(((GuildUnbanEvent) event).getGuild());
+            vortex.getDatabase().tempbans.clearBan(gue.getGuild(), gue.getUser().getIdLong());
+            vortex.getModLogger().setNeedUpdate((gue).getGuild());
         }
         else if (event instanceof GuildMemberRoleAddEvent)
         {
@@ -149,7 +151,10 @@ public class Listener implements EventListener
             
             // Signal the modlogger if someone was unmuted
             if(gmrre.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("muted")))
+            {
+                vortex.getDatabase().tempmutes.removeMute(gmrre.getGuild(), gmrre.getUser().getIdLong());
                 vortex.getModLogger().setNeedUpdate(gmrre.getGuild());
+            }
         }
         else if (event instanceof UserNameUpdateEvent)
         {

@@ -46,7 +46,7 @@ public class TimezoneCmd extends Command
     {
         if(event.getArgs().isEmpty())
         {
-            event.replyError("Please include a time zone. A full list of timezones can be found here: <"+Constants.WIKI.LOG_TIMEZONE+">");
+            event.replyError("Please include a time zone. A full list of timezones can be found here: <"+Constants.Wiki.LOG_TIMEZONE+">");
             return;
         }
         
@@ -65,7 +65,7 @@ public class TimezoneCmd extends Command
         }
         catch(Exception ex)
         {
-            event.replyError("`"+event.getArgs()+"` is not a valid timezone! See <"+Constants.WIKI.LOG_TIMEZONE+"> for a full list.");
+            event.replyError("`"+event.getArgs()+"` is not a valid timezone! See <"+Constants.Wiki.LOG_TIMEZONE+"> for a full list.");
         }
     }
 }

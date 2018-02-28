@@ -27,11 +27,11 @@ import com.jagrosh.vortex.database.managers.PunishmentManager;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class AntimentionCmd extends Command
+public class MaxmentionsCmd extends Command
 {
     private final Vortex vortex;
     
-    public AntimentionCmd(Vortex vortex)
+    public MaxmentionsCmd(Vortex vortex)
     {
         this.vortex = vortex;
         this.guildOnly = true;
@@ -95,6 +95,12 @@ public class AntimentionCmd extends Command
         @Override
         protected void execute(CommandEvent event)
         {
+            if(event.getArgs().equalsIgnoreCase("off") || event.getArgs().equalsIgnoreCase("none"))
+            {
+                vortex.getDatabase().automod.setMaxRoleMentions(event.getGuild(), 0);
+                event.replySuccess("Anti-Mention for Role mentions has been disabled.");
+                return;
+            }
             if(event.getArgs().isEmpty())
             {
                 event.replyError("Please include an integer value or `OFF`");
@@ -105,7 +111,7 @@ public class AntimentionCmd extends Command
                 short num = Short.parseShort(event.getArgs());
                 if(num<AutomodManager.ROLE_MENTION_MINIMUM)
                 {
-                    event.replyError("Maximum must at least `"+AutomodManager.ROLE_MENTION_MINIMUM+"`");
+                    event.replyError("Maximum role mentions must be at least `"+AutomodManager.ROLE_MENTION_MINIMUM+"`");
                     return;
                 }
                 vortex.getDatabase().automod.setMaxRoleMentions(event.getGuild(), num);

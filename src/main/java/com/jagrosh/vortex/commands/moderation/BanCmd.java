@@ -37,8 +37,8 @@ public class BanCmd extends ModCommand
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "ban";
         this.aliases = new String[]{"hackban","forceban"};
-        this.arguments = "<@users...> [time] [reason]";
-        this.help = "bans all provided users";
+        this.arguments = "<@users> [time] [reason]";
+        this.help = "bans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
         this.guildOnly = true;
     }
@@ -85,6 +85,7 @@ public class BanCmd extends ModCommand
             event.reactSuccess();
         
         Instant unbanTime = Instant.now().plus(minutes, ChronoUnit.MINUTES);
+        String time = minutes==0 ? "" : " for "+FormatUtil.secondsToTimeCompact(minutes*60);
         for(int i=0; i<args.ids.size(); i++)
         {
             long uid = args.ids.get(i);
@@ -92,7 +93,7 @@ public class BanCmd extends ModCommand
             boolean last = i+1 == args.ids.size();
             event.getGuild().getController().ban(id, 1, reason).queue(success -> 
             {
-                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">");
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
                 if(minutes>0)
                     vortex.getDatabase().tempbans.setBan(event.getGuild(), uid, unbanTime);
                 if(last)

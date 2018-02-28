@@ -40,6 +40,7 @@ public class AutomodManager extends DataManager
     
     public final static SQLColumn<Integer> MAX_MENTIONS = new IntegerColumn("MAX_MENTIONS", false, 0);
     public final static SQLColumn<Integer> MAX_ROLE_MENTIONS = new IntegerColumn("MAX_ROLE_MENTIONS", false, 0);
+    public final static SQLColumn<Integer> MAX_LINES = new IntegerColumn("MAX_LINES", false, 0);
     
     public final static SQLColumn<Integer> RAIDMODE_NUMBER = new IntegerColumn("RAIDMODE_NUMBER", false, 0);
     public final static SQLColumn<Integer> RAIDMODE_TIME = new IntegerColumn("RAIDMODE_TIME", false, 0);
@@ -78,14 +79,17 @@ public class AutomodManager extends DataManager
                     ? "Disabled\n\n"
                     : "Strikes: **" + settings.inviteStrikes + "**\n\n")
                 + "__Anti-Duplicate__\n" + (settings.useAntiDuplicate() 
-                    ? "Delete Threshold: **" + settings.dupeDeleteThresh + "**\n" +
-                      "Strike Threshold: **" + settings.dupeStrikeThresh + "**\n" +
+                    ? "Strike Threshold: **" + settings.dupeStrikeThresh + "**\n" +
+                     "Delete Threshold: **" + settings.dupeDeleteThresh + "**\n" +
                       "Strikes: **" + settings.dupeStrikes + "**\n\n" 
                     : "Disabled\n\n")
-                + "__Anti-Mass-Mention__\n" + (settings.maxMentions==0 && settings.maxRoleMentions==0 
+                + "__Maximum Mentions__\n" + (settings.maxMentions==0 && settings.maxRoleMentions==0 
                     ? "Disabled\n\n" 
                     : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "**" + settings.maxMentions + "**\n") +
                       "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "**" + settings.maxRoleMentions + "**\n\n"))
+                + "__Spam Prevention__\n" + (settings.maxLines==0
+                    ? "Disabled\n\n"
+                    : "Max Lines / Message: **"+settings.maxLines+"**\n\n")
                 + "__Auto Anti-Raid Mode__\n" + (settings.useAutoRaidMode() 
                     ? "**" + settings.raidmodeNumber + "** joins / **" + settings.raidmodeTime + "** seconds\n" 
                     : "Disabled\n")
@@ -142,6 +146,26 @@ public class AutomodManager extends DataManager
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
                 MAX_ROLE_MENTIONS.updateValue(rs, max);
+                rs.insertRow();
+            }
+        });
+    }
+    
+    public void setMaxLines(Guild guild, int max)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+            {
+                MAX_LINES.updateValue(rs, max);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                MAX_LINES.updateValue(rs, max);
                 rs.insertRow();
             }
         });
@@ -241,6 +265,7 @@ public class AutomodManager extends DataManager
     public class AutomodSettings
     {
         public final int maxMentions, maxRoleMentions;
+        public final int maxLines;
         public final int raidmodeNumber, raidmodeTime;
         public final int inviteStrikes;
         public final int refStrikes;
@@ -250,6 +275,7 @@ public class AutomodManager extends DataManager
         {
             this.maxMentions = 0;
             this.maxRoleMentions = 0;
+            this.maxLines = 0;
             this.raidmodeNumber = 0;
             this.raidmodeTime = 0;
             this.inviteStrikes = 0;
@@ -259,11 +285,12 @@ public class AutomodManager extends DataManager
             this.dupeStrikeThresh = 0;
         }
         
-        private AutomodSettings(int maxMentions, int maxRoleMentions, int raidmodeNumber, int raidmodeTime, 
+        private AutomodSettings(int maxMentions, int maxRoleMentions, int maxNewlines, int raidmodeNumber, int raidmodeTime, 
                 int inviteStrikes, int refStrikes, int dupeStrikes, int dupeDeleteThresh, int dupeStrikeThresh)
         {
             this.maxMentions = maxMentions;
             this.maxRoleMentions = maxRoleMentions;
+            this.maxLines = maxNewlines;
             this.raidmodeNumber = raidmodeNumber;
             this.raidmodeTime = raidmodeTime;
             this.inviteStrikes = inviteStrikes;
@@ -275,7 +302,7 @@ public class AutomodManager extends DataManager
         
         private AutomodSettings(ResultSet rs) throws SQLException
         {
-            this(MAX_MENTIONS.getValue(rs), MAX_ROLE_MENTIONS.getValue(rs), RAIDMODE_NUMBER.getValue(rs), RAIDMODE_TIME.getValue(rs), 
+            this(MAX_MENTIONS.getValue(rs), MAX_ROLE_MENTIONS.getValue(rs), MAX_LINES.getValue(rs), RAIDMODE_NUMBER.getValue(rs), RAIDMODE_TIME.getValue(rs), 
                     INVITE_STRIKES.getValue(rs), REF_STRIKES.getValue(rs), DUPE_STRIKES.getValue(rs), DUPE_DELETE_THRESH.getValue(rs), 
                     DUPE_STRIKE_THRESH.getValue(rs));
         }

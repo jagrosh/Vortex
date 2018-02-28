@@ -34,6 +34,7 @@ public class AntiduplicateCmd extends Command
     {
         this.vortex = vortex;
         this.name = "antiduplicate";
+        this.aliases = new String[]{"antidupe","anti-duplicate","anti-dupe"};
         this.guildOnly = true;
         this.category = new Category("AutoMod");
         this.arguments = "<strike threshold> [delete threshold] [strikes] or OFF";

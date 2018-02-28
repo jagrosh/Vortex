@@ -73,6 +73,8 @@ public class BasicLogger
         TextChannel tc = vortex.getDatabase().settings.getSettings(newMessage.getGuild()).getMessageLogChannel(newMessage.getGuild());
         if(tc==null)
             return;
+        if(newMessage.getContentRaw().equals(oldMessage.getContentRaw()))
+            return;
         EmbedBuilder edit = new EmbedBuilder()
                 .setColor(Color.YELLOW)
                 .appendDescription("**From:** ")
@@ -83,7 +85,7 @@ public class BasicLogger
         else
             edit.appendDescription("\n**To:** "+newm);
         log(newMessage.getEditedTime()==null ? newMessage.getCreationTime() : newMessage.getEditedTime(), tc, "\u26A0", 
-                FormatUtil.formatUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
+                FormatUtil.formatFullUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
     }
     
     public void logMessageDelete(Message oldMessage)
@@ -100,7 +102,7 @@ public class BasicLogger
                 .setColor(Color.RED)
                 .appendDescription(formatted);
         log(OffsetDateTime.now(), tc, "\u274C", 
-                FormatUtil.formatUser(oldMessage.getAuthor())+"'s message has been deleted from "+oldMessage.getTextChannel().getAsMention()+":", delete.build());
+                FormatUtil.formatFullUser(oldMessage.getAuthor())+"'s message has been deleted from "+oldMessage.getTextChannel().getAsMention()+":", delete.build());
     }
     
     public void logMessageBulkDelete(List<Message> messages, int count, TextChannel text)

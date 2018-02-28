@@ -56,9 +56,9 @@ public class SetupCmd extends Command
         this.buttons = new ButtonMenu.Builder()
                 .setText(Constants.SUCCESS+" **Please select a setup option**:\n\n"
                         +MUTE+" 'Muted' Role\n"
-                        +AUTOMOD+" Automod\n"
+                        //+AUTOMOD+" Automod\n"
                         +CANCEL+" Cancel")
-                .setChoices(MUTE,AUTOMOD,CANCEL)
+                .setChoices(MUTE,CANCEL)
                 .setEventWaiter(vortex.getEventWaiter())
                 .setTimeout(1, TimeUnit.MINUTES)
                 .setFinalAction(m -> m.delete().queue())

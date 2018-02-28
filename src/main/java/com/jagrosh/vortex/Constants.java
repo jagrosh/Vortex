@@ -15,6 +15,7 @@
  */
 package com.jagrosh.vortex;
 
+import com.jagrosh.jdautilities.command.Command.Category;
 import java.time.OffsetDateTime;
 import net.dv8tion.jda.core.Permission;
 
@@ -31,6 +32,7 @@ public class Constants
     public final static String ERROR           = "<:vError:390229421228949504>";
     public final static String LOADING         = "<a:typing:393848431413559296>";
     public final static String HELP_REACTION   = SUCCESS.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
+    public final static String ERROR_REACTION  = ERROR.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
     public final static Permission[] PERMISSIONS = {Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
                                         Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
                                         Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
@@ -40,12 +42,36 @@ public class Constants
     //public final static String BOT_INVITE  = "https://discordapp.com/oauth2/authorize?client_id=240254129333731328&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     public final static String BOT_INVITE    = "https://discordapp.com/oauth2/authorize?client_id=169463754382114816&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     public final static String OWNER_ID      = "113156185389092864";
+    public final static String DONATION_LINK = "https://patreon.com/jagrosh";
     
-    public final static class WIKI
+    public final static class Wiki
     {
-        public final static String WIKI_BASE              = "https://github.com/jagrosh/Vortex/wiki/";
-        public final static String LOG_TIMEZONE           = WIKI_BASE + "/Log-Timezone";
-        public final static String RAID_MODE              = WIKI_BASE + "/Raid-Mode";
-        public final static String FULL_COMMAND_REFERENCE = WIKI_BASE + "/Full-Command-Reference";
+        public final static String SHORT_COMMANDS = "https://git.io/vAr0G";
+        
+        public final static String WIKI_BASE    = "https://github.com/jagrosh/Vortex/wiki";
+        public final static String LOG_TIMEZONE = WIKI_BASE + "/Log-Timezone";
+        public final static String RAID_MODE    = WIKI_BASE + "/Raid-Mode";
+        public final static String COMMANDS     = WIKI_BASE + "/Commands";
+        
+        public final static class Shortened
+        {
+            public final static String GENERAL_COMMANDS = "https://git.io/vArzg";
+            public final static String MODERATOR_COMMANDS = "https://git.io/vArza";
+            public final static String SETTINGS_COMMANDS = "https://git.io/vArzV";
+            public final static String AUTOMOD_COMMANDS = "https://git.io/vArzr";
+            
+            public static String fromCategory(Category category)
+            {
+                if(category==null)
+                    return GENERAL_COMMANDS;
+                switch(category.getName().toLowerCase())
+                {
+                    case "moderation": return MODERATOR_COMMANDS;
+                    case "settings":  return SETTINGS_COMMANDS;
+                    case "automod":   return AUTOMOD_COMMANDS;
+                    default:          return GENERAL_COMMANDS;
+                }
+            }
+        }
     }
 }

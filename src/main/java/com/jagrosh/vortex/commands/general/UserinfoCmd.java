@@ -38,6 +38,7 @@ import net.dv8tion.jda.core.utils.MiscUtil;
 public class UserinfoCmd extends Command
 {
     private final String linestart = "\u25AB";
+    
     public UserinfoCmd()
     {
         this.name = "userinfo";

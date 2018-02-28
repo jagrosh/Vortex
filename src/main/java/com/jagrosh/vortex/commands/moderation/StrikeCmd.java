@@ -21,7 +21,10 @@ import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
+import java.util.LinkedList;
+import java.util.List;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.User;
 
 /**
  *
@@ -33,7 +36,7 @@ public class StrikeCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "strike";
-        this.arguments = "[number] <@users...> <reason>";
+        this.arguments = "[number] <@users> <reason>";
         this.help = "applies strikes to users";
         this.guildOnly = true;
     }
@@ -78,29 +81,56 @@ public class StrikeCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to interact with ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to interact with ").append(FormatUtil.formatUser(m.getUser()));
-            else if(m.getUser().isBot())
-                builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(m.getUser())).append(")");
             else
-                args.ids.add(m.getUser().getIdLong());
+                args.users.add(m.getUser());
         });
         
         args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a user ID"));
         
-        args.users.forEach(u -> 
+        List<Long> unknownIds = new LinkedList<>();
+        args.ids.forEach(id -> 
         {
-            if(u.isBot())
-                builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
+            User u = vortex.getShardManager().getUserById(id);
+            if(u==null)
+                unknownIds.add(id);
             else
-                args.ids.add(u.getIdLong());
+                args.users.add(u);
         });
         
         int fnumstrikes = numstrikes;
         
-        args.ids.forEach(id -> 
+        if(unknownIds.isEmpty())
+            strikeAll(args.users, numstrikes, args.reason, builder, event);
+        else
+            event.async(() -> 
+            {
+                unknownIds.forEach((id) -> 
+                {
+                    try
+                    {
+                        args.users.add(event.getJDA().retrieveUserById(id).complete());
+                    }
+                    catch(Exception ex)
+                    {
+                        builder.append("\n").append(event.getClient().getError()).append(" `").append(id).append("` is not a valid user ID.");
+                    }
+                });
+                strikeAll(args.users, fnumstrikes, args.reason, builder, event);
+            });
+    }
+    
+    private void strikeAll(List<User> users, int numstrikes, String reason, StringBuilder builder, CommandEvent event)
+    {
+        users.forEach(u -> 
         {
-            vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), id, fnumstrikes, args.reason);
-            builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(fnumstrikes)
-                    .append("` strikes to ").append(event.getJDA().getUserById(id)==null ? "<@"+id+">" : FormatUtil.formatUser(event.getJDA().getUserById(id)));
+            if(u.isBot())
+                builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
+            else
+            {
+                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), u, numstrikes, reason);
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(numstrikes)
+                        .append("` strikes to ").append(FormatUtil.formatUser(u));
+            }
         });
         event.reply(builder.toString());
     }

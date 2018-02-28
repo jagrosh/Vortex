@@ -98,6 +98,15 @@ public class TempMuteManager extends DataManager
         });
     }
     
+    public void removeMute(Guild guild, long userId)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(userId)), rs -> 
+        {
+            if(rs.next())
+                rs.deleteRow();
+        });
+    }
+    
     public void checkUnmutes(Guild guild)
     {
         if(!guild.isAvailable())

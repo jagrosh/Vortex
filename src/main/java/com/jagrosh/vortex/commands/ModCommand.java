@@ -16,6 +16,7 @@
 package com.jagrosh.vortex.commands;
 
 import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Role;
@@ -41,9 +42,27 @@ public abstract class ModCommand extends Command
             Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
             if(modrole!=null && event.getMember().getRoles().contains(modrole))
                 return true;
-            if(event.getMember().hasPermission(altPerms))
+            
+            boolean missingPerms = false;
+            for(Permission altPerm: altPerms)
+            {
+                if(altPerm.isText())
+                {
+                    if(!event.getMember().hasPermission(event.getTextChannel(), altPerm))
+                        missingPerms = true;
+                }
+                else
+                {
+                    if(!event.getMember().hasPermission(altPerm))
+                        missingPerms = true;
+                }
+            }
+            if(!missingPerms)
                 return true;
-            event.replyError("You must have the following permissions to use that: "+listPerms(altPerms));
+            if(event.getMember().getRoles().isEmpty())
+                event.getMessage().addReaction(Constants.ERROR_REACTION).queue();
+            else
+                event.replyError("You must have the following permissions to use that: "+listPerms(altPerms));
             return false;
         });
     }

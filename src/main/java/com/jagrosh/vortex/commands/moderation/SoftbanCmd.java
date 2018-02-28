@@ -37,8 +37,8 @@ public class SoftbanCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "softban";
-        this.arguments = "<@users...> [reason]";
-        this.help = "bans and unbans all provided users";
+        this.arguments = "<@users> [reason]";
+        this.help = "bans and unbans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
         this.guildOnly = true;
     }
