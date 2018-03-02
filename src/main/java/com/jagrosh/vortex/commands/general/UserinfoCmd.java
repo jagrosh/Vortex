@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +43,7 @@ public class UserinfoCmd extends Command
     public UserinfoCmd()
     {
         this.name = "userinfo";
-        this.aliases = new String[]{"user","uinfo"};
+        this.aliases = new String[]{"user","uinfo","memberinfo"};
         this.help = "shows info on a member";
         this.arguments = "[user]";
         this.guildOnly = true;
@@ -62,7 +63,12 @@ public class UserinfoCmd extends Command
             List<Member> found = FinderUtil.findMembers(event.getArgs(), event.getGuild());
             if(found.isEmpty())
             {
-                event.replyError("I couldn't find the user you were looking for!");
+                event.replyError("I couldn't find the member you were looking for!");
+                return;
+            }
+            else if(found.size()>1)
+            {
+                event.reply(FormatUtil.listOfMember(found, event.getArgs()));
                 return;
             }
             else

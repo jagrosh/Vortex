@@ -32,6 +32,7 @@ public class Database extends DatabaseConnector
     public final PunishmentManager actions; // strike punishment settings
     public final TempMuteManager tempmutes;
     public final TempBanManager tempbans;
+    public final PremiumManager premium;
     
     public Database(String host, String user, String pass) throws Exception
     {
@@ -45,6 +46,7 @@ public class Database extends DatabaseConnector
         actions = new PunishmentManager(this);
         tempmutes = new TempMuteManager(this);
         tempbans = new TempBanManager(this);
+        premium = new PremiumManager(this);
         
         init();
     }

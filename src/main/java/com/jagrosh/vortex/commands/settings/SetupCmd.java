@@ -96,6 +96,7 @@ public class SetupCmd extends Command
                     waitForConfirmation(event, confirmation, () -> setUpMutedRole(event, muted));
                     break;
                 case AUTOMOD:
+                    
                     break;
             }
         }).setUsers(event.getAuthor()).build().display(event.getChannel());

@@ -89,7 +89,7 @@ public class SoftbanCmd extends ModCommand
             event.getGuild().getController().ban(m, 1, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully softbanned ").append(FormatUtil.formatUser(m.getUser()));
-                event.getGuild().getController().unban(m.getUser().getId()).reason(unbanreason).queueAfter(7, TimeUnit.SECONDS);
+                event.getGuild().getController().unban(m.getUser().getId()).reason(unbanreason).queueAfter(1, TimeUnit.SECONDS);
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 

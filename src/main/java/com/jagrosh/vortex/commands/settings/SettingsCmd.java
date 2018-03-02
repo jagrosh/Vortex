@@ -18,6 +18,9 @@ package com.jagrosh.vortex.commands.settings;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.database.managers.PremiumManager;
+import com.jagrosh.vortex.database.managers.PremiumManager.PremiumInfo;
+import java.time.Instant;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
@@ -41,7 +44,9 @@ public class SettingsCmd extends Command
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event)
+    {
+        PremiumInfo pi = vortex.getDatabase().premium.getPremiumInfo(event.getGuild());
         event.getChannel().sendMessage(new MessageBuilder()
                 .append("**"+event.getSelfUser().getName()+"** settings on **"+event.getGuild().getName()+"**:")
                 .setEmbed(new EmbedBuilder()
@@ -49,6 +54,8 @@ public class SettingsCmd extends Command
                         .addField(vortex.getDatabase().settings.getSettingsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().actions.getAllPunishmentsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().automod.getSettingsDisplay(event.getGuild()))
+                        .setFooter(pi.getFooterString(), null)
+                        .setTimestamp(pi.getTimestamp())
                         .setColor(event.getSelfMember().getColor())
                         .build()).build()).queue();
     }

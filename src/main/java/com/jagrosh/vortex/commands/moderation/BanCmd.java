@@ -96,6 +96,8 @@ public class BanCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
                 if(minutes>0)
                     vortex.getDatabase().tempbans.setBan(event.getGuild(), uid, unbanTime);
+                else
+                    vortex.getDatabase().tempbans.clearBan(event.getGuild(), uid);
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 

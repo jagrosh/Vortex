@@ -120,7 +120,7 @@ public class MuteCmd extends ModCommand
                 if(minutes>0)
                     vortex.getDatabase().tempmutes.overrideMute(event.getGuild(), m.getUser().getIdLong(), unmuteTime);
                 else
-                    vortex.getDatabase().tempmutes.setMute(event.getGuild(), m.getUser().getIdLong(), Instant.MAX);
+                    vortex.getDatabase().tempmutes.overrideMute(event.getGuild(), m.getUser().getIdLong(), Instant.MAX);
                 if(last)
                     event.reply(builder.toString());
             }, failure -> 

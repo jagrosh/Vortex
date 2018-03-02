@@ -208,6 +208,8 @@ public class AutoMod
         boolean preventInvites = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}");
         
         boolean shouldDelete = false;
+        int strikeTotal = 0;
+        StringBuilder reason = new StringBuilder();
         
         // anti-duplicate
         if(settings.useAntiDuplicate() && preventSpam)
@@ -230,8 +232,10 @@ public class AutoMod
                     shouldDelete = true;
                 
                 if(offenses >= settings.dupeStrikeThresh)
-                    vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
-                            latestTime(message), message.getAuthor(), settings.dupeStrikes, "Duplicate messages");
+                {
+                    strikeTotal += settings.dupeStrikes;
+                    reason.append(", Duplicate messages");
+                }
             }
         }
         
@@ -242,8 +246,8 @@ public class AutoMod
             long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).distinct().count();
             if(mentions > settings.maxMentions)
             {
-                vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
-                        message.getAuthor(), (int)(mentions-settings.maxMentions), "Mentioning "+mentions+" users");
+                strikeTotal += (int)(mentions-settings.maxMentions);
+                reason.append(", Mentioning ").append(mentions).append(" users");
                 shouldDelete = true;
             }
         }
@@ -254,8 +258,8 @@ public class AutoMod
             int count = message.getContentRaw().split("\n").length;
             if(count > settings.maxLines)
             {
-                vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
-                        message.getAuthor(), count-settings.maxLines, "Message contained "+count+" newlines");
+                strikeTotal += count-settings.maxLines;
+                reason.append(", Message contained ").append(count).append(" newlines");
                 shouldDelete = true;
             }
         }
@@ -263,11 +267,11 @@ public class AutoMod
         // anti-mention (roles)
         if(settings.maxRoleMentions >= AutomodManager.ROLE_MENTION_MINIMUM)
         {
-            long mentions = message.getMentionedRoles().size();
+            long mentions = message.getMentionedRoles().stream().distinct().count();
             if(mentions > settings.maxRoleMentions)
             {
-                vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
-                        message.getAuthor(), (int)(mentions-settings.maxRoleMentions), "Mentioning "+mentions+" roles");
+                strikeTotal += (int)(mentions-settings.maxRoleMentions);
+                reason.append(", Mentioning ").append(mentions).append(" roles");
                 shouldDelete = true;
             }
         }
@@ -289,8 +293,8 @@ public class AutoMod
                     } catch(Exception e) {}
                     if(invite==null || !invite.getGuild().getId().equals(message.getGuild().getId()))
                     {
-                        vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), latestTime(message), 
-                                message.getAuthor(), settings.inviteStrikes, "Advertising");
+                        strikeTotal += settings.inviteStrikes;
+                        reason.append(", Advertising");
                         shouldDelete = true;
                         break;
                     }
@@ -304,6 +308,12 @@ public class AutoMod
             {
                 message.delete().reason("Automod").queue(v->{}, f->{});
             }catch(PermissionException e){}
+        }
+        
+        if(strikeTotal>0)
+        {
+            vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
+                    latestTime(message), message.getAuthor(), strikeTotal, reason.toString().substring(2));
         }
     }
     

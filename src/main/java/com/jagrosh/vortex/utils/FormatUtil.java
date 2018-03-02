@@ -26,6 +26,7 @@ import com.jagrosh.vortex.Vortex;
 import java.awt.Color;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
@@ -93,6 +94,26 @@ public class FormatUtil {
         String out = String.format(MULTIPLE_FOUND, "text channels", query);
         for(int i=0; i<6 && i<list.size(); i++)
             out+="\n - "+list.get(i).getName()+" ("+list.get(i).getAsMention()+")";
+        if(list.size()>6)
+            out+="\n**And "+(list.size()-6)+" more...**";
+        return out;
+    }
+    
+    public static String listOfUser(List<User> list, String query)
+    {
+        String out = String.format(MULTIPLE_FOUND, "users", query);
+        for(int i=0; i<6 && i<list.size(); i++)
+            out+="\n - **"+list.get(i).getName()+"**#"+list.get(i).getDiscriminator()+" (ID:"+list.get(i).getId()+")";
+        if(list.size()>6)
+            out+="\n**And "+(list.size()-6)+" more...**";
+        return out;
+    }
+    
+    public static String listOfMember(List<Member> list, String query)
+    {
+        String out = String.format(MULTIPLE_FOUND, "members", query);
+        for(int i=0; i<6 && i<list.size(); i++)
+            out+="\n - **"+list.get(i).getUser().getName()+"**#"+list.get(i).getUser().getDiscriminator()+" (ID:"+list.get(i).getUser().getId()+")";
         if(list.size()>6)
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;

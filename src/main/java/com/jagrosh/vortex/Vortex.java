@@ -118,6 +118,7 @@ public class Vortex
                             new RaidCmd(this),
                             new StrikeCmd(this),
                             new PardonCmd(this),
+                            new CheckCmd(this),
                             new ReasonCmd(this),
 
                             // Settings

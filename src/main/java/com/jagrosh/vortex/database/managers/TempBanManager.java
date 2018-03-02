@@ -21,6 +21,7 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
@@ -72,6 +73,22 @@ public class TempBanManager extends DataManager
         {
             if(rs.next())
                 rs.deleteRow();
+        });
+    }
+    
+    public int timeUntilUnban(Guild guild, long userId)
+    {
+        return read(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(userId)), rs -> 
+        {
+            if(rs.next())
+            {
+                Instant end = FINISH.getValue(rs);
+                if(end==Instant.MAX)
+                    return Integer.MAX_VALUE;
+                else
+                    return (int)(Instant.now().until(end, ChronoUnit.MINUTES));
+            }
+            return 0;
         });
     }
     

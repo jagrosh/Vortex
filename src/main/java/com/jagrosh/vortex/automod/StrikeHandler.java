@@ -112,7 +112,7 @@ public class StrikeHandler
             {
                 OtherUtil.safeDM(target, dmmsg + punish(Action.SOFTBAN, moderator.getGuild()), 
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue(
-                                s -> moderator.getGuild().getController().unban(target).reason(notimeaudit).queueAfter(5, TimeUnit.SECONDS)));
+                                s -> moderator.getGuild().getController().unban(target).reason(notimeaudit).queueAfter(1, TimeUnit.SECONDS)));
                 if(muteDuration>0)
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 return;
