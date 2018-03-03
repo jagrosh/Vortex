@@ -31,21 +31,22 @@ import net.dv8tion.jda.core.Permission;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class SetstrikesCmd extends Command
+public class PunishmentCmd extends Command
 {
     private final static String SETTING_STRIKES = "\n\nUsage: `"+Constants.PREFIX+"setstrikes <number> <action> [time]`\n"
             + "`<number>` - the number of strikes at which to perform the action\n"
             + "`<action>` - the action, such as `None`, `Kick`, `Mute`, `Softban`, or `Ban`\n"
             + "`[time]` - optional, the amount of time to keep the user muted or banned\n"
-            + "Do not include <> nor [] in your commands!";
+            + "Do not include <> nor [] in your commands!\n\n"
+            + "The `"+Constants.PREFIX+"settings` command can be used to view current punishments.";
     private final Vortex vortex;
     
-    public SetstrikesCmd(Vortex vortex)
+    public PunishmentCmd(Vortex vortex)
     {
         this.vortex = vortex;
-        this.name = "setstrikes";
+        this.name = "punishment";
         this.help = "sets strikes for a punishment";
-        this.aliases = new String[]{"setstrike"};
+        this.aliases = new String[]{"setstrikes","setstrike","punishments"};
         this.arguments = "<number> <action> [time]";
         this.category = new Category("Settings");
         this.guildOnly = true;

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 public class AutoMod
 {
     private final static Pattern INVITES = Pattern.compile("discord\\s?(?:\\.\\s?gg|app\\s?.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",Pattern.CASE_INSENSITIVE);
-    //private final static Pattern REF     = Pattern.compile("");
+    private final static Pattern REF     = Pattern.compile("https?:\\/\\/(\\S+[?&]ref=|wn.nr\\/)\\S+", Pattern.CASE_INSENSITIVE);
     private final static String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private final static Logger LOG = LoggerFactory.getLogger("AutoMod");
     
@@ -272,6 +272,18 @@ public class AutoMod
             {
                 strikeTotal += (int)(mentions-settings.maxRoleMentions);
                 reason.append(", Mentioning ").append(mentions).append(" roles");
+                shouldDelete = true;
+            }
+        }
+        
+        // prevent referral links
+        if(settings.refStrikes > 0)
+        {
+            Matcher m = REF.matcher(message.getContentRaw());
+            if(m.find())
+            {
+                strikeTotal += settings.refStrikes;
+                reason.append(", Referral link");
                 shouldDelete = true;
             }
         }

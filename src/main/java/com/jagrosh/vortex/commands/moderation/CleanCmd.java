@@ -22,12 +22,10 @@ import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import com.jagrosh.vortex.database.managers.GuildSettingsDataManager.GuildSettings;
 import java.util.LinkedList;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageHistory;
-import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -39,11 +37,11 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class CleanCmd extends ModCommand
 {
     private final Pattern LINK_PATTERN = Pattern.compile("https?:\\/\\/.+");
-    private final Pattern QUOTES_PATTERN = Pattern.compile("\"(.*?)\"", Pattern.DOTALL);
+    private final Pattern QUOTES_PATTERN = Pattern.compile("[\"“](.*?)[\"“]", Pattern.DOTALL);
     private final Pattern CODE_PATTERN = Pattern.compile("`(.*?)`", Pattern.DOTALL);
     private final Pattern MENTION_PATTERN = Pattern.compile("<@!?(\\d{17,22})>");
-    private final Pattern ID_PATTERN = Pattern.compile("(?:^|\\s)(\\d{17,22})(?:$|\\s)");
-    private final Pattern NUM_PATTERN = Pattern.compile("(?:^|\\s)(\\d{1,4})(?:$|\\s)");
+    private final Pattern ID_PATTERN = Pattern.compile("\\b(\\d{17,22})\\b");
+    private final Pattern NUM_PATTERN = Pattern.compile("\\b(\\d{1,4})\\b");
     private final String week2limit = " Note: Messages older than 2 weeks cannot be cleaned.";
     private final String noparams = "**No valid cleaning paramaters included!**\n"
                 +"This command is to remove many messages quickly. Pinned messages are ignored. "

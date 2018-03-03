@@ -78,7 +78,7 @@ public class ReasonCmd extends ModCommand
                     event.replyError("I am unable to Read, Write or retrieve History in the modlog!");
                     break;
                 case -3:
-                    event.replyError("Case `"+fcaseNum+"` could not be found in the modlog!");
+                    event.replyError("Case `"+fcaseNum+"` could not be found among the recent cases in the modlog!");
                     break;
                 case -4:
                     event.replyError("A recent case with no reason could not be found in the modlog!");

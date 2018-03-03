@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 John Grosh (jagrosh).
+ * Copyright 2018 John Grosh (jagrosh).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ public class Vortex
 
                             // Settings
                             new SetupCmd(this),
-                            new SetstrikesCmd(this),
+                            new PunishmentCmd(this),
                             new MessagelogCmd(this),
                             new ModlogCmd(this),
                             new ServerlogCmd(this),
@@ -134,6 +134,8 @@ public class Vortex
 
                             // Automoderation
                             new AntiinviteCmd(this),
+                            //new AnticopypastaCmd(this),
+                            new AntirefCmd(this),
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),

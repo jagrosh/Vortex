@@ -49,8 +49,8 @@ public class LogUtil
     private final static String MODLOG_USER_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + REASON;
     private final static String MODLOG_TIME_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + " for %s" + REASON;
     private final static String MODLOG_CLEAN_FORMAT  = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + " `%d` messages in %s\n`[Criteria]` %s" + REASON;
-    private final static String MODLOG_STRIKE_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " gave `%d` strikes `[%d ➡ %d]` to" + TARGET_USER + REASON;
-    private final static String MODLOG_PARDON_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " pardoned `%d` strikes `[%d ➡ %d]` from" + TARGET_USER + REASON;
+    private final static String MODLOG_STRIKE_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " gave `%d` strikes `[%d → %d]` to" + TARGET_USER + REASON;
+    private final static String MODLOG_PARDON_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " pardoned `%d` strikes `[%d → %d]` from" + TARGET_USER + REASON;
     private final static String MODLOG_RAID_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " `%s` anti-raid mode" + REASON;
     
     private final static String BASICLOG_FORMAT = LOG_TIME + EMOJI + " %s";
