@@ -15,14 +15,17 @@
  */
 package com.jagrosh.vortex.logging;
 
+import com.jagrosh.vortex.utils.AvatarUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Message;
@@ -33,6 +36,7 @@ import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.core.events.user.UserAvatarUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
@@ -56,6 +60,20 @@ public class BasicLogger
             tc.sendMessage(new MessageBuilder()
                 .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
                 .setEmbed(embed)
+                .build()).queue();
+        }
+        catch(PermissionException ex)
+        {
+            
+        }
+    }
+    
+    private void logFile(OffsetDateTime now, TextChannel tc, String emote, String message, byte[] file, String filename)
+    {
+        try
+        {
+            tc.sendFile(file, filename, new MessageBuilder()
+                .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
                 .build()).queue();
         }
         catch(PermissionException ex)
@@ -114,7 +132,19 @@ public class BasicLogger
             return;
         if(messages.isEmpty())
         {
-            log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
+            //log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
+            return;
+        }
+        if(messages.size()==1)
+        {
+            String formatted = FormatUtil.formatMessage(messages.get(0));
+            if(formatted.isEmpty())
+                return;
+            EmbedBuilder delete = new EmbedBuilder()
+                    .setColor(Color.RED)
+                    .appendDescription(formatted);
+            log(OffsetDateTime.now(), tc, "\u274C", 
+                    FormatUtil.formatFullUser(messages.get(0).getAuthor())+"'s message has been deleted from "+messages.get(0).getTextChannel().getAsMention()+":", delete.build());
             return;
         }
         vortex.getTextUploader().upload(LogUtil.logMessages("Deleted Messages", messages), "DeletedMessages", (view, download) ->
@@ -123,6 +153,19 @@ public class BasicLogger
                 new EmbedBuilder().setColor(Color.RED.darker().darker())
                 .appendDescription("[`\uD83D\uDCC4 View`]("+view+")  |  [`\uD83D\uDCE9 Download`]("+download+")").build());
         });
+    }
+    
+    public void logRedirectPath(Message message, String link, List<String> redirects)
+    {
+        TextChannel tc = vortex.getDatabase().settings.getSettings(message.getGuild()).getMessageLogChannel(message.getGuild());
+        if(tc==null)
+            return;
+        StringBuilder sb = new StringBuilder("\uD83D\uDD37 **"+link+"**");
+        for(int i=0; i<redirects.size(); i++)
+            sb.append("\n").append(redirects.size()-1==i ? "\uD83D\uDD37 **" : "\uD83D\uDD39").append(redirects.get(i)).append(redirects.size()-1==i ? "**" : "");
+        log(OffsetDateTime.now(), tc, "\uD83D\uDD00", 
+                FormatUtil.formatFullUser(message.getAuthor())+"'s message in "+message.getTextChannel().getAsMention()+" contained redirects:", 
+                new EmbedBuilder().setColor(Color.BLUE.brighter().brighter()).appendDescription(sb.toString()).build());
     }
     
     
@@ -171,13 +214,16 @@ public class BasicLogger
             rlist.append("`");
         }
         log(now, tc, "\uD83D\uDCE4", FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server. "
-                +"\nJoined: "+event.getUser().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
+                +"\nJoined: "+event.getMember().getJoinDate().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
                 +rlist.toString(), null);
     }
     
+    
+    // Voice Logs
+    
     public void logVoiceJoin(GuildVoiceJoinEvent event)
     {
-        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getServerLogChannel(event.getGuild());
+        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
         log(OffsetDateTime.now(), tc, "<:voicejoin:314044543605407757>", 
@@ -186,19 +232,41 @@ public class BasicLogger
     
     public void logVoiceMove(GuildVoiceMoveEvent event)
     {
-        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getServerLogChannel(event.getGuild());
+        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
         log(OffsetDateTime.now(), tc, "<:voicechange:314043907992190987>", 
-                FormatUtil.formatFullUser(event.getMember().getUser())+" has moved voice channels from _"+event.getChannelLeft().getName()+"_ to _"+event.getChannelJoined()+"_", null);
+                FormatUtil.formatFullUser(event.getMember().getUser())+" has moved voice channels from _"+event.getChannelLeft().getName()+"_ to _"+event.getChannelJoined().getName()+"_", null);
     }
     
     public void logVoiceLeave(GuildVoiceLeaveEvent event)
     {
-        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getServerLogChannel(event.getGuild());
+        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
         log(OffsetDateTime.now(), tc, "<:voiceleave:314044543609864193>", 
                 FormatUtil.formatFullUser(event.getMember().getUser())+" has left voice channel _"+event.getChannelLeft().getName()+"_", null);
+    }
+    
+    
+    // Avatar Logs
+    
+    public void logAvatarChange(UserAvatarUpdateEvent event)
+    {
+        List<TextChannel> logs = event.getUser().getMutualGuilds().stream()
+            .map(guild -> vortex.getDatabase().settings.getSettings(guild).getAvatarLogChannel(guild))
+            .filter(tc -> tc!=null)
+            .collect(Collectors.toList());
+        if(logs.isEmpty())
+            return;
+        OffsetDateTime now = OffsetDateTime.now();
+        vortex.getThreadpool().execute(() -> 
+        {
+            byte[] im = AvatarUtil.makeAvatarImage(event.getUser(), event.getPreviousAvatarUrl(), event.getPreviousAvatarId());
+            if(im!=null)
+                logs.forEach(tc -> logFile(now, tc, "\uD83D\uDDBC", FormatUtil.formatFullUser(event.getUser())+" has changed avatars"
+                        +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " <:gif:314068430624129039>" : "")
+                        +":", im, "AvatarChange.png"));
+        });
     }
 }

@@ -24,6 +24,8 @@ import net.dv8tion.jda.core.entities.VoiceChannel;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import java.awt.Color;
+import java.util.Collections;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.Member;
@@ -37,6 +39,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class FormatUtil {
     
     private final static String MULTIPLE_FOUND = Constants.WARNING+" **Multiple %s found matching \"%s\":**";
+    private final static String CMD_EMOJI = "\uD83D\uDCDC";
     
     public static String filterEveryone(String input)
     {
@@ -210,43 +213,50 @@ public class FormatUtil {
         EmbedBuilder builder = new EmbedBuilder()
             .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
         
-        StringBuilder sb = new StringBuilder();
-        Command.Category category = null;
-        for(Command command : event.getClient().getCommands())
+        List<Command> commandsInCategory;
+        String content;
+        if(event.getArgs().isEmpty())
         {
-            if(!command.isHidden() && (!command.isOwnerCommand() || event.isOwner()))
-            {
-                if(category==null)
-                {
-                    if(command.getCategory()!=null)
-                    {
-                        builder.addField("General Commands", sb.toString()+"\u200B", true);
-                        sb = new StringBuilder();
-                        category = command.getCategory();
-                    }
-                }
-                else
-                {
-                    if(command.getCategory()==null || !command.getCategory().getName().equals(category.getName()))
-                    {
-                        builder.addField(category.getName()+" Commands", sb.toString()+"\u200B", true);
-                        sb = new StringBuilder();
-                        category = command.getCategory();
-                    }
-                }
-                sb.append("[`").append(event.getClient().getTextualPrefix()).append(event.getClient().getPrefix()==null?" ":"").append(command.getName())
-                       .append(command.getArguments()==null ? "" : " "+command.getArguments()+"").append("`](")
-                        .append(Constants.Wiki.Shortened.fromCategory(command.getCategory())).append(") - ").append(command.getHelp()).append("\n");
-            }
+            commandsInCategory = Collections.EMPTY_LIST;
+            content = Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** Commands Categories:";
         }
-        builder.addField(category==null ? "General Commands" : category.getName()+" Commands", sb.toString()+"\u200B", true);
+        else
+        {
+            commandsInCategory = event.getClient().getCommands().stream().filter(cmd -> 
+                    {
+                        if(cmd.isHidden() || cmd.isOwnerCommand())
+                            return false;
+                        if(cmd.getCategory()==null)
+                            return event.getArgs().equalsIgnoreCase("general");
+                        return cmd.getCategory().getName().equalsIgnoreCase(event.getArgs());
+                    }).collect(Collectors.toList());
+            if(commandsInCategory.isEmpty())
+                content = Constants.WARNING+" No Category `"+event.getArgs()+"` found.";
+            else
+                content = Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** "
+                        +(commandsInCategory.get(0).getCategory()==null ? "General" : commandsInCategory.get(0).getCategory().getName())
+                        +" Commands:";
+        }
+        
+        if(commandsInCategory.isEmpty())
+        {
+            builder.addField(CMD_EMOJI+" General Commands", "[`"+Constants.PREFIX+"help general`]("+Constants.Wiki.COMMANDS+"#-general-commands)\n\u200B", false);
+            event.getClient().getCommands().stream().filter(cmd -> cmd.getCategory()!=null).map(cmd -> cmd.getCategory().getName()).distinct()
+                    .forEach(cat -> builder.addField(CMD_EMOJI+" "+cat+" Commands", "[`"+Constants.PREFIX+"help "+cat.toLowerCase()+"`]("
+                            +Constants.Wiki.COMMANDS+"#-"+cat.toLowerCase()+"-commands)\n\u200B", false));
+        }
+        else
+        {
+            commandsInCategory.forEach(cmd -> builder.addField(Constants.PREFIX+cmd.getName()+(cmd.getArguments()==null ? "" : " "+cmd.getArguments()), 
+                    "["+cmd.getHelp()+"]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
+        }
         
         builder.addField("Additional Help", "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"
                 + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
                 + "\uD83D\uDCDC [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
                 + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")", false);
         
-        return new MessageBuilder().append(Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** Commands:").setEmbed(builder.build()).build();
+        return new MessageBuilder().append(content).setEmbed(builder.build()).build();
     }
     
 }

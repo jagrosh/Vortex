@@ -15,9 +15,11 @@
  */
 package com.jagrosh.vortex;
 
+import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
 import com.jagrosh.vortex.commands.moderation.*;
+import com.jagrosh.vortex.commands.tools.*;
 import com.jagrosh.vortex.commands.owner.*;
 import com.jagrosh.vortex.commands.settings.*;
 import java.awt.Color;
@@ -30,6 +32,7 @@ import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.jdautilities.examples.command.*;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Game;
@@ -80,7 +83,7 @@ public class Vortex
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         waiter = new EventWaiter();
-        threadpool = Executors.newScheduledThreadPool(30);
+        threadpool = Executors.newScheduledThreadPool(40);
         database = new Database(tokens.get(4), tokens.get(5), tokens.get(6));
         uploader = new TextUploader(this, Long.parseLong(tokens.get(8)));
         modlog = new ModLogger(this);
@@ -92,17 +95,17 @@ public class Vortex
         
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.watching("Type "+Constants.PREFIX+"help | Vortex Beta (Formerly Spectra Beta)"))
+                        .setGame(Game.watching("Type "+Constants.PREFIX+"help | Vortex 2.0 Beta"))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
+                        .setListener(new CommandExceptionListener())
                         .addCommands(// General
                             new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
                                                         new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
                             new InviteCmd(),
-                            new LookupCmd(this),
                             new PingCommand(),
                             new ServerinfoCmd(),
                             new UserinfoCmd(),
@@ -127,6 +130,8 @@ public class Vortex
                             new MessagelogCmd(this),
                             new ModlogCmd(this),
                             new ServerlogCmd(this),
+                            new VoicelogCmd(this),
+                            new AvatarlogCmd(this),
                             new TimezoneCmd(this),
                             new ModroleCmd(this),
                             new PrefixCmd(this),
@@ -139,9 +144,15 @@ public class Vortex
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),
+                            new ResolvelinksCmd(this),
                             new AutoraidmodeCmd(this),
                             new IgnoreCmd(this),
                             new UnignoreCmd(this),
+                            
+                            // Tools
+                            new DehoistCmd(),
+                            new InvitepruneCmd(this),
+                            new LookupCmd(this),
 
                             // Owner
                             new EvalCmd(this),
@@ -166,6 +177,7 @@ public class Vortex
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setGame(Game.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
+                .setRequestTimeoutRetry(true)
                 .build();
         
         modlog.start();
@@ -224,6 +236,15 @@ public class Vortex
     public StrikeHandler getStrikeHandler()
     {
         return strikehandler;
+    }
+    
+    public void cleanPremium()
+    {
+        database.premium.cleanPremiumList().forEach((gid) ->
+        {
+            database.automod.setResolveUrls(gid, false);
+            database.settings.setAvatarLogChannel(gid, null);
+        });
     }
     
     /**

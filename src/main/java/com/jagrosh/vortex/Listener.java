@@ -35,6 +35,7 @@ import net.dv8tion.jda.core.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
+import net.dv8tion.jda.core.events.user.UserAvatarUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import org.slf4j.Logger;
@@ -160,6 +161,14 @@ public class Listener implements EventListener
         {
             // Log the name change
             vortex.getBasicLogger().logNameChange((UserNameUpdateEvent)event);
+        }
+        else if (event instanceof UserAvatarUpdateEvent)
+        {
+            UserAvatarUpdateEvent uaue = (UserAvatarUpdateEvent)event;
+            
+            // Log the avatar change
+            if(!uaue.getUser().isBot())
+                vortex.getBasicLogger().logAvatarChange(uaue);
         }
         else if (event instanceof GuildVoiceJoinEvent)
         {

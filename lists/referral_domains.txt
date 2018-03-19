@@ -1,0 +1,58 @@
+﻿// Referral Domain List
+// This list contains referral sites
+
+// IP Loggers
+iplogger.com
+blasze.tk
+ps3cfw.com
+
+// Grabify (IP Loggers)
+grabify.link
+bmwforum.co
+leancoding.co
+quickmessage.io
+spottyfly.com
+spötify.com
+stopify.co
+yoütu.be
+yoütübe.co
+yoütübe.com
+xda-developers.io
+starbucksiswrong.com
+starbucks.bio
+starbucksisbadforyou.com
+bucks.as
+discörd.com
+minecräft.com
+shört.co
+cyberh1.xyz
+
+// Ad sites
+adf.ly
+sh.st
+ceesty.com
+linkshrink.net
+adexchangecloud.com
+cur.lv
+getcryptotab.com
+udmoney.club
+btcclicks.com
+bc.vc
+adfoc.us
+linkbucks.com
+
+// Referral Sites
+wn.nr
+
+// Scams
+fortnite-special.com
+fortnite-vbucks.net
+fortnite-vbucks.de
+fortnite-vbuck.com
+free-steam-code.com
+steamquests.com
+steampromote.com
+steamsummer.com
+steamreward.com
+steamspecial.com
+easter-event.com

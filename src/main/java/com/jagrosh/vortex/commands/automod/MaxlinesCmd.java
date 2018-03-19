@@ -9,7 +9,6 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.core.Permission;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 
 /**
@@ -62,6 +61,7 @@ public class MaxlinesCmd extends Command
         }
         vortex.getDatabase().automod.setMaxLines(event.getGuild(), maxlines);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Messages longer than `"+maxlines+"` lines will now be automatically deleted, and users will receive strikes for every additional line."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+        event.replySuccess("Messages longer than `"+maxlines+"` lines will now be automatically deleted, "
+                + "and users will receive strikes for every additional multiple of up to `"+maxlines+"` lines."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }
 }

@@ -108,7 +108,11 @@ public class StrikeCmd extends ModCommand
                 {
                     try
                     {
-                        args.users.add(event.getJDA().retrieveUserById(id).complete());
+                        User u = event.getJDA().retrieveUserById(id).complete();
+                        if(u==null)
+                            builder.append("\n").append(event.getClient().getError()).append(" `").append(id).append("` is not a valid user ID.");
+                        else
+                            args.users.add(u);
                     }
                     catch(Exception ex)
                     {

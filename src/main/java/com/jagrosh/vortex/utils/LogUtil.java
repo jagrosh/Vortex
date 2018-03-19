@@ -114,7 +114,9 @@ public class LogUtil
     
     public static String logMessages(String title, List<Message> messages)
     {
-        StringBuilder sb = new StringBuilder("-- "+title+" --");
+        TextChannel deltc = messages.get(0).getTextChannel();
+        Guild delg = messages.get(0).getGuild();
+        StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;
         for(int i=messages.size()-1; i>=0; i--)
         {
@@ -122,7 +124,7 @@ public class LogUtil
             sb.append("\r\n\r\n[")
                 .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                 .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                .append(" : ").append(m.getContentRaw());
+                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
             m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
         }
         return sb.toString().trim();

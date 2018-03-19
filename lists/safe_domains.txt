@@ -1,0 +1,80 @@
+// Safe Domain List
+// This list contains URLs that are considered non-redirecting URLs
+
+// Discord links
+discord.gg
+dis.gd
+discordapp.net
+discordapp.com
+discordcdn.com
+
+// Video & Stream Hosts
+youtube.com
+youtu.be
+ytimg.com
+twitch.tv
+plays.tv
+streamable.com
+
+// Audio Hosts
+bandcamp.com
+soundcloud.com
+spotify.com
+genius.com
+
+// Image Hosts
+imgur.com
+imgur.com
+giphy.com
+deviantart.net
+deviantart.com
+puu.sh
+gfycat.com
+prntscr.com
+prnt.sc
+gyazo.com
+instagram.com
+9gag.com
+twimg.com
+tenor.co
+        
+// Development
+github.com
+githubusercontent.com
+hastebin.com
+pastebin.com
+trello.com
+        
+// Social Media
+twitter.com
+reddit.com
+redd.it
+tumblr.com
+patreon.com
+blogspot.com
+facebook.com
+
+// Wikis
+wikia.com
+wikipedia.org
+
+// Shopping
+amazon.com
+ebay.com
+etsy.com
+
+// Games
+steamcommunity.com
+steampowered.com
+challonge.com
+humblebundle.com
+nintendo.com
+roblox.com
+
+// Misc
+google.com
+googleusercontent.com
+speedtest.net
+myanimelist.net
+xkcd.com
+knowyourmeme.com

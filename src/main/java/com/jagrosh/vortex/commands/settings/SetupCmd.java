@@ -61,7 +61,7 @@ public class SetupCmd extends Command
                 .setChoices(MUTE,CANCEL)
                 .setEventWaiter(vortex.getEventWaiter())
                 .setTimeout(1, TimeUnit.MINUTES)
-                .setFinalAction(m -> m.delete().queue())
+                .setFinalAction(m -> m.delete().queue(s->{}, f->{}))
                 ;
         this.cooldown = 20;
         this.cooldownScope = CooldownScope.GUILD;
@@ -166,7 +166,7 @@ public class SetupCmd extends Command
                 .setEventWaiter(vortex.getEventWaiter())
                 .setTimeout(1, TimeUnit.MINUTES)
                 .setText(Constants.WARNING+" "+message+"\n\n"+CONFIRM+" Continue\n"+CANCEL+" Cancel")
-                .setFinalAction(m -> m.delete().queue())
+                .setFinalAction(m -> m.delete().queue(s->{}, f->{}))
                 .setUsers(event.getAuthor())
                 .setAction(re ->
                 {

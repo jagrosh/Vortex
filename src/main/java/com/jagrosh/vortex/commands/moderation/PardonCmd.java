@@ -93,9 +93,16 @@ public class PardonCmd extends ModCommand
         
         args.ids.forEach(id -> 
         {
-            vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getCreationTime(), id, fnumstrikes, args.reason);
-            builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully pardoned `").append(fnumstrikes)
-                    .append("` strikes from ").append(event.getJDA().getUserById(id)==null ? "<@"+id+">" : FormatUtil.formatUser(event.getJDA().getUserById(id)));
+            String user = event.getJDA().getUserById(id)==null ? "<@"+id+">" : FormatUtil.formatUser(event.getJDA().getUserById(id));
+            int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), id);
+            if(strikes==0)
+                builder.append("\n").append(event.getClient().getWarning()).append(" ").append(user).append(" has no strikes.");
+            else
+            {
+                strikes = fnumstrikes<strikes ? fnumstrikes : strikes;
+                vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getCreationTime(), id, strikes, args.reason);
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully pardoned `").append(strikes).append("` strikes from ").append(user);
+            }
         });
         event.reply(builder.toString());
     }

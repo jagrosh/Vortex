@@ -19,6 +19,7 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
+import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,8 @@ public class AutomodManager extends DataManager
     private static final String SETTINGS_TITLE = "\uD83D\uDEE1 Automod Settings";
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
+    
+    public final static SQLColumn<Boolean> RESOLVE_URLS = new BooleanColumn("RESOLVE_URLS", false, false);
     
     public final static SQLColumn<Integer> MAX_MENTIONS = new IntegerColumn("MAX_MENTIONS", false, 0);
     public final static SQLColumn<Integer> MAX_ROLE_MENTIONS = new IntegerColumn("MAX_ROLE_MENTIONS", false, 0);
@@ -78,25 +81,26 @@ public class AutomodManager extends DataManager
         return new Field(SETTINGS_TITLE, 
                   "__Anti-Advertisement__\n" + (settings.inviteStrikes==0 && settings.refStrikes==0
                     ? "Disabled\n\n"
-                    : "Invite Link Strikes: **" + settings.inviteStrikes + "**\n" +
-                      "Referral Link Strikes: **" + settings.refStrikes + "**\n\n")
+                    : "Invite Links: `" + settings.inviteStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
+                      "Referral Links: `" + settings.refStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
+                      "Resolve Links: `" + (settings.resolveUrls ? "ON" : "OFF") + "`\n\n")
                 + "__Anti-Duplicate__\n" + (settings.useAntiDuplicate() 
-                    ? "Strike Threshold: **" + settings.dupeStrikeThresh + "**\n" +
-                     "Delete Threshold: **" + settings.dupeDeleteThresh + "**\n" +
-                      "Strikes: **" + settings.dupeStrikes + "**\n\n" 
+                    ? "Strike Threshold: `" + settings.dupeStrikeThresh + "`\n" +
+                     "Delete Threshold: `" + settings.dupeDeleteThresh + "`\n" +
+                      "Strikes: `" + settings.dupeStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n" 
                     : "Disabled\n\n")
                 + "__Maximum Mentions__\n" + (settings.maxMentions==0 && settings.maxRoleMentions==0 
                     ? "Disabled\n\n" 
-                    : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "**" + settings.maxMentions + "**\n") +
-                      "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "**" + settings.maxRoleMentions + "**\n\n"))
+                    : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "`" + settings.maxMentions + "`\n") +
+                      "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "`" + settings.maxRoleMentions + "`\n\n"))
                 + "__Spam Prevention__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0
                     ? "Disabled\n\n"
-                    : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "**"+settings.maxLines+"**\n") + 
-                      "Copypasta Strikes: **" + settings.copypastaStrikes + "**\n\n")
+                    : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
+                      "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
                 + "__Auto Anti-Raid Mode__\n" + (settings.useAutoRaidMode() 
-                    ? "**" + settings.raidmodeNumber + "** joins / **" + settings.raidmodeTime + "** seconds\n" 
+                    ? "`" + settings.raidmodeNumber + "` joins / `" + settings.raidmodeTime + "` seconds\n" 
                     : "Disabled\n")
-                + "\u200B", true);
+                /*+ "\u200B"*/, true);
     }
     
     // Setters
@@ -110,6 +114,31 @@ public class AutomodManager extends DataManager
                 MAX_MENTIONS.updateValue(rs, 0);
                 MAX_ROLE_MENTIONS.updateValue(rs, 0);
                 rs.updateRow();
+            }
+        });
+    }
+    
+    public void setResolveUrls(Guild guild, boolean value)
+    {
+        setResolveUrls(guild.getIdLong(), value);
+    }
+    
+    public void setResolveUrls(long guildId, boolean value)
+    {
+        invalidateCache(guildId);
+        readWrite(selectAll(GUILD_ID.is(guildId)), rs ->
+        {
+            if(rs.next())
+            {
+                RESOLVE_URLS.updateValue(rs, value);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guildId);
+                RESOLVE_URLS.updateValue(rs, value);
+                rs.insertRow();
             }
         });
     }
@@ -282,11 +311,17 @@ public class AutomodManager extends DataManager
     
     private void invalidateCache(Guild guild)
     {
-        cache.pull(guild.getIdLong());
+        invalidateCache(guild.getIdLong());
+    }
+    
+    private void invalidateCache(long guildId)
+    {
+        cache.pull(guildId);
     }
     
     public class AutomodSettings
     {
+        public final boolean resolveUrls;
         public final int maxMentions, maxRoleMentions;
         public final int maxLines;
         public final int raidmodeNumber, raidmodeTime;
@@ -295,6 +330,7 @@ public class AutomodManager extends DataManager
         
         private AutomodSettings()
         {
+            this.resolveUrls = false;
             this.maxMentions = 0;
             this.maxRoleMentions = 0;
             this.maxLines = 0;
@@ -310,6 +346,7 @@ public class AutomodManager extends DataManager
         
         private AutomodSettings(ResultSet rs) throws SQLException
         {
+            this.resolveUrls = RESOLVE_URLS.getValue(rs);
             this.maxMentions = MAX_MENTIONS.getValue(rs);
             this.maxRoleMentions = MAX_ROLE_MENTIONS.getValue(rs);
             this.maxLines = MAX_LINES.getValue(rs);

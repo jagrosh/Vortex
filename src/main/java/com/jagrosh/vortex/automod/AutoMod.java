@@ -20,10 +20,12 @@ import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
+import com.jagrosh.vortex.utils.URLResolver;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -47,12 +49,24 @@ import org.slf4j.LoggerFactory;
 public class AutoMod
 {
     private final static Pattern INVITES = Pattern.compile("discord\\s?(?:\\.\\s?gg|app\\s?.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",Pattern.CASE_INSENSITIVE);
-    private final static Pattern REF     = Pattern.compile("https?:\\/\\/(\\S+[?&]ref=|wn.nr\\/)\\S+", Pattern.CASE_INSENSITIVE);
+    
+    private final static String[] REF_LINK_LIST = OtherUtil.readLines("referral_domains");
+    private final static Pattern REF = Pattern.compile("https?:\\/\\/(?:(?:[a-z0-9-_]+\\.)?(?:"
+            + (String.join("|", REF_LINK_LIST).replace(".", "\\."))
+            + ")[/?]|\\S+[?&]ref=|\\S+\\/ref\\/)\\S+", Pattern.CASE_INSENSITIVE);
+    
+    private final static Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
+    private final static String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
+    private final static String REF_LINK    = REF.pattern();
+    
     private final static String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private final static Logger LOG = LoggerFactory.getLogger("AutoMod");
+    public  final static String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
     
     private final Vortex vortex;
     
+    private final URLResolver urlResolver = new URLResolver();
+    private final InviteResolver inviteResolver = new InviteResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     
@@ -128,7 +142,7 @@ public class AutoMod
         if(kicking)
         {
             OtherUtil.safeDM(event.getUser(),
-                    "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.", () -> 
+                    "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.", true, () -> 
                     {
                         try
                         {
@@ -142,7 +156,7 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController().addSingleRoleToMember(event.getMember(), OtherUtil.getMutedRole(event.getGuild())).reason("Restoring Muted Role").queue();
+                    event.getGuild().getController().addSingleRoleToMember(event.getMember(), OtherUtil.getMutedRole(event.getGuild())).reason(RESTORE_MUTE_ROLE_AUDIT).queue();
                 } catch(Exception ex){}
             }
         }
@@ -258,7 +272,7 @@ public class AutoMod
             int count = message.getContentRaw().split("\n").length;
             if(count > settings.maxLines)
             {
-                strikeTotal += count-settings.maxLines;
+                strikeTotal += Math.ceil((double)(count-settings.maxLines)/settings.maxLines);
                 reason.append(", Message contained ").append(count).append(" newlines");
                 shouldDelete = true;
             }
@@ -299,11 +313,8 @@ public class AutoMod
             try{
                 for(String inviteCode : invites)
                 {
-                    Invite invite = null;
-                    try {
-                        invite = Invite.resolve(message.getJDA(), inviteCode).complete();
-                    } catch(Exception e) {}
-                    if(invite==null || !invite.getGuild().getId().equals(message.getGuild().getId()))
+                    long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
+                    if(gid != message.getGuild().getIdLong())
                     {
                         strikeTotal += settings.inviteStrikes;
                         reason.append(", Advertising");
@@ -314,6 +325,7 @@ public class AutoMod
             }catch(PermissionException ex){}
         }
         
+        // delete the message if applicable
         if(shouldDelete)
         {
             try
@@ -322,10 +334,57 @@ public class AutoMod
             }catch(PermissionException e){}
         }
         
+        // assign strikes if necessary
         if(strikeTotal>0)
         {
             vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
                     latestTime(message), message.getAuthor(), strikeTotal, reason.toString().substring(2));
+        }
+        
+        // now, lets resolve links, but async
+        if(!shouldDelete && settings.resolveUrls && (settings.inviteStrikes>0 || settings.refStrikes>0))
+        {
+            List<String> links = new LinkedList<>();
+            Matcher m = LINK.matcher(message.getContentRaw());
+            while(m.find())
+                links.add(m.group());
+            if(!links.isEmpty())
+                vortex.getThreadpool().execute(() -> 
+                {
+                    boolean containsInvite = false;
+                    boolean containsRef = false;
+                    String llink = null;
+                    List<String> redirects = null;
+                    for(String link: links)
+                    {
+                        llink = link;
+                        redirects = urlResolver.findRedirects(link);
+                        for(String resolved: redirects)
+                        {
+                            if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
+                            {
+                                if(inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1")) != message.getGuild().getIdLong())
+                                    containsInvite = true;
+                            }
+                            if(settings.refStrikes>0 && resolved.matches(REF_LINK))
+                                containsRef = true;
+                        }
+                        if((containsInvite || settings.inviteStrikes<1) && (containsRef || settings.refStrikes<1))
+                            break;
+                    }
+                    int rstrikeTotal = (containsInvite ? settings.inviteStrikes : 0) + (containsRef ? settings.refStrikes : 0);
+                    if(rstrikeTotal > 0)
+                    {
+                        vortex.getBasicLogger().logRedirectPath(message, llink, redirects);
+                        String rreason = ((containsInvite ? ", Advertising (Resolved Link)" : "") + (containsRef ? ", Referral Link (Resolved Link)" : "")).substring(2);
+                        try
+                        {
+                            message.delete().reason("Automod").queue(v->{}, f->{});
+                        }catch(PermissionException e){}
+                        vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
+                            latestTime(message), message.getAuthor(), rstrikeTotal, rreason);
+                    }
+                });
         }
     }
     

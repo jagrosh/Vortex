@@ -21,6 +21,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
+import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
+import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.commands.ModCommand;
 import java.util.LinkedList;
 import net.dv8tion.jda.core.Permission;
@@ -28,6 +31,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageHistory;
 import com.jagrosh.vortex.utils.LogUtil;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.EmbedType;
 import net.dv8tion.jda.core.entities.TextChannel;
 
 /**
@@ -37,7 +41,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class CleanCmd extends ModCommand
 {
     private final Pattern LINK_PATTERN = Pattern.compile("https?:\\/\\/.+");
-    private final Pattern QUOTES_PATTERN = Pattern.compile("[\"“](.*?)[\"“]", Pattern.DOTALL);
+    private final Pattern QUOTES_PATTERN = Pattern.compile("[\"“”](.*?)[\"“”]", Pattern.DOTALL);
     private final Pattern CODE_PATTERN = Pattern.compile("`(.*?)`", Pattern.DOTALL);
     private final Pattern MENTION_PATTERN = Pattern.compile("<@!?(\\d{17,22})>");
     private final Pattern ID_PATTERN = Pattern.compile("\\b(\\d{17,22})\\b");
@@ -61,6 +65,7 @@ public class CleanCmd extends ModCommand
     {
         super(vortex, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY);
         this.name = "clean";
+        this.aliases = new String[]{"clear"};
         this.arguments = "<parameters>";
         this.help = "cleans messages matching filters";
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
@@ -71,16 +76,10 @@ public class CleanCmd extends ModCommand
     protected void execute(CommandEvent event)
     {
         if(event.getArgs().isEmpty() || event.getArgs().equalsIgnoreCase("help"))
-        {
-            event.replyWarning(noparams);
-            return;
-        }
+            throw new CommandWarningException(noparams);
         TextChannel modlog = vortex.getDatabase().settings.getSettings(event.getGuild()).getModLogChannel(event.getGuild());
         if(modlog!=null && event.getChannel().getIdLong()==modlog.getIdLong())
-        {
-            event.replyWarning("This command cannot be used in the modlog!");
-            return;
-        }
+            throw new CommandWarningException("This command cannot be used in the modlog!");
         int num = -1;
         List<String> quotes = new LinkedList<>();
         String pattern = null;
@@ -130,10 +129,7 @@ public class CleanCmd extends ModCommand
                 num=100;
         }
         if(num>1000 || num<2)
-        {
-            event.replyError("Number of messages must be between 2 and 1000");
-            return;
-        }
+            throw new CommandErrorException("Number of messages must be between 2 and 1000");
         
         int val2 = num+1;
         String p = pattern;
@@ -238,6 +234,8 @@ public class CleanCmd extends ModCommand
     private static boolean hasImage(Message message)
     {
         if(message.getAttachments().stream().anyMatch(a -> a.isImage()))
+            return true;
+        if(message.getEmbeds().stream().anyMatch(e -> e.getType()==EmbedType.IMAGE))
             return true;
         if(message.getEmbeds().stream().anyMatch(e -> e.getImage()!=null || e.getVideoInfo()!=null))
             return true;

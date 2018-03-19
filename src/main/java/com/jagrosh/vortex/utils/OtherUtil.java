@@ -15,11 +15,18 @@
  */
 package com.jagrosh.vortex.utils;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.Region;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -27,19 +34,24 @@ import net.dv8tion.jda.core.entities.User;
  */
 public class OtherUtil
 {
+    private final static Logger LOG = LoggerFactory.getLogger(OtherUtil.class);
+    
     public static Role getMutedRole(Guild guild)
     {
         return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
     }
     
-    public static void safeDM(User user, String message, Runnable then)
+    public static void safeDM(User user, String message, boolean shouldDM, Runnable then)
     {
-        if(user==null)
+        if(user==null || !shouldDM)
             then.run();
-        else
+        else try
+        {
             user.openPrivateChannel()
                     .queue(pc -> pc.sendMessage(message).queue(s->then.run(), 
                             f->then.run()), f->then.run());
+        }
+        catch(Exception ex){}
     }
     
     public static Member findMember(String username, String discriminator, Guild guild)
@@ -73,6 +85,25 @@ public class OtherUtil
             return 0;
         }
         return timeinseconds;
+    }
+    
+    public static String[] readLines(String filename)
+    {
+        try
+        {
+            List<String> values = Files.readAllLines(Paths.get("lists" + File.separator + filename + ".txt")).stream()
+                    .map(str -> str.replace("\uFEFF", "").trim()).filter(str -> !str.isEmpty() && !str.startsWith("//")).collect(Collectors.toList());
+            String[] list = new String[values.size()];
+            for(int i=0; i<list.length; i++)
+                list[i] = values.get(i);
+            LOG.info("Successfully read "+list.length+" entries from '"+filename+"'");
+            return list;
+        }
+        catch(Exception ex)
+        {
+            LOG.error("Failed to read '"+filename+"':"+ ex);
+            return new String[0];
+        }
     }
     
     public static String regionToFlag(Region region)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.vortex.commands.general;
+package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
@@ -45,6 +45,7 @@ public class LookupCmd extends Command
         this.arguments = "<ID | invite>";
         this.help = "finds information about a user or server";
         this.cooldown = 5;
+        this.category = new Category("Tools");
     }
 
     @Override

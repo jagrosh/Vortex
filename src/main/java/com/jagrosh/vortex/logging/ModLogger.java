@@ -17,6 +17,7 @@ package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -196,7 +197,7 @@ public class ModLogger
         if(guild==null)
             return;
         TextChannel modlog = vortex.getDatabase().settings.getSettings(guild).getModLogChannel(guild);
-        if(modlog==null || !modlog.canTalk())
+        if(modlog==null || !modlog.canTalk() || !modlog.getGuild().getSelfMember().hasPermission(Permission.VIEW_AUDIT_LOGS))
             return;
         try
         {
@@ -233,6 +234,8 @@ public class ModLogger
                 if(act!=null)
                 {
                     User mod = ale.getUser();
+                    if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()))
+                        return; // restoring muted role shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes = 0;
                     User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
