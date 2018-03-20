@@ -71,6 +71,8 @@ public class StrikeHandler
         boolean shouldDM = moderator.getGuild().getMemberById(target.getIdLong())!=null;
         Instant now = nowo.toInstant();
         int[] counts = vortex.getDatabase().strikes.addStrikes(moderator.getGuild(), target.getIdLong(), number);
+        if(counts[0]>110 && counts[1]>110)
+            return;
         List<Punishment> punishments = vortex.getDatabase().actions.getPunishments(moderator.getGuild(), counts[0], counts[1]);
         String dmmsg = String.format(STRIKE_FORMAT, number, moderator.getGuild().getName(), reason);
         if(punishments.isEmpty())

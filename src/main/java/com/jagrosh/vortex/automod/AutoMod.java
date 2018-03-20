@@ -20,7 +20,6 @@ import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
-import com.jagrosh.vortex.utils.URLResolver;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -33,7 +32,6 @@ import java.util.regex.Pattern;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.entities.Invite;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -67,12 +65,24 @@ public class AutoMod
     
     private final URLResolver urlResolver = new URLResolver();
     private final InviteResolver inviteResolver = new InviteResolver();
+    private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     
     public AutoMod(Vortex vortex)
     {
         this.vortex = vortex;
+        loadCopypastas();
+    }
+    
+    public final void loadCopypastas()
+    {
+        this.copypastaResolver.load();
+    }
+    
+    public final void loadSafeDomains()
+    {
+        this.urlResolver.loadSafeDomains();
     }
     
     public void enableRaidMode(Guild guild, Member moderator, OffsetDateTime now, String reason)
@@ -204,6 +214,18 @@ public class AutoMod
         return true;
     }
     
+    public void dehoist(Member member)
+    {
+        if(!shouldPerformAutomod(member, null))
+            return;
+        
+        AutomodSettings settings = vortex.getDatabase().automod.getSettings(member.getGuild());
+        if(settings==null)
+            return;
+        
+        
+    }
+    
     public void performAutomod(Message message) 
     {
         //simple automod
@@ -299,6 +321,17 @@ public class AutoMod
                 strikeTotal += settings.refStrikes;
                 reason.append(", Referral link");
                 shouldDelete = true;
+            }
+        }
+        
+        // prevent copypastas
+        if(settings.copypastaStrikes > 0 && preventSpam)
+        {
+            String copypastaName = copypastaResolver.getCopypasta(message.getContentRaw());
+            if(copypastaName!=null)
+            {
+                strikeTotal += settings.copypastaStrikes;
+                reason.append(", ").append(copypastaName).append(" copypasta");
             }
         }
         

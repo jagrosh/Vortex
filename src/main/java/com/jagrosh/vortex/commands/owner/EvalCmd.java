@@ -47,11 +47,12 @@ public class EvalCmd extends Command
         se.put("jda", event.getJDA());
         se.put("guild", event.getGuild());
         se.put("channel", event.getChannel());
+        String args = event.getArgs().replaceAll("([^(]+?)\\s*->", "function($1)");
         event.async(() ->
         {
             try
             {
-                event.replySuccess("Evaluated Successfully:\n```\n"+se.eval(event.getArgs())+" ```");
+                event.replySuccess("Evaluated Successfully:\n```\n"+se.eval(args)+" ```");
             } 
             catch(Exception e)
             {

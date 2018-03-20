@@ -42,6 +42,7 @@ import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
+import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.ChannelType;
@@ -139,7 +140,7 @@ public class Vortex
 
                             // Automoderation
                             new AntiinviteCmd(this),
-                            //new AnticopypastaCmd(this),
+                            new AnticopypastaCmd(this),
                             new AntirefCmd(this),
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
@@ -156,7 +157,8 @@ public class Vortex
 
                             // Owner
                             new EvalCmd(this),
-                            new DebugCmd(this)
+                            new DebugCmd(this),
+                            new ReloadCmd(this)
                         )
                         .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m -> 
                         {
@@ -181,6 +183,8 @@ public class Vortex
                 .build();
         
         modlog.start();
+        
+        threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
     }
     
     public EventWaiter getEventWaiter()

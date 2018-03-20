@@ -56,7 +56,7 @@ public class DehoistCmd extends Command
     {
         char symbol;
         if(event.getArgs().isEmpty())
-            symbol = valid[valid.length-1];
+            symbol = valid[0];
         else if(event.getArgs().length()==1)
             symbol = event.getArgs().charAt(0);
         else
