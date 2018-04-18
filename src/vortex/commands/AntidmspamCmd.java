@@ -45,7 +45,7 @@ public class AntidmspamCmd extends Command {
         if(event.getArgs().equalsIgnoreCase("off"))
         {
             manager.setBlockDmSpam(event.getGuild(), false);
-            event.replySuccess("DM-Spam blocking has been disabled.");
+            event.replySuccess("DM-Spam blocking has been Disabled.");
         }
         else if(event.getArgs().equalsIgnoreCase("on"))
         {
