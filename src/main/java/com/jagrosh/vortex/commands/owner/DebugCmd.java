@@ -55,7 +55,8 @@ public class DebugCmd extends Command
                 + "\nShard Total: **"+vortex.getShardManager().getShardsTotal()+"**"
                 + "\nShard Connectivity: ```diff");
         vortex.getShardManager().getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
-                .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus()));
+                .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus())
+                .append(" ~ ").append(jda.getGuildCache().size()).append(" guilds"));
         sb.append("\n```");
         event.reply(sb.toString().trim());
     }

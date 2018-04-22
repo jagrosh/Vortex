@@ -74,6 +74,6 @@ public class UnignoreCmd extends Command {
                         + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator");
         }
         else
-            event.reply(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
     }
 }

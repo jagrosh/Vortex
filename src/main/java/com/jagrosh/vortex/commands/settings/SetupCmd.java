@@ -21,7 +21,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.utils.OtherUtil;
+import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.PermissionOverride;
 import net.dv8tion.jda.core.entities.Role;
@@ -34,11 +34,6 @@ import net.dv8tion.jda.core.entities.VoiceChannel;
  */
 public class SetupCmd extends Command
 {
-    private final ButtonMenu.Builder buttons;
-    private final String MUTE = "\uD83D\uDD07";
-    private final String LOGS = "\uD83D\uDCDD";
-    private final String AUTOMOD = "\uD83E\uDD16";
-    
     private final String CANCEL = "\u274C";
     private final String CONFIRM = "\u2611";
     
@@ -53,53 +48,133 @@ public class SetupCmd extends Command
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
-        this.buttons = new ButtonMenu.Builder()
-                .setText(Constants.SUCCESS+" **Please select a setup option**:\n\n"
-                        +MUTE+" 'Muted' Role\n"
-                        //+AUTOMOD+" Automod\n"
-                        +CANCEL+" Cancel")
-                .setChoices(MUTE,CANCEL)
-                .setEventWaiter(vortex.getEventWaiter())
-                .setTimeout(1, TimeUnit.MINUTES)
-                .setFinalAction(m -> m.delete().queue(s->{}, f->{}))
-                ;
-        this.cooldown = 20;
-        this.cooldownScope = CooldownScope.GUILD;
+        this.children = new Command[]{new MuteSetupCmd(), new AutomodSetupCmd()};
     }
     
     @Override
     protected void execute(CommandEvent event) 
     {
-        buttons.setAction(re -> 
+        StringBuilder sb = new StringBuilder("The following commands can be used to set up a **").append(event.getSelfUser().getName()).append("** feature:\n");
+        for(Command cmd: children)
+            sb.append("\n`").append(Constants.PREFIX).append(name).append(" ").append(cmd.getName()).append("` - ").append(cmd.getHelp());
+        event.replySuccess(sb.toString());
+    }
+    
+    private class AutomodSetupCmd extends Command
+    {
+        private AutomodSetupCmd()
         {
-            switch(re.getName())
+            this.name = "automod";
+            this.aliases = new String[]{"auto"};
+            this.category = new Category("Settings");
+            this.help = "sets up the auto-moderator";
+            this.guildOnly = true;
+            this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+            this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
+            this.cooldown = 20;
+            this.cooldownScope = CooldownScope.GUILD;
+        }
+
+        @Override
+        protected void execute(CommandEvent event)
+        {
+            waitForConfirmation(event, "This will enable all automod defaults. Any existing settings will not be overwritten.", () -> 
             {
-                case MUTE:
-                    Role muted = OtherUtil.getMutedRole(event.getGuild());
-                    String confirmation;
-                    if(muted!=null)
-                    {
-                        if(!event.getSelfMember().canInteract(muted))
-                        {
-                            event.replyError("I cannot interact with the existing '"+muted.getName()+"' role. Please move my role(s) higher and then try again.");
-                            return;
-                        }
-                        if(!event.getMember().canInteract(muted))
-                        {
-                            event.replyError("You do not have permission to interact with the existing '"+muted.getName()+"' role.");
-                            return;
-                        }
-                        confirmation = "This will modify the existing '"+muted.getName()+"' role and assign it overrides in every channel.";
-                    }
-                    else
-                        confirmation = "This will create a role called 'Muted' and assign it overrides in every channel.";
-                    waitForConfirmation(event, confirmation, () -> setUpMutedRole(event, muted));
-                    break;
-                case AUTOMOD:
-                    
-                    break;
+                event.getChannel().sendTyping().queue();
+                StringBuilder sb = new StringBuilder("**Automod setup complete!**");
+                if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
+                    sb.append("\n").append(Constants.SUCCESS).append(" Set up default punishments");
+                AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
+                if(ams.inviteStrikes==0)
+                {
+                    vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), 2);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-invite set to `2` strikes");
+                }
+                if(ams.refStrikes==0)
+                {
+                    vortex.getDatabase().automod.setRefStrikes(event.getGuild(), 3);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-referral set to `3` strikes");
+                }
+                if(!ams.useAntiDuplicate())
+                {
+                    vortex.getDatabase().automod.setDupeSettings(event.getGuild(), 1, 2, 4);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-duplicate will start deleting at duplicate `2`, and will assign `1` strike each duplicate starting at duplicate `4`");
+                }
+                if(ams.copypastaStrikes==0)
+                {
+                    vortex.getDatabase().automod.setCopypastaStrikes(event.getGuild(), 1);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-copypasta set to `1` strikes");
+                }
+                if(ams.maxMentions==0)
+                {
+                    vortex.getDatabase().automod.setMaxMentions(event.getGuild(), 10);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum mentions set to `10` mentions");
+                }
+                if(ams.maxRoleMentions==0)
+                {
+                    vortex.getDatabase().automod.setMaxRoleMentions(event.getGuild(), 4);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum role mentions set to `4` mentions");
+                }
+                if(ams.maxLines==0)
+                {
+                    vortex.getDatabase().automod.setMaxLines(event.getGuild(), 10);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum lines set to `10` lines");
+                }
+                if(!ams.useAutoRaidMode())
+                {
+                    vortex.getDatabase().automod.setAutoRaidMode(event.getGuild(), 10, 10);
+                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-Raid Mode will activate upon `10` joins in `10` seconds");
+                }
+                if(ams.dehoistChar==(char)0)
+                {
+                    vortex.getDatabase().automod.setDehoistChar(event.getGuild(), '!');
+                    sb.append("\n").append(Constants.SUCCESS).append(" Names starting with `!` will be dehoisted");
+                }
+                sb.append("\n").append(Constants.WARNING).append(" Any settings not shown here were not set due to being already set. Please check the automod section of the wiki (<")
+                        .append(Constants.Wiki.AUTOMOD).append(">) for more information about the automod.");
+                event.replySuccess(sb.toString());
+            });
+        }
+    }
+    
+    private class MuteSetupCmd extends Command
+    {
+        private MuteSetupCmd()
+        {
+            this.name = "muterole";
+            this.aliases = new String[]{"muted","mute","mutedrole"};
+            this.category = new Category("Settings");
+            this.help = "sets up the 'Muted' role";
+            this.guildOnly = true;
+            this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+            this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
+            this.cooldown = 20;
+            this.cooldownScope = CooldownScope.GUILD;
+        }
+        
+        @Override
+        protected void execute(CommandEvent event)
+        {
+            Role muted = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
+            String confirmation;
+            if(muted!=null)
+            {
+                if(!event.getSelfMember().canInteract(muted))
+                {
+                    event.replyError("I cannot interact with the existing '"+muted.getName()+"' role. Please move my role(s) higher and then try again.");
+                    return;
+                }
+                if(!event.getMember().canInteract(muted))
+                {
+                    event.replyError("You do not have permission to interact with the existing '"+muted.getName()+"' role.");
+                    return;
+                }
+                confirmation = "This will modify the existing '"+muted.getName()+"' role and assign it overrides in every channel.";
             }
-        }).setUsers(event.getAuthor()).build().display(event.getChannel());
+            else
+                confirmation = "This will create a role called 'Muted' and assign it overrides in every channel.";
+            waitForConfirmation(event, confirmation, () -> setUpMutedRole(event, muted));
+        }
     }
     
     private void setUpMutedRole(CommandEvent event, Role role)

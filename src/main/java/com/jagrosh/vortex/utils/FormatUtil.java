@@ -25,6 +25,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import java.awt.Color;
 import java.util.Collections;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -38,7 +39,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class FormatUtil {
     
-    private final static String MULTIPLE_FOUND = Constants.WARNING+" **Multiple %s found matching \"%s\":**";
+    private final static String MULTIPLE_FOUND = "**Multiple %s found matching \"%s\":**";
     private final static String CMD_EMOJI = "\uD83D\uDCDC";
     
     public static String filterEveryone(String input)
@@ -70,6 +71,16 @@ public class FormatUtil {
         if(input.length()==1)
             return input.toUpperCase();
         return Character.toUpperCase(input.charAt(0))+input.substring(1).toLowerCase();
+    }
+    
+    public static <T> String join(String delimiter, Function<T,String> function, T... items)
+    {
+        if(items==null || items.length==0)
+            return "";
+        StringBuilder sb = new StringBuilder(function.apply(items[0]));
+        for(int i=1; i<items.length; i++)
+            sb.append(delimiter).append(function.apply(items[i]));
+        return sb.toString();
     }
     
     public static String listOfVoice(List<VoiceChannel> list, String query)
@@ -227,8 +238,8 @@ public class FormatUtil {
                         if(cmd.isHidden() || cmd.isOwnerCommand())
                             return false;
                         if(cmd.getCategory()==null)
-                            return event.getArgs().equalsIgnoreCase("general");
-                        return cmd.getCategory().getName().equalsIgnoreCase(event.getArgs());
+                            return "general".startsWith(event.getArgs().toLowerCase());
+                        return cmd.getCategory().getName().toLowerCase().startsWith(event.getArgs().toLowerCase());
                     }).collect(Collectors.toList());
             if(commandsInCategory.isEmpty())
                 content = Constants.WARNING+" No Category `"+event.getArgs()+"` found.";

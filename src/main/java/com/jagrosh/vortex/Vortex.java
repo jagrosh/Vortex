@@ -108,6 +108,7 @@ public class Vortex
                                                         new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
                             new InviteCmd(),
                             new PingCommand(),
+                            new RoleinfoCmd(),
                             new ServerinfoCmd(),
                             new UserinfoCmd(),
 
@@ -117,6 +118,7 @@ public class Vortex
                             new SoftbanCmd(this),
                             new CleanCmd(this),
                             new VoicemoveCmd(this),
+                            new VoicekickCmd(this),
                             new MuteCmd(this),
                             new UnmuteCmd(this),
                             new RaidCmd(this),
@@ -145,12 +147,14 @@ public class Vortex
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),
+                            new AutodehoistCmd(this),
                             new ResolvelinksCmd(this),
                             new AutoraidmodeCmd(this),
                             new IgnoreCmd(this),
                             new UnignoreCmd(this),
                             
                             // Tools
+                            new AuditCmd(),
                             new DehoistCmd(),
                             new InvitepruneCmd(this),
                             new LookupCmd(this),

@@ -20,7 +20,7 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
-import java.sql.ResultSet;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import net.dv8tion.jda.core.JDA;
@@ -124,29 +124,26 @@ public class TempMuteManager extends DataManager
         });
     }
     
-    public void checkUnmutes(Guild guild)
+    public void checkUnmutes(JDA jda, GuildSettingsDataManager data)
     {
-        if(!guild.isAvailable())
-            return;
-        if(!guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
-            return;
-        Role muted = guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
-        if(muted==null || !guild.getSelfMember().canInteract(muted))
-            return;
-        readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
+        readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
         {
             while(rs.next())
             {
-                Member m = guild.getMemberById(USER_ID.getValue(rs));
-                if(m!=null && m.getRoles().contains(muted))
-                    guild.getController().removeSingleRoleFromMember(m, muted).reason("Temporary Mute Completed").queue();
+                Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
+                if(g==null || !g.isAvailable() || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
+                    continue;
+                Role mRole = data.getSettings(g).getMutedRole(g);
+                if(mRole==null || !g.getSelfMember().canInteract(mRole))
+                {
+                    rs.deleteRow();
+                    continue;
+                }
+                Member m = g.getMemberById(USER_ID.getValue(rs));
+                if(m!=null && m.getRoles().contains(mRole))
+                    g.getController().removeSingleRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
                 rs.deleteRow();
             }
         });
-    }
-    
-    public void checkUnmutes(JDA jda)
-    {
-        jda.getGuilds().forEach(g -> checkUnmutes(g));
     }
 }

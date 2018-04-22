@@ -138,7 +138,7 @@ public class StrikeHandler
             if(muteDuration>0)
             {
                 vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
-                Role muted = moderator.getGuild().getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
+                Role muted = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getMutedRole(moderator.getGuild());
                 Member mem = moderator.getGuild().getMember(target);
                 if(muted==null || mem==null || !moderator.getGuild().getSelfMember().canInteract(muted))
                 {

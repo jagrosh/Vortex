@@ -25,6 +25,7 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 
 /**
@@ -83,7 +84,8 @@ public class CheckCmd extends ModCommand
     {
         int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), user.getIdLong());
         int minutesMuted = vortex.getDatabase().tempmutes.timeUntilUnmute(event.getGuild(), user.getIdLong());
-        boolean actuallyMuted = event.getGuild().isMember(user) && event.getGuild().getMember(user).getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("Muted"));
+        Role mRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
+        boolean actuallyMuted = mRole!=null && event.getGuild().isMember(user) && event.getGuild().getMember(user).getRoles().contains(mRole);
         int minutesBanned = vortex.getDatabase().tempbans.timeUntilUnban(event.getGuild(), user.getIdLong());
         String str = "Moderation Information for "+FormatUtil.formatFullUser(user)+":\n"
                 + Action.STRIKE.getEmoji() + " Strikes: **"+strikes+"**\n";

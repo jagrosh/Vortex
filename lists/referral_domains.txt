@@ -40,11 +40,13 @@ btcclicks.com
 bc.vc
 adfoc.us
 linkbucks.com
+pnd.tl
 
 // Referral Sites
 wn.nr
 
 // Scams
+fortnitevb.com
 fortnite-special.com
 fortnite-vbucks.net
 fortnite-vbucks.de
@@ -56,3 +58,4 @@ steamsummer.com
 steamreward.com
 steamspecial.com
 easter-event.com
+steam-wallet-rewards.com

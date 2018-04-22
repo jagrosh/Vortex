@@ -112,7 +112,25 @@ public class LogUtil
         return String.format(BASICLOG_FORMAT, timeF(time, zone), emoji, content);
     }
     
-    public static String logMessages(String title, List<Message> messages)
+    public static String logMessagesForwards(String title, List<Message> messages)
+    {
+        TextChannel deltc = messages.get(0).getTextChannel();
+        Guild delg = messages.get(0).getGuild();
+        StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
+        Message m;
+        for(int i=0; i<messages.size(); i++)
+        {
+            m = messages.get(i);
+            sb.append("\r\n\r\n[")
+                .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
+                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
+            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
+        }
+        return sb.toString().trim();
+    }
+    
+    public static String logMessagesBackwards(String title, List<Message> messages)
     {
         TextChannel deltc = messages.get(0).getTextChannel();
         Guild delg = messages.get(0).getGuild();
@@ -137,8 +155,8 @@ public class LogUtil
     
     private final static String AUDIT_BASIC_FORMAT = A_MOD + A_REASON;
     private final static String AUDIT_TIMED_FORMAT = A_MOD + A_TIME + A_REASON;
-    private final static Pattern AUDIT_BASIC_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}): (.*)$");
-    private final static Pattern AUDIT_TIMED_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}) \\((\\d{1,9})m\\): (.*)$");
+    private final static Pattern AUDIT_BASIC_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}): (.*)$", Pattern.DOTALL);
+    private final static Pattern AUDIT_TIMED_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}) \\((\\d{1,9})m\\): (.*)$", Pattern.DOTALL);
     
     // Auditlog methods
     public static String auditStrikeReasonFormat(Member moderator, int minutes, int oldstrikes, int newstrikes, String reason)

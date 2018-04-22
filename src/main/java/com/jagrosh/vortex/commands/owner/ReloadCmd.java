@@ -46,7 +46,8 @@ public class ReloadCmd extends Command
         switch(event.getArgs().toLowerCase())
         {
             case "ref":
-                event.replyWarning("Not yet implemented");
+                vortex.getAutoMod().loadReferralDomains();
+                event.replySuccess("Reloaded ref domains");
                 break;
             case "safe":
                 vortex.getAutoMod().loadSafeDomains();
@@ -57,7 +58,7 @@ public class ReloadCmd extends Command
                 event.replySuccess("Reloaded copypastas");
                 break;
             default:
-                throw new CommandErrorException("Invalid reload selection");
+                throw new CommandErrorException("Invalid reload selection: `ref` `safe` `copy`");
         }
     }
 }

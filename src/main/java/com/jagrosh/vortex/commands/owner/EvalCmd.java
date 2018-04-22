@@ -40,7 +40,8 @@ public class EvalCmd extends Command
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event) 
+    {
         ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
         se.put("bot", vortex);
         se.put("event", event);

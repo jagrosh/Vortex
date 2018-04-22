@@ -92,24 +92,18 @@ public class TempBanManager extends DataManager
         });
     }
     
-    public void checkUnbans(Guild guild)
+    public void checkUnbans(JDA jda)
     {
-        if(!guild.isAvailable())
-            return;
-        if(!guild.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
-            return;
-        readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
+        readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
         {
             while(rs.next())
             {
-                guild.getController().unban(Long.toString(USER_ID.getValue(rs))).reason("Temporary Ban Completed").queue(s->{}, f->{});
+                Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
+                if(g==null || !g.isAvailable() || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                    continue;
+                g.getController().unban(Long.toString(USER_ID.getValue(rs))).reason("Temporary Ban Completed").queue(s->{}, f->{});
                 rs.deleteRow();
             }
         });
-    }
-    
-    public void checkUnbans(JDA jda)
-    {
-        jda.getGuilds().forEach(g -> checkUnbans(g));
     }
 }

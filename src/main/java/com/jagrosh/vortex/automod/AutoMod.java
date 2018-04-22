@@ -15,10 +15,12 @@
  */
 package com.jagrosh.vortex.automod;
 
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.utils.FixedCache;
+import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -26,15 +28,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import org.slf4j.Logger;
@@ -46,23 +46,27 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoMod
 {
-    private final static Pattern INVITES = Pattern.compile("discord\\s?(?:\\.\\s?gg|app\\s?.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",Pattern.CASE_INSENSITIVE);
+    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|app\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
+            Pattern.CASE_INSENSITIVE);
     
-    private final static String[] REF_LINK_LIST = OtherUtil.readLines("referral_domains");
-    private final static Pattern REF = Pattern.compile("https?:\\/\\/(?:(?:[a-z0-9-_]+\\.)?(?:"
-            + (String.join("|", REF_LINK_LIST).replace(".", "\\."))
-            + ")[/?]|\\S+[?&]ref=|\\S+\\/ref\\/)\\S+", Pattern.CASE_INSENSITIVE);
     
-    private final static Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
-    private final static String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
-    private final static String REF_LINK    = REF.pattern();
+    private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref=)\\S+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:\\S+\\.)?(\\S+\\.\\S+?)[/?]\\S+", Pattern.CASE_INSENSITIVE);
     
-    private final static String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
-    private final static Logger LOG = LoggerFactory.getLogger("AutoMod");
-    public  final static String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
+    private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
+    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
+    
+    private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
+    private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
+    public  static final String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
+    
+    public  static final Character[] VALID_DEHOIST_CHAR = {'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/'};
+    public  static final String DEHOIST_PREFIX = "\uD82F\uDCA2";
+    public  static final String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", (Character c) -> Character.toString(c), VALID_DEHOIST_CHAR)+"`";
     
     private final Vortex vortex;
     
+    private String[] refLinkList;
     private final URLResolver urlResolver = new URLResolver();
     private final InviteResolver inviteResolver = new InviteResolver();
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
@@ -73,6 +77,7 @@ public class AutoMod
     {
         this.vortex = vortex;
         loadCopypastas();
+        loadReferralDomains();
     }
     
     public final void loadCopypastas()
@@ -83,6 +88,11 @@ public class AutoMod
     public final void loadSafeDomains()
     {
         this.urlResolver.loadSafeDomains();
+    }
+    
+    public final void loadReferralDomains()
+    {
+        this.refLinkList = OtherUtil.readLines("referral_domains");
     }
     
     public void enableRaidMode(Guild guild, Member moderator, OffsetDateTime now, String reason)
@@ -166,9 +176,10 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController().addSingleRoleToMember(event.getMember(), OtherUtil.getMutedRole(event.getGuild())).reason(RESTORE_MUTE_ROLE_AUDIT).queue();
+                    event.getGuild().getController().addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild())).reason(RESTORE_MUTE_ROLE_AUDIT).queue();
                 } catch(Exception ex){}
             }
+            dehoist(event.getMember());
         }
         
         latestGuildJoin.put(event.getGuild().getIdLong(), now);
@@ -202,10 +213,7 @@ public class AutoMod
             return false;
         
         // if a channel is specified, ignore users that can manage messages in that channel
-        if(channel!=null && member.hasPermission(channel, Permission.MESSAGE_MANAGE))
-            return false;
-        
-        if(vortex.getDatabase().ignores.isIgnored(channel))
+        if(channel!=null && (member.hasPermission(channel, Permission.MESSAGE_MANAGE) || vortex.getDatabase().ignores.isIgnored(channel)))
             return false;
         
         if(vortex.getDatabase().ignores.isIgnored(member))
@@ -216,20 +224,28 @@ public class AutoMod
     
     public void dehoist(Member member)
     {
+        if(!member.getGuild().getSelfMember().hasPermission(Permission.NICKNAME_MANAGE))
+            return;
+        
         if(!shouldPerformAutomod(member, null))
             return;
         
         AutomodSettings settings = vortex.getDatabase().automod.getSettings(member.getGuild());
-        if(settings==null)
+        if(settings==null || settings.dehoistChar==(char)0 || member.getEffectiveName().charAt(0)>settings.dehoistChar)
             return;
         
-        
+        String newname = AutoMod.DEHOIST_PREFIX+member.getEffectiveName();
+        if(newname.length()>32)
+            newname = newname.substring(0,32);
+        try
+        {
+            member.getGuild().getController().setNickname(member, newname).reason("Dehoisting").queue();
+        }
+        catch(Exception ex) {}
     }
     
     public void performAutomod(Message message) 
     {
-        //simple automod
-        
         //ignore users with Manage Messages, Kick Members, Ban Members, Manage Server, or anyone the bot can't interact with
         if(!shouldPerformAutomod(message.getMember(), message.getTextChannel()))
             return;
@@ -244,6 +260,7 @@ public class AutoMod
         boolean preventInvites = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}");
         
         boolean shouldDelete = false;
+        String shouldChannelMute = null;
         int strikeTotal = 0;
         StringBuilder reason = new StringBuilder();
         
@@ -263,7 +280,10 @@ public class AutoMod
                 int offenses = status.update(content, now);
                 
                 if(offenses==settings.dupeDeleteThresh)
+                {
+                    shouldChannelMute = "Please stop spamming.";
                     purgeMessages(message.getGuild(), m -> m.getAuthor().getIdLong()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
+                }
                 else if(offenses>settings.dupeDeleteThresh)
                     shouldDelete = true;
                 
@@ -322,6 +342,20 @@ public class AutoMod
                 reason.append(", Referral link");
                 shouldDelete = true;
             }
+            else
+            {
+                m = BASE_URL.matcher(message.getContentRaw().toLowerCase());
+                while(m.find())
+                {
+                    if(isReferralUrl(m.group(1)))
+                    {
+                        strikeTotal += settings.refStrikes;
+                        reason.append(", Referral link");
+                        shouldDelete = true;
+                        break;
+                    }
+                }
+            }
         }
         
         // prevent copypastas
@@ -332,6 +366,7 @@ public class AutoMod
             {
                 strikeTotal += settings.copypastaStrikes;
                 reason.append(", ").append(copypastaName).append(" copypasta");
+                shouldDelete = true;
             }
         }
         
@@ -343,20 +378,19 @@ public class AutoMod
             while(m.find())
                 invites.add(m.group(1));
             LOG.trace("Found "+invites.size()+" invites.");
-            try{
-                for(String inviteCode : invites)
+            for(String inviteCode : invites)
+            {
+                long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
+                if(gid != message.getGuild().getIdLong())
                 {
-                    long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
-                    if(gid != message.getGuild().getIdLong())
-                    {
-                        strikeTotal += settings.inviteStrikes;
-                        reason.append(", Advertising");
-                        shouldDelete = true;
-                        break;
-                    }
+                    strikeTotal += settings.inviteStrikes;
+                    reason.append(", Advertising");
+                    shouldDelete = true;
+                    break;
                 }
-            }catch(PermissionException ex){}
+            }
         }
+        
         
         // delete the message if applicable
         if(shouldDelete)
@@ -365,6 +399,41 @@ public class AutoMod
             {
                 message.delete().reason("Automod").queue(v->{}, f->{});
             }catch(PermissionException e){}
+        }
+        
+        // channel mute if applicable (prevent sending messages in that channel for a short time as a 'warning'
+        if(shouldChannelMute!=null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MANAGE_PERMISSIONS, Permission.MESSAGE_WRITE)) 
+        {
+            message.getChannel().sendMessage(message.getAuthor().getAsMention() + Constants.WARNING + " " + shouldChannelMute).queue(m -> 
+            {
+                m.delete().queueAfter(1500, TimeUnit.MILLISECONDS, s->{}, f->{});
+                try
+                {
+                    PermissionOverride po = message.getTextChannel().getPermissionOverride(message.getMember());
+                    if(po==null)
+                    {
+
+                        message.getTextChannel().createPermissionOverride(message.getMember()).setDeny(Permission.MESSAGE_READ).queue(p -> 
+                        {
+                            try
+                            {
+                                p.delete().queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
+                            } catch(Exception ex) {}
+                        }, f->{});
+                    }
+                    else
+                    {
+                        long existingDenied = po.getDeniedRaw();
+                        po.getManager().deny(Permission.MESSAGE_READ).queue(su -> 
+                        {
+                            try
+                            {
+                                po.getManager().deny(existingDenied).queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
+                            } catch(Exception ex) {}
+                        }, f->{});
+                    }
+                } catch(Exception ex) {}
+            }, f->{});
         }
         
         // assign strikes if necessary
@@ -399,8 +468,12 @@ public class AutoMod
                                 if(inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1")) != message.getGuild().getIdLong())
                                     containsInvite = true;
                             }
-                            if(settings.refStrikes>0 && resolved.matches(REF_LINK))
-                                containsRef = true;
+                            if(settings.refStrikes>0)
+                            {
+                                if(resolved.matches(REF.pattern()) || isReferralUrl(resolved.replaceAll(BASE_URL.pattern(), "$1")))
+                                    containsRef = true;
+                            }
+                                
                         }
                         if((containsInvite || settings.inviteStrikes<1) && (containsRef || settings.refStrikes<1))
                             break;
@@ -433,9 +506,12 @@ public class AutoMod
         });
     }
     
-    private static OffsetDateTime latestTime(Message m)
+    private boolean isReferralUrl(String url)
     {
-        return m.isEdited() ? m.getEditedTime() : m.getCreationTime();
+        for(String reflink: refLinkList)
+            if(reflink.equals(url))
+                return true;
+        return false;
     }
     
     private static String condensedContent(Message m)
@@ -443,6 +519,11 @@ public class AutoMod
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(at -> sb.append("\n").append(at.getFileName()));
         return sb.toString().trim().replaceAll(CONDENSER, "$1");
+    }
+    
+    private static OffsetDateTime latestTime(Message m)
+    {
+        return m.isEdited() ? m.getEditedTime() : m.getCreationTime();
     }
     
     private class DupeStatus

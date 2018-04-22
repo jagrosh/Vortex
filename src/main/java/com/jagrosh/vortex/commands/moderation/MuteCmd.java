@@ -48,10 +48,10 @@ public class MuteCmd extends ModCommand
     @Override
     protected void execute(CommandEvent event)
     {
-        Role muteRole = event.getGuild().getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("muted")).findFirst().orElse(null);
+        Role muteRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
         if(muteRole == null)
         {
-            event.replyError("No role called 'Muted' exists!");
+            event.replyError("No Muted role exists!");
             return;
         }
         if(!event.getMember().canInteract(muteRole))

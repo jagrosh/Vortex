@@ -55,6 +55,8 @@ public class AutomodManager extends DataManager
     public final static SQLColumn<Integer> DUPE_STRIKES = new IntegerColumn("DUPE_STRIKES", false, 0);
     public final static SQLColumn<Integer> DUPE_DELETE_THRESH = new IntegerColumn("DUPE_DELETE_THRESH", false, 0);
     public final static SQLColumn<Integer> DUPE_STRIKE_THRESH = new IntegerColumn("DUPE_STRIKES_THRESH", false, 0);
+    
+    public final static SQLColumn<Integer> DEHOIST_CHAR = new IntegerColumn("DEHOIST_CHAR", false, 0);
             
     // Cache
     private final FixedCache<Long, AutomodSettings> cache = new FixedCache<>(1000);
@@ -97,9 +99,13 @@ public class AutomodManager extends DataManager
                     ? "Disabled\n\n"
                     : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
                       "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
-                + "__Auto Anti-Raid Mode__\n" + (settings.useAutoRaidMode() 
-                    ? "`" + settings.raidmodeNumber + "` joins / `" + settings.raidmodeTime + "` seconds\n" 
-                    : "Disabled\n")
+                + "__Miscellaneous__\n"
+                    + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
+                        ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 
+                        : "Disabled\n")
+                    + "Auto Dehoist: " + (settings.dehoistChar==(char)0 
+                        ? "Disabled" 
+                        : "`"+settings.dehoistChar+"` and above")
                 /*+ "\u200B"*/, true);
     }
     
@@ -309,6 +315,26 @@ public class AutomodManager extends DataManager
         });
     }
     
+    public void setDehoistChar(Guild guild, char dehoistChar)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+            {
+                DEHOIST_CHAR.updateValue(rs, (int)dehoistChar);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                DEHOIST_CHAR.updateValue(rs, (int)dehoistChar);
+                rs.insertRow();
+            }
+        });
+    }
+    
     private void invalidateCache(Guild guild)
     {
         invalidateCache(guild.getIdLong());
@@ -327,6 +353,7 @@ public class AutomodManager extends DataManager
         public final int raidmodeNumber, raidmodeTime;
         public final int inviteStrikes, refStrikes, copypastaStrikes;
         public final int dupeStrikes, dupeDeleteThresh, dupeStrikeThresh;
+        public final char dehoistChar;
         
         private AutomodSettings()
         {
@@ -342,6 +369,7 @@ public class AutomodManager extends DataManager
             this.dupeStrikes = 0;
             this.dupeDeleteThresh = 0;
             this.dupeStrikeThresh = 0;
+            this.dehoistChar = 0;
         }
         
         private AutomodSettings(ResultSet rs) throws SQLException
@@ -358,6 +386,7 @@ public class AutomodManager extends DataManager
             this.dupeStrikes = DUPE_STRIKES.getValue(rs);
             this.dupeDeleteThresh = DUPE_DELETE_THRESH.getValue(rs);
             this.dupeStrikeThresh = DUPE_STRIKE_THRESH.getValue(rs);
+            this.dehoistChar = (char)((int)DEHOIST_CHAR.getValue(rs));
         }
         
         public boolean useAutoRaidMode()

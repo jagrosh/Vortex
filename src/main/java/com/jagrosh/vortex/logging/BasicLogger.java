@@ -20,7 +20,6 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -28,8 +27,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.PermissionOverride;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
@@ -38,6 +39,9 @@ import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.core.events.user.UserAvatarUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
 /**
@@ -88,6 +92,9 @@ public class BasicLogger
     {
         if(oldMessage==null)
             return;
+        PermissionOverride po = oldMessage.getTextChannel().getPermissionOverride(oldMessage.getGuild().getSelfMember());
+        if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
+            return;
         TextChannel tc = vortex.getDatabase().settings.getSettings(newMessage.getGuild()).getMessageLogChannel(newMessage.getGuild());
         if(tc==null)
             return;
@@ -109,6 +116,9 @@ public class BasicLogger
     public void logMessageDelete(Message oldMessage)
     {
         if(oldMessage==null)
+            return;
+        PermissionOverride po = oldMessage.getTextChannel().getPermissionOverride(oldMessage.getGuild().getSelfMember());
+        if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
         TextChannel tc = vortex.getDatabase().settings.getSettings(oldMessage.getGuild()).getMessageLogChannel(oldMessage.getGuild());
         if(tc==null)
@@ -135,6 +145,9 @@ public class BasicLogger
             //log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
             return;
         }
+        PermissionOverride po = messages.get(0).getTextChannel().getPermissionOverride(messages.get(0).getGuild().getSelfMember());
+        if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
+            return;
         if(messages.size()==1)
         {
             String formatted = FormatUtil.formatMessage(messages.get(0));
@@ -147,7 +160,7 @@ public class BasicLogger
                     FormatUtil.formatFullUser(messages.get(0).getAuthor())+"'s message has been deleted from "+messages.get(0).getTextChannel().getAsMention()+":", delete.build());
             return;
         }
-        vortex.getTextUploader().upload(LogUtil.logMessages("Deleted Messages", messages), "DeletedMessages", (view, download) ->
+        vortex.getTextUploader().upload(LogUtil.logMessagesForwards("Deleted Messages", messages), "DeletedMessages", (view, download) ->
         {
             log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged):", 
                 new EmbedBuilder().setColor(Color.RED.darker().darker())
@@ -171,7 +184,7 @@ public class BasicLogger
     
     // Server Logs
     
-    public void logNameChange(UserNameUpdateEvent event)
+    public void logNameChange(UserUpdateNameEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
         event.getUser().getMutualGuilds().stream()
@@ -180,7 +193,20 @@ public class BasicLogger
             .forEachOrdered(tc ->
             {
                 log(now, tc, "\uD83D\uDCDB",
-                "**"+event.getOldName()+"**#"+event.getOldDiscriminator()+" (ID:"+event.getUser().getId()+") has changed names to "+FormatUtil.formatUser(event.getUser()), null);
+                "**"+event.getOldName()+"**#"+event.getUser().getDiscriminator()+" (ID:"+event.getUser().getId()+") has changed names to "+FormatUtil.formatUser(event.getUser()), null);
+            });
+    }
+    
+    public void logNameChange(UserUpdateDiscriminatorEvent event)
+    {
+        OffsetDateTime now = OffsetDateTime.now();
+        event.getUser().getMutualGuilds().stream()
+            .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
+            .filter(tc -> tc!=null)
+            .forEachOrdered(tc ->
+            {
+                log(now, tc, "\uD83D\uDCDB",
+                "**"+event.getUser().getName()+"**#"+event.getOldDiscriminator()+" (ID:"+event.getUser().getId()+") has changed names to "+FormatUtil.formatUser(event.getUser()), null);
             });
     }
     
@@ -210,7 +236,7 @@ public class BasicLogger
         {
             rlist= new StringBuilder("\nRoles: `"+event.getMember().getRoles().get(0).getName());
             for(int i=1; i<event.getMember().getRoles().size(); i++)
-                rlist.append("`, `").append(event.getMember().getRoles().get(i));
+                rlist.append("`, `").append(event.getMember().getRoles().get(i).getName());
             rlist.append("`");
         }
         log(now, tc, "\uD83D\uDCE4", FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server. "
@@ -251,7 +277,7 @@ public class BasicLogger
     
     // Avatar Logs
     
-    public void logAvatarChange(UserAvatarUpdateEvent event)
+    public void logAvatarChange(UserUpdateAvatarEvent event)
     {
         List<TextChannel> logs = event.getUser().getMutualGuilds().stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getAvatarLogChannel(guild))
@@ -262,7 +288,7 @@ public class BasicLogger
         OffsetDateTime now = OffsetDateTime.now();
         vortex.getThreadpool().execute(() -> 
         {
-            byte[] im = AvatarUtil.makeAvatarImage(event.getUser(), event.getPreviousAvatarUrl(), event.getPreviousAvatarId());
+            byte[] im = AvatarUtil.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
             if(im!=null)
                 logs.forEach(tc -> logFile(now, tc, "\uD83D\uDDBC", FormatUtil.formatFullUser(event.getUser())+" has changed avatars"
                         +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " <:gif:314068430624129039>" : "")

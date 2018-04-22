@@ -1,7 +1,7 @@
 // Safe Domain List
 // This list contains URLs that are considered non-redirecting URLs
 
-// Discord links
+// Discord Links
 discord.gg
 dis.gd
 discordapp.net
@@ -37,6 +37,7 @@ instagram.com
 9gag.com
 twimg.com
 tenor.co
+tenor.com
         
 // Development
 github.com
@@ -44,6 +45,8 @@ githubusercontent.com
 hastebin.com
 pastebin.com
 trello.com
+npmjs.com
+stackoverflow.com
         
 // Social Media
 twitter.com
@@ -78,3 +81,13 @@ speedtest.net
 myanimelist.net
 xkcd.com
 knowyourmeme.com
+qrserver.com
+timeanddate.com
+mit.edu
+
+// Whitelist/Common links
+ygg.fun
+jagrosh.com
+mhgh.info
+giveawaybot.party
+discord.pw

@@ -66,7 +66,7 @@ public class VoicemoveCmd extends ModCommand
             }
             if(list.size()>1)
             {
-                event.reply(FormatUtil.listOfVoice(list, event.getArgs()));
+                event.replyWarning(FormatUtil.listOfVoice(list, event.getArgs()));
                 return;
             }
             vc = list.get(0);

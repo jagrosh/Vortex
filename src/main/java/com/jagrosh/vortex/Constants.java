@@ -52,5 +52,6 @@ public class Constants
         public final static String LOG_TIMEZONE = WIKI_BASE + "/Log-Timezone";
         public final static String RAID_MODE    = WIKI_BASE + "/Raid-Mode";
         public final static String COMMANDS     = WIKI_BASE + "/Commands";
+        public final static String AUTOMOD      = WIKI_BASE + "/Auto-Moderation";
     }
 }

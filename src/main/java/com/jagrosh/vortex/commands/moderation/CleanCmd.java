@@ -222,7 +222,7 @@ public class CleanCmd extends ModCommand
             }
             else
                 params = "all";
-            vortex.getTextUploader().upload(LogUtil.logMessages("Cleaned Messages", del), "CleanedMessages", (view, download) -> 
+            vortex.getTextUploader().upload(LogUtil.logMessagesBackwards("Cleaned Messages", del), "CleanedMessages", (view, download) -> 
             {
                 vortex.getModLogger().postCleanCase(event.getMember(), event.getMessage().getCreationTime(), del.size(),
                         event.getTextChannel(), params, null, new EmbedBuilder().setColor(event.getSelfMember().getColor())

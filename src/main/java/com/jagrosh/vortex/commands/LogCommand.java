@@ -64,7 +64,7 @@ public abstract class LogCommand extends Command
         }
         if(list.size()>1)
         {
-            event.reply(FormatUtil.listOfText(list, event.getArgs()));
+            event.replyWarning(FormatUtil.listOfText(list, event.getArgs()));
             return;
         }
         

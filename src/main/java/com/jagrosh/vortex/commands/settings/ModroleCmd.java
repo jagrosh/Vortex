@@ -41,7 +41,7 @@ public class ModroleCmd extends Command
         this.arguments = "<role>";
         this.category = new Category("Settings");
         this.guildOnly = true;
-        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER, Permission.BAN_MEMBERS};
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ModroleCmd extends Command
             return;
         }
         
-        else if(event.getArgs().equalsIgnoreCase("none"))
+        else if(event.getArgs().equalsIgnoreCase("none") || event.getArgs().equalsIgnoreCase("off"))
         {
             vortex.getDatabase().settings.setModeratorRole(event.getGuild(), null);
             event.replySuccess("Moderation commands can now only be used by members that can perform the actions manually.");
@@ -69,6 +69,6 @@ public class ModroleCmd extends Command
             event.replySuccess("Users with the `"+roles.get(0).getName()+"` role can now use all Moderation commands.");
         }
         else
-            event.reply(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
     }
 }

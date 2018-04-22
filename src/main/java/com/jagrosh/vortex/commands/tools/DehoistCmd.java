@@ -17,6 +17,7 @@ package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,10 +30,6 @@ import net.dv8tion.jda.core.entities.Member;
  */
 public class DehoistCmd extends Command
 {
-    private final char[] valid = {'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/'};
-    private final String validJoined;
-    private final String dehoistChar = "\uD82F\uDCA2";
-    
     public DehoistCmd()
     {
         this.name = "dehoist";
@@ -43,12 +40,6 @@ public class DehoistCmd extends Command
         this.userPermissions = new Permission[]{Permission.NICKNAME_MANAGE};
         this.guildOnly = true;
         this.cooldown = 10;
-        StringBuilder sb = new StringBuilder().append("`").append(valid[0]);
-        for(int i=1; i<valid.length; i++)
-        {
-            sb.append("`, `").append(valid[i]);
-        }
-        validJoined = sb.append("`").toString();
     }
     
     @Override
@@ -56,24 +47,23 @@ public class DehoistCmd extends Command
     {
         char symbol;
         if(event.getArgs().isEmpty())
-            symbol = valid[0];
+            symbol = AutoMod.VALID_DEHOIST_CHAR[0];
         else if(event.getArgs().length()==1)
             symbol = event.getArgs().charAt(0);
         else
-            throw new CommandErrorException("Provided symbol must be one character of the following: "+validJoined);
+            throw new CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
         boolean allowed = false;
-        for(char c: valid)
+        for(char c: AutoMod.VALID_DEHOIST_CHAR)
             if(c==symbol)
                 allowed = true;
         if(!allowed)
-            throw new CommandErrorException("Provided symbol must be one character of the following: "+validJoined);
+            throw new CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
         List<Member> toDehoist = event.getGuild().getMembers().stream()
                 .filter(m -> event.getSelfMember().canInteract(m) && m.getEffectiveName().charAt(0)<=symbol)
                 .collect(Collectors.toList());
-        event.getChannel().sendTyping().queue();
         toDehoist.forEach(m -> 
         {
-            String newname = dehoistChar+m.getEffectiveName();
+            String newname = AutoMod.DEHOIST_PREFIX+m.getEffectiveName();
             if(newname.length()>32)
                 newname = newname.substring(0,32);
             event.getGuild().getController().setNickname(m, newname).queue();

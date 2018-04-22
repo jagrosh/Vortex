@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.core.Region;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +34,6 @@ import org.slf4j.LoggerFactory;
 public class OtherUtil
 {
     private final static Logger LOG = LoggerFactory.getLogger(OtherUtil.class);
-    
-    public static Role getMutedRole(Guild guild)
-    {
-        return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
-    }
     
     public static void safeDM(User user, String message, boolean shouldDM, Runnable then)
     {

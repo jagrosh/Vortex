@@ -18,6 +18,7 @@ package com.jagrosh.vortex.logging;
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.AutoMod;
+import com.jagrosh.vortex.database.managers.GuildSettingsDataManager.GuildSettings;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -36,12 +37,7 @@ import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.audit.AuditLogChange;
 import net.dv8tion.jda.core.audit.AuditLogEntry;
 import net.dv8tion.jda.core.audit.AuditLogKey;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
 /**
@@ -196,9 +192,11 @@ public class ModLogger
     {
         if(guild==null)
             return;
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(guild).getModLogChannel(guild);
+        GuildSettings gs = vortex.getDatabase().settings.getSettings(guild);
+        TextChannel modlog = gs.getModLogChannel(guild);
         if(modlog==null || !modlog.canTalk() || !modlog.getGuild().getSelfMember().hasPermission(Permission.VIEW_AUDIT_LOGS))
             return;
+        Role mRole = gs.getMutedRole(guild);
         try
         {
             List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).complete();
@@ -211,10 +209,12 @@ public class ModLogger
                     case KICK: act = Action.KICK; break;
                     case UNBAN: act = Action.UNBAN; break;
                     case MEMBER_ROLE_UPDATE:
+                        if(mRole==null)
+                            break;
                         AuditLogChange added = ale.getChangeByKey(AuditLogKey.MEMBER_ROLES_ADD);
                         if(added!=null)
                         {
-                            if (((ArrayList<HashMap<String,String>>)added.getNewValue()).stream().anyMatch(hm -> hm.get("name").equals("Muted")))
+                            if (((ArrayList<HashMap<String,String>>)added.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(mRole.getId())))
                             {
                                 act = Action.MUTE;
                                 break;
@@ -223,7 +223,7 @@ public class ModLogger
                         AuditLogChange removed = ale.getChangeByKey(AuditLogKey.MEMBER_ROLES_REMOVE);
                         if(removed!=null)
                         {
-                            if (((ArrayList<HashMap<String,String>>)removed.getNewValue()).stream().anyMatch(hm -> hm.get("name").equals("Muted")))
+                            if (((ArrayList<HashMap<String,String>>)removed.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(mRole.getId())))
                             {
                                 act = Action.UNMUTE;
                                 break;

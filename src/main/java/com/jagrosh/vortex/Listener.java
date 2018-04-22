@@ -20,14 +20,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.JDA.ShardInfo;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.guild.GuildBanEvent;
 import net.dv8tion.jda.core.events.guild.GuildUnbanEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.core.events.guild.member.*;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
@@ -37,6 +35,9 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserAvatarUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.core.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,7 +144,8 @@ public class Listener implements EventListener
             GuildMemberRoleAddEvent gmrae = (GuildMemberRoleAddEvent) event;
             
             // Signal the modlogger if someone was muted
-            if(gmrae.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("muted")))
+            Role mRole = vortex.getDatabase().settings.getSettings(gmrae.getGuild()).getMutedRole(gmrae.getGuild());
+            if(gmrae.getRoles().contains(mRole))
                 vortex.getModLogger().setNeedUpdate(gmrae.getGuild());
         }
         else if (event instanceof GuildMemberRoleRemoveEvent)
@@ -151,20 +153,31 @@ public class Listener implements EventListener
             GuildMemberRoleRemoveEvent gmrre = (GuildMemberRoleRemoveEvent) event;
             
             // Signal the modlogger if someone was unmuted
-            if(gmrre.getRoles().stream().anyMatch(r -> r.getName().equalsIgnoreCase("muted")))
+            Role mRole = vortex.getDatabase().settings.getSettings(gmrre.getGuild()).getMutedRole(gmrre.getGuild());
+            if(gmrre.getRoles().contains(mRole))
             {
                 vortex.getDatabase().tempmutes.removeMute(gmrre.getGuild(), gmrre.getUser().getIdLong());
                 vortex.getModLogger().setNeedUpdate(gmrre.getGuild());
             }
         }
-        else if (event instanceof UserNameUpdateEvent)
+        else if (event instanceof UserUpdateNameEvent)
         {
+            UserUpdateNameEvent unue = (UserUpdateNameEvent)event;
             // Log the name change
-            vortex.getBasicLogger().logNameChange((UserNameUpdateEvent)event);
+            vortex.getBasicLogger().logNameChange(unue);
+            unue.getUser().getMutualGuilds().stream().map(g -> g.getMember(unue.getUser())).forEach(m -> vortex.getAutoMod().dehoist(m));
         }
-        else if (event instanceof UserAvatarUpdateEvent)
+        else if (event instanceof UserUpdateDiscriminatorEvent)
         {
-            UserAvatarUpdateEvent uaue = (UserAvatarUpdateEvent)event;
+            vortex.getBasicLogger().logNameChange((UserUpdateDiscriminatorEvent)event);
+        }
+        else if (event instanceof GuildMemberNickChangeEvent)
+        {
+            vortex.getAutoMod().dehoist(((GuildMemberNickChangeEvent) event).getMember());
+        }
+        else if (event instanceof UserUpdateAvatarEvent)
+        {
+            UserUpdateAvatarEvent uaue = (UserUpdateAvatarEvent)event;
             
             // Log the avatar change
             if(!uaue.getUser().isBot())
@@ -203,7 +216,7 @@ public class Listener implements EventListener
             vortex.getLogWebhook().send("\uD83C\uDF00 Shard `"+shardinfo+"` has connected. Guilds: `"
                     +event.getJDA().getGuildCache().size()+"` Users: `"+event.getJDA().getUserCache().size()+"`");
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempbans.checkUnbans(event.getJDA()), 0, 2, TimeUnit.MINUTES);
-            vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempmutes.checkUnmutes(event.getJDA()), 0, 45, TimeUnit.SECONDS);
+            vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempmutes.checkUnmutes(event.getJDA(), vortex.getDatabase().settings), 0, 45, TimeUnit.SECONDS);
         }
     }
 }

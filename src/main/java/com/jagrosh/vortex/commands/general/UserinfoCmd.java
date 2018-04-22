@@ -68,7 +68,7 @@ public class UserinfoCmd extends Command
             }
             else if(found.size()>1)
             {
-                event.reply(FormatUtil.listOfMember(found, event.getArgs()));
+                event.replyWarning(FormatUtil.listOfMember(found, event.getArgs()));
                 return;
             }
             else

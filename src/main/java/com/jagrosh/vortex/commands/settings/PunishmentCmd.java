@@ -33,7 +33,7 @@ import net.dv8tion.jda.core.Permission;
  */
 public class PunishmentCmd extends Command
 {
-    private final static String SETTING_STRIKES = "\n\nUsage: `"+Constants.PREFIX+"setstrikes <number> <action> [time]`\n"
+    private final static String SETTING_STRIKES = "\n\nUsage: `"+Constants.PREFIX+"punishment <number> <action> [time]`\n"
             + "`<number>` - the number of strikes at which to perform the action\n"
             + "`<action>` - the action, such as `None`, `Kick`, `Mute`, `Softban`, or `Ban`\n"
             + "`[time]` - optional, the amount of time to keep the user muted or banned\n"
@@ -98,6 +98,8 @@ public class PunishmentCmd extends Command
                 }
                 vortex.getDatabase().actions.setAction(event.getGuild(), numstrikes, Action.MUTE, minutes);
                 successMessage = "Users will now be `muted` "+(minutes>0 ? "for "+FormatUtil.secondsToTime(minutes*60)+" " : "")+"upon reaching `"+numstrikes+"` strikes.";
+                if(vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild())==null)
+                    successMessage += event.getClient().getWarning()+" No muted role currently exists!";
                 break;
             }
             case "kick":

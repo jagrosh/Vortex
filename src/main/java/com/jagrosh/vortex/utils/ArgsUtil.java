@@ -92,7 +92,13 @@ public class ArgsUtil
             mat = ID.matcher(args);
             if(mat.find())
             {
-                i = Long.parseLong(mat.group(1));
+                try
+                {
+                    i = Long.parseLong(mat.group(1));
+                }catch(NumberFormatException ex)
+                {
+                    i = 0;
+                }
                 u = guild.getJDA().getUserById(i);
                 if(u==null)
                     ids.add(i);
