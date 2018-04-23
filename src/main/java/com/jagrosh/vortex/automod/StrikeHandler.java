@@ -27,6 +27,7 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
@@ -83,7 +84,8 @@ public class StrikeHandler
         else
         {
             String notimeaudit = LogUtil.auditStrikeReasonFormat(moderator, 0, counts[0], counts[1], reason);
-            if(punishments.stream().anyMatch(p -> p.action==Action.BAN))
+            boolean canBan = moderator.getGuild().getSelfMember().hasPermission(Permission.BAN_MEMBERS);
+            if(punishments.stream().anyMatch(p -> p.action==Action.BAN) && canBan)
             {
                 OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), shouldDM, 
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue());
@@ -101,7 +103,7 @@ public class StrikeHandler
                 else if(p.action==Action.TEMPBAN && p.time>banDuration)
                     banDuration = p.time;
             }
-            if(banDuration>0)
+            if(banDuration>0 && canBan)
             {
                 int finalBanDuration = banDuration;
                 OtherUtil.safeDM(target, dmmsg + punishTime(Action.TEMPBAN, moderator.getGuild(), banDuration), shouldDM, 
@@ -111,7 +113,7 @@ public class StrikeHandler
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 return;
             }
-            if(punishments.stream().anyMatch(p -> p.action==Action.SOFTBAN))
+            if(punishments.stream().anyMatch(p -> p.action==Action.SOFTBAN) && canBan)
             {
                 OtherUtil.safeDM(target, dmmsg + punish(Action.SOFTBAN, moderator.getGuild()), shouldDM, 
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue(
@@ -120,7 +122,8 @@ public class StrikeHandler
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 return;
             }
-            if(punishments.stream().anyMatch(p -> p.action==Action.KICK))
+            boolean canKick = moderator.getGuild().getSelfMember().hasPermission(Permission.KICK_MEMBERS);
+            if(punishments.stream().anyMatch(p -> p.action==Action.KICK) && canKick)
             {
                 if(moderator.getGuild().isMember(target))
                 {
@@ -135,7 +138,8 @@ public class StrikeHandler
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 return;
             }
-            if(muteDuration>0)
+            boolean canMute = moderator.getGuild().getSelfMember().hasPermission(Permission.MANAGE_ROLES);
+            if(muteDuration>0 && canMute)
             {
                 vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 Role muted = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getMutedRole(moderator.getGuild());

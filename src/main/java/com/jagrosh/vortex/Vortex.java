@@ -171,7 +171,7 @@ public class Vortex
                             if(event.isFromType(ChannelType.TEXT))
                                 try
                                 {
-                                    event.getMessage().addReaction(Constants.HELP_REACTION).queue();
+                                    event.getMessage().addReaction(Constants.HELP_REACTION).queue(s->{}, f->{});
                                 } catch(PermissionException ex) {}
                         }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
                         //.setDiscordBotsKey(tokens.get(1))
