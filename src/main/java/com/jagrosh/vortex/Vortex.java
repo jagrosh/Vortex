@@ -81,6 +81,7 @@ public class Vortex
          * 6  - database password
          * 7  - log webhook url
          * 8  - category id
+         * 9  - number of shards
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         waiter = new EventWaiter();
@@ -96,7 +97,7 @@ public class Vortex
         
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.watching("Type "+Constants.PREFIX+"help | Vortex 2.0 Beta"))
+                        .setGame(Game.watching("Type "+Constants.PREFIX+"help"))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -162,7 +163,8 @@ public class Vortex
                             // Owner
                             new EvalCmd(this),
                             new DebugCmd(this),
-                            new ReloadCmd(this)
+                            new ReloadCmd(this),
+                            new TransferCmd(this)
                         )
                         .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m -> 
                         {
@@ -177,7 +179,7 @@ public class Vortex
                         //.setDiscordBotListKey(tokens.get(3))
                         .build();
         shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(2)
+                .setShardsTotal(Integer.parseInt(tokens.get(9)))
                 .setToken(tokens.get(0))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)

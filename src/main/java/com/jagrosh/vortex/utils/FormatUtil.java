@@ -73,6 +73,16 @@ public class FormatUtil {
         return Character.toUpperCase(input.charAt(0))+input.substring(1).toLowerCase();
     }
     
+    public static String join(String delimiter, char... items)
+    {
+        if(items==null || items.length==0)
+            return "";
+        StringBuilder sb = new StringBuilder().append(items[0]);
+        for(int i=1; i<items.length; i++)
+            sb.append(delimiter).append(items[i]);
+        return sb.toString();
+    }
+    
     public static <T> String join(String delimiter, Function<T,String> function, T... items)
     {
         if(items==null || items.length==0)

@@ -60,9 +60,9 @@ public class AutoMod
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
     public  static final String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
     
-    public  static final Character[] VALID_DEHOIST_CHAR = {'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/'};
+    public  static final char[] VALID_DEHOIST_CHAR = {'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/'};
     public  static final String DEHOIST_PREFIX = "\uD82F\uDCA2";
-    public  static final String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", (Character c) -> Character.toString(c), VALID_DEHOIST_CHAR)+"`";
+    public  static final String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", VALID_DEHOIST_CHAR)+"`";
     
     private final Vortex vortex;
     

@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.moderation;
 import java.util.LinkedList;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Member;
@@ -40,13 +41,15 @@ public class VoicekickCmd extends ModCommand
         this.aliases = new String[]{"vckick"};
         this.arguments = "<@users> [reason]";
         this.help = "removes users from voice channels";
-        this.botPermissions = new Permission[]{Permission.VOICE_MOVE_OTHERS, Permission.MANAGE_CHANNEL, Permission.VOICE_CONNECT};
+        this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
         this.guildOnly = true;
     }
 
     @Override
     protected void execute(CommandEvent event)
     {
+        if(!event.getSelfMember().hasPermission(Permission.VOICE_MOVE_OTHERS, Permission.VOICE_CONNECT))
+            throw new CommandErrorException("I need permission to connect to voice channels and move members to do that!");
         ArgsUtil.ResolvedArgs args = ArgsUtil.resolve(event.getArgs(), event.getGuild());
         if(args.isEmpty())
         {

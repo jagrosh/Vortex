@@ -42,6 +42,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
 {
     public final static int PREFIX_MAX_LENGTH = 40;
     private static final String SETTINGS_TITLE = "\uD83D\uDCCA Server Settings";
+    private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("GMT+4");
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
     public final static SQLColumn<Long> MOD_ROLE_ID = new LongColumn("MOD_ROLE_ID",false,0L);
@@ -96,6 +97,11 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nAvatar Log: "+(avylog==null ? "None" : avylog.getAsMention())
                 + "\nServer Log: "+(serverlog==null ? "None" : serverlog.getAsMention())
                 + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
+    }
+    
+    public boolean hasSettings(Guild guild)
+    {
+        return read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> {return rs.next();});
     }
     
     // Setters
@@ -349,7 +355,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.avatarlog = AVATARLOG_ID.getValue(rs);
             this.prefix = PREFIX.getValue(rs);
             String str = TIMEZONE.getValue(rs);
-            this.timezone = str==null ? ZoneId.systemDefault() : ZoneId.of(str);
+            this.timezone = str==null ? DEFAULT_TIMEZONE : ZoneId.of(str);
             this.raidMode = RAIDMODE.getValue(rs);
         }
         

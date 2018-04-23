@@ -18,6 +18,8 @@ package com.jagrosh.vortex.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.CommandListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,6 +27,8 @@ import com.jagrosh.jdautilities.command.CommandListener;
  */
 public class CommandExceptionListener implements CommandListener
 {
+    private final Logger log = LoggerFactory.getLogger("Command");
+    
     @Override
     public void onCommandException(CommandEvent event, Command command, Throwable throwable)
     {
@@ -33,7 +37,7 @@ public class CommandExceptionListener implements CommandListener
         else if (throwable instanceof CommandWarningException)
             event.replyWarning(throwable.getMessage());
         else
-            throwable.printStackTrace();
+            log.error("An exception occurred in a command: "+command, throwable);
     }
     
     public static class CommandErrorException extends RuntimeException

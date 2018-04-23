@@ -109,6 +109,11 @@ public class AutomodManager extends DataManager
                 /*+ "\u200B"*/, true);
     }
     
+    public boolean hasSettings(Guild guild)
+    {
+        return read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> {return rs.next();});
+    }
+    
     // Setters
     public void disableMaxMentions(Guild guild)
     {

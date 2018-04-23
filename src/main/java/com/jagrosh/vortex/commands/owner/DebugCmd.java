@@ -36,7 +36,7 @@ public class DebugCmd extends Command
     {
         this.vortex = vortex;
         this.name = "debug";
-        this.help = "shows some debug stats ";
+        this.help = "shows some debug stats";
         this.ownerCommand = true;
         this.guildOnly = false;
         this.hidden = true;
