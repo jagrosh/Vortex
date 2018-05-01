@@ -42,15 +42,16 @@ public class EvalCmd extends Command
     @Override
     protected void execute(CommandEvent event) 
     {
-        ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
-        se.put("bot", vortex);
-        se.put("event", event);
-        se.put("jda", event.getJDA());
-        se.put("guild", event.getGuild());
-        se.put("channel", event.getChannel());
-        String args = event.getArgs().replaceAll("([^(]+?)\\s*->", "function($1)");
+        event.getChannel().sendTyping().queue();
         event.async(() ->
         {
+            ScriptEngine se = new ScriptEngineManager().getEngineByName("Nashorn");
+            se.put("bot", vortex);
+            se.put("event", event);
+            se.put("jda", event.getJDA());
+            se.put("guild", event.getGuild());
+            se.put("channel", event.getChannel());
+            String args = event.getArgs().replaceAll("([^(]+?)\\s*->", "function($1)");
             try
             {
                 event.replySuccess("Evaluated Successfully:\n```\n"+se.eval(args)+" ```");

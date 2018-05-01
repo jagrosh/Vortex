@@ -261,15 +261,15 @@ public class FormatUtil {
         
         if(commandsInCategory.isEmpty())
         {
-            builder.addField(CMD_EMOJI+" General Commands", "[`"+Constants.PREFIX+"help general`]("+Constants.Wiki.COMMANDS+"#-general-commands)\n\u200B", false);
+            builder.addField(CMD_EMOJI+" General Commands", "[**"+Constants.PREFIX+"help general**]("+Constants.Wiki.COMMANDS+"#-general-commands)\n\u200B", false);
             event.getClient().getCommands().stream().filter(cmd -> cmd.getCategory()!=null).map(cmd -> cmd.getCategory().getName()).distinct()
-                    .forEach(cat -> builder.addField(CMD_EMOJI+" "+cat+" Commands", "[`"+Constants.PREFIX+"help "+cat.toLowerCase()+"`]("
+                    .forEach(cat -> builder.addField(CMD_EMOJI+" "+cat+" Commands", "[**"+Constants.PREFIX+"help "+cat.toLowerCase()+"**]("
                             +Constants.Wiki.COMMANDS+"#-"+cat.toLowerCase()+"-commands)\n\u200B", false));
         }
         else
         {
             commandsInCategory.forEach(cmd -> builder.addField(Constants.PREFIX+cmd.getName()+(cmd.getArguments()==null ? "" : " "+cmd.getArguments()), 
-                    "["+cmd.getHelp()+"]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
+                    "[**"+cmd.getHelp()+"**]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
         }
         
         builder.addField("Additional Help", "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"

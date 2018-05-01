@@ -174,7 +174,7 @@ public class Vortex
                                     event.getMessage().addReaction(Constants.HELP_REACTION).queue(s->{}, f->{});
                                 } catch(PermissionException ex) {}
                         }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
-                        //.setDiscordBotsKey(tokens.get(1))
+                        .setDiscordBotsKey(tokens.get(1))
                         //.setCarbonitexKey(tokens.get(2))
                         //.setDiscordBotListKey(tokens.get(3))
                         .build();
@@ -191,6 +191,7 @@ public class Vortex
         modlog.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
+        threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
     }
     
     public EventWaiter getEventWaiter()
@@ -255,6 +256,25 @@ public class Vortex
             database.automod.setResolveUrls(gid, false);
             database.settings.setAvatarLogChannel(gid, null);
         });
+    }
+    
+    public void leavePointlessGuilds()
+    {
+        shards.getGuilds().stream().filter(g -> 
+        {
+            if(!g.isAvailable())
+                return false;
+            int botcount = (int)g.getMembers().stream().filter(m -> m.getUser().isBot()).count();
+            if(g.getMembers().size()-botcount<3 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
+            {
+                if(database.settings.hasSettings(g))
+                    return false;
+                if(database.automod.hasSettings(g))
+                    return false;
+                return true;
+            }
+            return false;
+        }).forEach(g -> g.leave().queue());
     }
     
     /**

@@ -137,7 +137,8 @@ public class AuditCmd extends Command
                     case MEMBER:
                         User u = event.getJDA().getUserById(ale.getTargetIdLong());
                         sb.append("\n").append(linestart).append("Member: ")
-                                .append(u==null ? unknown : FormatUtil.formatFullUser(u));
+                                .append(u==null ? unknown : FormatUtil.formatUser(u))
+                                .append(" (ID:").append(ale.getTargetId()).append(")");
                         break;
                     case ROLE:
                         Role r = event.getGuild().getRoleById(ale.getTargetIdLong());

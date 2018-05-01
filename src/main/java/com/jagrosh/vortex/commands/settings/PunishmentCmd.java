@@ -20,6 +20,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
@@ -58,10 +59,9 @@ public class PunishmentCmd extends Command
     {
         String[] parts = event.getArgs().split("\\s+", 3);
         if(parts.length<2)
-        {
-            event.replyError("Please include a number of strikes and an action to perform!"+SETTING_STRIKES);
-            return;
-        }
+            throw new CommandExceptionListener.CommandErrorException("Please include a number of strikes and an action to perform!"+SETTING_STRIKES);
+        if(vortex.getDatabase().actions.getAllPunishments(event.getGuild()).size()>=PunishmentManager.MAX_SET)
+            throw new CommandExceptionListener.CommandErrorException("This server already has "+PunishmentManager.MAX_SET+" punishments set up; please remove some before adding more.");
         int numstrikes;
         try
         {

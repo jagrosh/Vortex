@@ -44,8 +44,10 @@ pnd.tl
 
 // Referral Sites
 wn.nr
+featu.re
 
 // Scams
+rbxfree.com
 fortnitevb.com
 fortnite-special.com
 fortnite-vbucks.net

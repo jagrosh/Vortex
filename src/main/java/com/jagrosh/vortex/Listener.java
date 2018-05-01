@@ -33,8 +33,6 @@ import net.dv8tion.jda.core.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.core.events.user.UserAvatarUpdateEvent;
-import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
 import net.dv8tion.jda.core.events.user.update.UserUpdateAvatarEvent;
 import net.dv8tion.jda.core.events.user.update.UserUpdateDiscriminatorEvent;
 import net.dv8tion.jda.core.events.user.update.UserUpdateNameEvent;

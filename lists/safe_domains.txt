@@ -47,6 +47,8 @@ pastebin.com
 trello.com
 npmjs.com
 stackoverflow.com
+codeacademy.com
+unicode.org
         
 // Social Media
 twitter.com
@@ -73,6 +75,8 @@ challonge.com
 humblebundle.com
 nintendo.com
 roblox.com
+capcom-unity.com
+honeyhunterworld.com
 
 // Misc
 google.com
@@ -91,3 +95,4 @@ jagrosh.com
 mhgh.info
 giveawaybot.party
 discord.pw
+kiranico.com

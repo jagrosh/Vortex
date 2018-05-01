@@ -340,7 +340,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.voicelog = 0;
             this.avatarlog = 0;
             this.prefix = null;
-            this.timezone = ZoneId.systemDefault();
+            this.timezone = DEFAULT_TIMEZONE;
             this.raidMode = -2;
         }
         

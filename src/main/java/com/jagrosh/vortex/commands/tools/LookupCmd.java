@@ -122,7 +122,6 @@ public class LookupCmd extends Command
                     event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
                     return;
                 }
-                
             }
             catch(NumberFormatException ex)
             {
@@ -163,7 +162,7 @@ public class LookupCmd extends Command
             eb.setDescription(str);
             str = linestart+"ID: **"+inv.getGuild().getId()+"**\n"
                         +linestart+"Creation: **"+inv.getGuild().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n";
-            if(widget!=null)
+            if(widget!=null && widget.isAvailable())
                 str += linestart+"Channels: **"+widget.getVoiceChannels().size()+"** Voice\n"
                       +linestart+"Users: **"+widget.getMembers().size()+"** online";
             if(inv.getGuild().getSplashId()!=null)

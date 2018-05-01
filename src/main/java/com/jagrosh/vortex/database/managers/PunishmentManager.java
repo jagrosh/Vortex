@@ -38,6 +38,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 public class PunishmentManager extends DataManager
 {
     public static final int MAX_STRIKES = 100;
+    public static final int MAX_SET = 20;
     private static final String STRIKES_TITLE = Action.STRIKE.getEmoji()+" Punishments";
     
     
