@@ -17,13 +17,9 @@ package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.utils.OtherUtil;
-import java.util.List;
-import java.util.stream.Collectors;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
 
 /**
  *

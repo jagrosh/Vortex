@@ -156,6 +156,7 @@ public class Vortex
                             new UnignoreCmd(this),
                             
                             // Tools
+                            new AnnounceCmd(),
                             new AuditCmd(),
                             new DehoistCmd(),
                             new InvitepruneCmd(this),
