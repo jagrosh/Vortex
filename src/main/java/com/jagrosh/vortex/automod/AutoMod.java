@@ -50,7 +50,7 @@ public class AutoMod
             Pattern.CASE_INSENSITIVE);
     
     
-    private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref=)\\S+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
     private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:\\S+\\.)?(\\S+\\.\\S+?)[/?]\\S+", Pattern.CASE_INSENSITIVE);
     
     private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
@@ -59,10 +59,6 @@ public class AutoMod
     private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
     public  static final String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
-    
-    public  static final char[] VALID_DEHOIST_CHAR = {'!','"','#','$','%','&','\'','(',')','*','+',',','-','.','/'};
-    public  static final String DEHOIST_PREFIX = "\uD82F\uDCA2";
-    public  static final String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", VALID_DEHOIST_CHAR)+"`";
     
     private final Vortex vortex;
     
@@ -234,12 +230,9 @@ public class AutoMod
         if(settings==null || settings.dehoistChar==(char)0 || member.getEffectiveName().charAt(0)>settings.dehoistChar)
             return;
         
-        String newname = AutoMod.DEHOIST_PREFIX+member.getEffectiveName();
-        if(newname.length()>32)
-            newname = newname.substring(0,32);
         try
         {
-            member.getGuild().getController().setNickname(member, newname).reason("Dehoisting").queue();
+            OtherUtil.dehoist(member, settings.dehoistChar);
         }
         catch(Exception ex) {}
     }

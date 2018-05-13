@@ -17,6 +17,7 @@ package com.jagrosh.vortex.commands.moderation;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
 import net.dv8tion.jda.core.Permission;
 import com.jagrosh.vortex.utils.ArgsUtil;
@@ -52,12 +53,15 @@ public class BanCmd extends ModCommand
             event.replyError("Please include at least one user to ban (@mention or ID)!");
             return;
         }
-        int minutes = args.time/60;
-        if(minutes < 0)
-        {
-            event.replyError("Timed bans cannot be negative time!");
-            return;
-        }
+        int minutes;
+        if(args.time < 0)
+            throw new CommandErrorException("Timed bans cannot be negative time!");
+        else if(args.time == 0)
+            minutes = 0;
+        else if(args.time > 60)
+            minutes = (int)Math.round(args.time/60.0);
+        else
+            minutes = 1;
         String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
         StringBuilder builder = new StringBuilder();
         

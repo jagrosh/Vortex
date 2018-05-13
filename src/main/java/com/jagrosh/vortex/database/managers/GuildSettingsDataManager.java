@@ -42,7 +42,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
 {
     public final static int PREFIX_MAX_LENGTH = 40;
     private static final String SETTINGS_TITLE = "\uD83D\uDCCA Server Settings";
-    private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("GMT+4");
+    private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("GMT-4");
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
     public final static SQLColumn<Long> MOD_ROLE_ID = new LongColumn("MOD_ROLE_ID",false,0L);

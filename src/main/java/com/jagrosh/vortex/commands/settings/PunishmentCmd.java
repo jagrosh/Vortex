@@ -60,8 +60,6 @@ public class PunishmentCmd extends Command
         String[] parts = event.getArgs().split("\\s+", 3);
         if(parts.length<2)
             throw new CommandExceptionListener.CommandErrorException("Please include a number of strikes and an action to perform!"+SETTING_STRIKES);
-        if(vortex.getDatabase().actions.getAllPunishments(event.getGuild()).size()>=PunishmentManager.MAX_SET)
-            throw new CommandExceptionListener.CommandErrorException("This server already has "+PunishmentManager.MAX_SET+" punishments set up; please remove some before adding more.");
         int numstrikes;
         try
         {
@@ -77,6 +75,10 @@ public class PunishmentCmd extends Command
             event.replyError("`<numstrikes>` must be between 1 and "+PunishmentManager.MAX_STRIKES+"!"+SETTING_STRIKES);
             return;
         }
+        
+        if(!parts[1].equalsIgnoreCase("none") && vortex.getDatabase().actions.getAllPunishments(event.getGuild()).size()>=PunishmentManager.MAX_SET)
+            throw new CommandExceptionListener.CommandErrorException("This server already has "+PunishmentManager.MAX_SET+" punishments set up; please remove some before adding more.");
+        
         String successMessage;
         switch(parts[1].toLowerCase())
         {

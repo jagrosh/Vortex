@@ -278,10 +278,13 @@ public class ModLogger
                     {
                         vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong());
                     }
-                    modlog.sendMessage(FormatUtil.filterEveryone(minutes > 0 ? 
+                    String msg = FormatUtil.filterEveryone(minutes > 0 ? 
                             LogUtil.modlogTimeFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
-                            LogUtil.modlogUserFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, target, reason)))
-                            .queue(act==Action.BAN ? m -> banLogCache.put(banCacheKey, m) : null);
+                            LogUtil.modlogUserFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, target, reason));
+                    if(act==Action.BAN)
+                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).complete());
+                    else
+                        modlog.sendMessage(msg).queue();
                 }
             }
         }

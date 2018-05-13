@@ -78,9 +78,9 @@ public class InvitepruneCmd extends Command
         event.getChannel().sendTyping().queue();
         event.getGuild().getInvites().queue(list -> 
         {
-            List<Invite> toPrune = list.stream().filter(i -> !i.getInviter().isBot() && i.getUses()<=uses).collect(Collectors.toList());
+            List<Invite> toPrune = list.stream().filter(i -> i.getInviter()!=null && !i.getInviter().isBot() && i.getUses()<=uses).collect(Collectors.toList());
             toPrune.forEach(i -> i.delete().queue());
-            event.replySuccess("Deleted `"+toPrune.size()+"` invites with `"+uses+"` or fewer uses.");
+            event.replySuccess("Deleting `"+toPrune.size()+"` invites with `"+uses+"` or fewer uses.");
         });
     }
     

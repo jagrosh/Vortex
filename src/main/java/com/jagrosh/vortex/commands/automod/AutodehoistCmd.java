@@ -1,7 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2018 John Grosh (john.a.grosh@gmail.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.jagrosh.vortex.commands.automod;
 
@@ -12,6 +22,7 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
+import com.jagrosh.vortex.utils.OtherUtil;
 
 /**
  *
@@ -48,13 +59,13 @@ public class AutodehoistCmd extends Command
         if(event.getArgs().length()==1)
             symbol = event.getArgs().charAt(0);
         else
-            throw new CommandExceptionListener.CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
+            throw new CommandExceptionListener.CommandErrorException("Provided symbol must be one character of the following: "+OtherUtil.DEHOIST_JOINED);
         boolean allowed = false;
-        for(char c: AutoMod.VALID_DEHOIST_CHAR)
+        for(char c: OtherUtil.DEHOIST_ORIGINAL)
             if(c==symbol)
                 allowed = true;
         if(!allowed)
-            throw new CommandExceptionListener.CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
+            throw new CommandExceptionListener.CommandErrorException("Provided symbol must be one character of the following: "+OtherUtil.DEHOIST_JOINED);
         
         vortex.getDatabase().automod.setDehoistChar(event.getGuild(), symbol);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());

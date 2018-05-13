@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.Permission;
@@ -47,28 +48,21 @@ public class DehoistCmd extends Command
     {
         char symbol;
         if(event.getArgs().isEmpty())
-            symbol = AutoMod.VALID_DEHOIST_CHAR[0];
+            symbol = OtherUtil.DEHOIST_ORIGINAL[0];
         else if(event.getArgs().length()==1)
             symbol = event.getArgs().charAt(0);
         else
-            throw new CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
+            throw new CommandErrorException("Provided symbol must be one character of the following: "+OtherUtil.DEHOIST_JOINED);
         boolean allowed = false;
-        for(char c: AutoMod.VALID_DEHOIST_CHAR)
+        for(char c: OtherUtil.DEHOIST_ORIGINAL)
             if(c==symbol)
                 allowed = true;
         if(!allowed)
-            throw new CommandErrorException("Provided symbol must be one character of the following: "+AutoMod.DEHOIST_JOINED);
-        List<Member> toDehoist = event.getGuild().getMembers().stream()
-                .filter(m -> event.getSelfMember().canInteract(m) && m.getEffectiveName().charAt(0)<=symbol)
-                .collect(Collectors.toList());
-        toDehoist.forEach(m -> 
-        {
-            String newname = AutoMod.DEHOIST_PREFIX+m.getEffectiveName();
-            if(newname.length()>32)
-                newname = newname.substring(0,32);
-            event.getGuild().getController().setNickname(m, newname).queue();
-        });
-        event.replySuccess("Dehoisting `"+toDehoist.size()+"` members with names starting with `"+symbol+"` or higher.");
+            throw new CommandErrorException("Provided symbol must be one character of the following: "+OtherUtil.DEHOIST_JOINED);
+        
+        long count = event.getGuild().getMembers().stream().filter(m -> OtherUtil.dehoist(m, symbol)).count();
+        
+        event.replySuccess("Dehoisting `"+count+"` members with names starting with `"+symbol+"` or higher.");
     }
     
 }

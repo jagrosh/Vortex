@@ -35,6 +35,30 @@ public class OtherUtil
 {
     private final static Logger LOG = LoggerFactory.getLogger(OtherUtil.class);
     
+    public final static char[] DEHOIST_ORIGINAL =     {'!',      '"',      '#',      '$',      '%',      '&',      '\'',     '(',      ')',      '*',      '+',      ',',      '-',      '.',      '/'};
+    public final static char[] DEHOIST_REPLACEMENTS = {'\u01C3', '\u201C', '\u2D4C', '\uFF04', '\u2105', '\u214B', '\u2018', '\u2768', '\u2769', '\u2217', '\u2722', '\u201A', '\u2013', '\uFBB3', '\u2044'};
+    public final static String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", DEHOIST_ORIGINAL)+"`";
+    
+    public final static boolean dehoist(Member m, char symbol)
+    {
+        if(!m.getGuild().getSelfMember().canInteract(m))
+            return false;
+        if(m.getEffectiveName().charAt(0)>symbol)
+            return false;
+        
+        String newname = m.getEffectiveName();
+        for(int i=0; i<DEHOIST_ORIGINAL.length; i++)
+        {
+            if(DEHOIST_ORIGINAL[i] == newname.charAt(0))
+            {
+                newname = DEHOIST_REPLACEMENTS[i] + (newname.length() == 1 ? "" : newname.substring(1));
+                break;
+            }
+        }
+        m.getGuild().getController().setNickname(m, newname).reason("Dehoisting").queue();
+        return true;
+    }
+    
     public static void safeDM(User user, String message, boolean shouldDM, Runnable then)
     {
         if(user==null || !shouldDM)

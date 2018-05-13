@@ -1,7 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2018 John Grosh (john.a.grosh@gmail.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package com.jagrosh.vortex.commands.automod;
 
@@ -61,7 +71,10 @@ public class MaxlinesCmd extends Command
         }
         vortex.getDatabase().automod.setMaxLines(event.getGuild(), maxlines);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Messages longer than `"+maxlines+"` lines will now be automatically deleted, "
+        if(maxlines==0)
+            event.replySuccess("There is now no maximum line limit.");
+        else
+            event.replySuccess("Messages longer than `"+maxlines+"` lines will now be automatically deleted, "
                 + "and users will receive strikes for every additional multiple of up to `"+maxlines+"` lines."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }
 }

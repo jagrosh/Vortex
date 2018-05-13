@@ -77,6 +77,8 @@ nintendo.com
 roblox.com
 capcom-unity.com
 honeyhunterworld.com
+gamespot.com
+kiranico.com
 
 // Misc
 google.com
@@ -88,6 +90,7 @@ knowyourmeme.com
 qrserver.com
 timeanddate.com
 mit.edu
+cnn.com
 
 // Whitelist/Common links
 ygg.fun
@@ -95,4 +98,3 @@ jagrosh.com
 mhgh.info
 giveawaybot.party
 discord.pw
-kiranico.com

@@ -117,6 +117,7 @@ public class Vortex
                             new KickCmd(this),
                             new BanCmd(this),
                             new SoftbanCmd(this),
+                            new UnbanCmd(this),
                             new CleanCmd(this),
                             new VoicemoveCmd(this),
                             new VoicekickCmd(this),
