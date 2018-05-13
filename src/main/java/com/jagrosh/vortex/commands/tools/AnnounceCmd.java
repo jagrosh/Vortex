@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -32,6 +33,9 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class AnnounceCmd extends Command
 {
+    private final static String FORMAT = "Please include a channel and role name, a | as a separator, and a message to send!\n"
+            + "Please see the full command reference for examples - <"+Constants.Wiki.COMMANDS+"#-tools-commands>";
+    
     public AnnounceCmd()
     {
         this.name = "announce";
@@ -50,7 +54,7 @@ public class AnnounceCmd extends Command
     protected void execute(CommandEvent event)
     {
         if(event.getArgs().isEmpty())
-            throw new CommandErrorException("Please include a channel and role name, a | as a separator, and a message to send!");
+            throw new CommandErrorException(FORMAT);
         String[] parts = event.getArgs().split("\\s+", 2);
         List<TextChannel> list = FinderUtil.findTextChannels(parts[0], event.getGuild());
         if(list.isEmpty())
@@ -63,7 +67,7 @@ public class AnnounceCmd extends Command
         if(!tc.canTalk(event.getMember()))
             throw new CommandErrorException("You do not have permission to Send Messages in "+tc.getAsMention()+"!");
         if(parts.length<2)
-            throw new CommandErrorException("Please include a channel and role name, a | as a separator, and a message to send!");
+            throw new CommandErrorException(FORMAT);
         String[] parts2 = parts[1].split("\\s*\\|\\s*", 2);
         List<Role> rlist = FinderUtil.findRoles(parts2[0], event.getGuild());
         if(rlist.isEmpty())
@@ -76,26 +80,33 @@ public class AnnounceCmd extends Command
         if(!event.getMember().canInteract(role))
             throw new CommandErrorException("You cannot modify the `"+role.getName()+"` role.");
         if(parts2.length<2 || parts2[1].isEmpty())
-            throw new CommandErrorException("Please include a channel and role name, a | as a separator, and a message to send!");
+            throw new CommandErrorException(FORMAT);
         
+        String message = role.getAsMention()+": "+parts2[1];
+        if(!event.getMember().hasPermission(tc, Permission.MESSAGE_MENTION_EVERYONE))
+            message = FormatUtil.filterEveryone(message);
+        if(message.length() > 2000)
+            message = message.substring(0, 2000);
+        String fmessage = message;
         if(!role.isMentionable())
         {
-            role.getManager().setMentionable(true).queue(s -> 
+            String reason = "Announcement by "+event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator();
+            role.getManager().setMentionable(true).reason(reason).queue(s -> 
             {
-                tc.sendMessage(role.getAsMention()+": "+parts2[1]).queue(m -> 
+                tc.sendMessage(fmessage).queue(m -> 
                 {
                     event.replySuccess("Announcement for `"+role.getName()+"` sent to "+tc.getAsMention()+"!");
-                    role.getManager().setMentionable(false).queue(s2->{}, f2->{});
+                    role.getManager().setMentionable(false).reason(reason).queue(s2->{}, f2->{});
                 }, f -> 
                 {
                     event.replyError("Failed to send message.");
-                    role.getManager().setMentionable(false).queue(s2->{}, f2->{});
+                    role.getManager().setMentionable(false).reason(reason).queue(s2->{}, f2->{});
                 });
             }, f -> event.replyError("Failed to modify the role `"+role.getName()+"`."));
         }
         else
         {
-            tc.sendMessage(role.getAsMention()+": "+parts2[1]).queue(
+            tc.sendMessage(fmessage).queue(
                     m -> event.replySuccess("Announcement for `"+role.getName()+"` sent to "+tc.getAsMention()+"!"), 
                     f -> event.replyError("Failed to send message."));
         }
