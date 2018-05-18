@@ -194,43 +194,43 @@ public class AuditCmd extends Command
     {
         switch(type)
         {
-            case BAN:                     return Action.BAN.getEmoji();
-            case KICK:                    return Action.KICK.getEmoji();
-            case UNBAN:                   return Action.UNBAN.getEmoji();
-            case PRUNE:                   return "\u2702";
+            case BAN:                     return "<:Ban:274789152304660481>";
+            case KICK:                    return "<:DeleteUser:274789150920671232>";
+            case UNBAN:                   return "<:Unban:274789150689984513>";
+            case PRUNE:                   return "<:removeMember:417574812718858250>";
             
-            case CHANNEL_CREATE:          return "\uD83D\uDCFA";
-            case CHANNEL_DELETE:          return "\uD83D\uDCFA";
-            case CHANNEL_UPDATE:          return "\uD83D\uDCFA";
+            case CHANNEL_CREATE:          return "<:addChannel:417574812425125888>";
+            case CHANNEL_DELETE:          return "<:deleteChannel:417574812622258186>";
+            case CHANNEL_UPDATE:          return "<:updateChannel:417574812240576514>";
             
-            case CHANNEL_OVERRIDE_CREATE: return "\uD83D\uDCFA";
-            case CHANNEL_OVERRIDE_DELETE: return "\uD83D\uDCFA";
-            case CHANNEL_OVERRIDE_UPDATE: return "\uD83D\uDCFA";
+            case CHANNEL_OVERRIDE_CREATE: return "<:addChannel:417574812425125888>";
+            case CHANNEL_OVERRIDE_DELETE: return "<:deleteChannel:417574812622258186>";
+            case CHANNEL_OVERRIDE_UPDATE: return "<:updateChannel:417574812240576514>";
             
-            case EMOTE_CREATE:            return "\uD83D\uDD23";
-            case EMOTE_DELETE:            return "\uD83D\uDD23";
-            case EMOTE_UPDATE:            return "\uD83D\uDD23";
+            case EMOTE_CREATE:            return "<:createEmoji:417574812689498112>";
+            case EMOTE_DELETE:            return "<:deleteEmoji:417574812521725962>";
+            case EMOTE_UPDATE:            return "<:updateEmoji:417574812601548800>";
             
-            case GUILD_UPDATE:            return "\uD83D\uDDA5";
+            case GUILD_UPDATE:            return "<:updateServer:417574812534177793>";
             
-            case INVITE_CREATE:           return "\uD83D\uDCE5";
-            case INVITE_DELETE:           return "\uD83D\uDCE5";
-            case INVITE_UPDATE:           return "\uD83D\uDCE5";
+            case INVITE_CREATE:           return "<:addInvite:417574812517662721>";
+            case INVITE_DELETE:           return "<:deleteInvite:417574812521725953>";
+            case INVITE_UPDATE:           return "<:updateInvite:417574812429320192>";
             
-            case MEMBER_ROLE_UPDATE:      return "\uD83C\uDFAD";
-            case MEMBER_UPDATE:           return "\u270D";
+            case MEMBER_ROLE_UPDATE:      return "<:updateMember:417574812504948736>";
+            case MEMBER_UPDATE:           return "<:updateMember:417574812504948736>";
             
-            case MESSAGE_CREATE:          return "\u2705";
-            case MESSAGE_DELETE:          return "\u274C";
-            case MESSAGE_UPDATE:          return "\u26A0";
+            case MESSAGE_CREATE:          return "<:createMessage:446853279926845452>";
+            case MESSAGE_DELETE:          return "<:deleteMessage:417574812399960065>";
+            case MESSAGE_UPDATE:          return "<:updateMessage:446853280308396032>";
             
-            case ROLE_CREATE:             return "\uD83D\uDEA6";
-            case ROLE_DELETE:             return "\uD83D\uDEA6";
-            case ROLE_UPDATE:             return "\uD83D\uDEA6";
+            case ROLE_CREATE:             return "<:createRole:417574812399960075>";
+            case ROLE_DELETE:             return "<:deleteRole:417574812463136769>";
+            case ROLE_UPDATE:             return "<:updateRole:417574812165210126>";
             
-            case WEBHOOK_CREATE:          return "\uD83C\uDF10";
-            case WEBHOOK_REMOVE:          return "\uD83C\uDF10";
-            case WEBHOOK_UPDATE:          return "\uD83C\uDF10";
+            case WEBHOOK_CREATE:          return "<:createWebhook:417574812714532864>";
+            case WEBHOOK_REMOVE:          return "<:deleteWebhook:417574812098101250>";
+            case WEBHOOK_UPDATE:          return "<:updateWebhook:417574812534439946>";
             
             case UNKNOWN:                 return "\u2753";
             default:                      return "\u2753";
