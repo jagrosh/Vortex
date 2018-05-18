@@ -235,7 +235,7 @@ public class ModLogger
                 {
                     User mod = ale.getUser();
                     if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()))
-                        return; // restoring muted role shouldn't trigger a log entry
+                        continue; // restoring muted role shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes = 0;
                     User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
@@ -270,7 +270,7 @@ public class ModLogger
                             banMsg.editMessage(banMsg.getContentRaw()
                                     .replaceFirst(Action.BAN.getEmoji(), Action.SOFTBAN.getEmoji())
                                     .replaceFirst(Action.BAN.getVerb(), Action.SOFTBAN.getVerb())).queue();
-                            return;
+                            continue;
                         }
                         vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong());
                     }
