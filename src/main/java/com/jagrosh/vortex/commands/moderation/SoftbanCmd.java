@@ -26,6 +26,7 @@ import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.List;
+import net.dv8tion.jda.core.entities.Role;
 
 /**
  *
@@ -53,6 +54,7 @@ public class SoftbanCmd extends ModCommand
             return;
         }
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
+        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         String unbanreason = LogUtil.auditReasonFormat(event.getMember(), "Softban Unban");
         StringBuilder builder = new StringBuilder();
         List<Member> toSoftban = new LinkedList<>();
@@ -63,6 +65,8 @@ public class SoftbanCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to softban ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to softban ").append(FormatUtil.formatUser(m.getUser()));
+            else if(modrole!=null && m.getRoles().contains(modrole))
+                builder.append("\n").append(event.getClient().getError()).append(" I won't softban ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
                 toSoftban.add(m);
         });

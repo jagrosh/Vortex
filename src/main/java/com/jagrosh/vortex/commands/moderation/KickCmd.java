@@ -25,6 +25,7 @@ import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.List;
+import net.dv8tion.jda.core.entities.Role;
 
 /**
  *
@@ -52,6 +53,7 @@ public class KickCmd extends ModCommand
             return;
         }
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
+        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
         List<Member> toKick = new LinkedList<>();
         
@@ -61,6 +63,8 @@ public class KickCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to kick ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to kick ").append(FormatUtil.formatUser(m.getUser()));
+            else if(modrole!=null && m.getRoles().contains(modrole))
+                builder.append("\n").append(event.getClient().getError()).append(" I won't kick ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
                 toKick.add(m);
         });

@@ -82,6 +82,7 @@ public class MuteCmd extends ModCommand
         else
             minutes = 1;
         String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
+        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
         List<Member> toMute = new LinkedList<>();
         
@@ -93,6 +94,8 @@ public class MuteCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to mute ").append(FormatUtil.formatUser(m.getUser()));
             else if(m.getRoles().contains(muteRole))
                 builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(m.getUser())).append(" is already muted!");
+            else if(modrole!=null && m.getRoles().contains(modrole))
+                builder.append("\n").append(event.getClient().getError()).append(" I won't mute ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
                 toMute.add(m);
         });

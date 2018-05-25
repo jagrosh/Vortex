@@ -24,6 +24,7 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.LinkedList;
 import java.util.List;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 
 /**
@@ -74,6 +75,7 @@ public class StrikeCmd extends ModCommand
             return;
         }
         StringBuilder builder = new StringBuilder();
+        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         
         args.members.forEach(m -> 
         {
@@ -81,6 +83,8 @@ public class StrikeCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to interact with ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to interact with ").append(FormatUtil.formatUser(m.getUser()));
+            else if(modrole!=null && m.getRoles().contains(modrole))
+                builder.append("\n").append(event.getClient().getError()).append(" I won't strike ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
                 args.users.add(m.getUser());
         });

@@ -26,6 +26,7 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import net.dv8tion.jda.core.entities.Role;
 
 /**
  *
@@ -63,6 +64,7 @@ public class BanCmd extends ModCommand
         else
             minutes = 1;
         String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
+        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
         
         args.members.forEach(m -> 
@@ -71,6 +73,8 @@ public class BanCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to ban ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to ban ").append(FormatUtil.formatUser(m.getUser()));
+            else if(modrole!=null && m.getRoles().contains(modrole))
+                builder.append("\n").append(event.getClient().getError()).append(" I won't ban ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
                 args.ids.add(m.getUser().getIdLong());
         });
