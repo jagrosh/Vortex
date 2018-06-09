@@ -47,6 +47,7 @@ pnd.tl
 // Referral Sites
 wn.nr
 featu.re
+pointsprizes.com
 
 // Scams
 free-gg.com

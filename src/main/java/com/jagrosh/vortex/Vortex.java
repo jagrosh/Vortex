@@ -94,7 +94,6 @@ public class Vortex
         logwebhook = new WebhookClientBuilder(tokens.get(7)).build();
         automod = new AutoMod(this);
         strikehandler = new StrikeHandler(this);
-        
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
                         .setGame(Game.watching("Type "+Constants.PREFIX+"help"))

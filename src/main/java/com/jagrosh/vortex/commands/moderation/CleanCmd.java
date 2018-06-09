@@ -70,6 +70,8 @@ public class CleanCmd extends ModCommand
         this.help = "cleans messages matching filters";
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.guildOnly = true;
+        this.cooldown = 10;
+        this.cooldownScope = CooldownScope.CHANNEL;
     }
     
     @Override
@@ -129,7 +131,10 @@ public class CleanCmd extends ModCommand
                 num=100;
         }
         if(num>1000 || num<2)
+        {
+            event.getClient().applyCooldown(getCooldownKey(event), 1);
             throw new CommandErrorException("Number of messages must be between 2 and 1000");
+        }
         
         int val2 = num+1;
         String p = pattern;
@@ -184,6 +189,7 @@ public class CleanCmd extends ModCommand
             if(del.isEmpty())
             {
                 event.replyWarning("There were no messages to clean!"+(week2?week2limit:""));
+                event.getClient().applyCooldown(getCooldownKey(event), 1);
                 return;
             }
             try{
@@ -202,9 +208,11 @@ public class CleanCmd extends ModCommand
             }catch(Exception e)
             {
                 event.replyError("Failed to delete "+del.size()+" messages.");
+                event.getClient().applyCooldown(getCooldownKey(event), 1);
                 return;
             }
             event.replySuccess("Cleaned **"+del.size()+"** messages."+(week2?week2limit:""));
+            event.getClient().applyCooldown(getCooldownKey(event), 1);
             if(vortex.getDatabase().settings.getSettings(event.getGuild()).getModLogChannel(event.getGuild())==null)
                 return;
             final String params;

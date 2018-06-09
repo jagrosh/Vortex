@@ -20,7 +20,6 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.utils.FixedCache;
-import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -442,7 +441,7 @@ public class AutoMod
             List<String> links = new LinkedList<>();
             Matcher m = LINK.matcher(message.getContentRaw());
             while(m.find())
-                links.add(m.group());
+                links.add(m.group().endsWith(">") ? m.group().substring(0,m.group().length()-1) : m.group());
             if(!links.isEmpty())
                 vortex.getThreadpool().execute(() -> 
                 {
@@ -511,7 +510,14 @@ public class AutoMod
     {
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(at -> sb.append("\n").append(at.getFileName()));
-        return sb.toString().trim().replaceAll(CONDENSER, "$1");
+        try
+        {
+            return sb.toString().trim().replaceAll(CONDENSER, "$1");
+        }
+        catch(Exception ex)
+        {
+            return sb.toString().trim();
+        }
     }
     
     private static OffsetDateTime latestTime(Message m)

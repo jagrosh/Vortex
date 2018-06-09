@@ -79,6 +79,7 @@ capcom-unity.com
 honeyhunterworld.com
 gamespot.com
 kiranico.com
+gbatemp.net
 
 // Misc
 google.com
