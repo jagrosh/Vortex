@@ -193,6 +193,7 @@ public class Vortex
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
     
     public EventWaiter getEventWaiter()
@@ -266,7 +267,7 @@ public class Vortex
             if(!g.isAvailable())
                 return false;
             int botcount = (int)g.getMembers().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMembers().size()-botcount<3 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
+            if(g.getMembers().size()-botcount<5 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
             {
                 if(database.settings.hasSettings(g))
                     return false;
