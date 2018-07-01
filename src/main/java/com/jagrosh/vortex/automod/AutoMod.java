@@ -120,7 +120,7 @@ public class AutoMod
         
         boolean inRaidMode = vortex.getDatabase().settings.getSettings(event.getGuild()).isInRaidMode();
         AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
-        OffsetDateTime now = event.getMember().getJoinDate();
+        OffsetDateTime now = OffsetDateTime.now();
         boolean kicking = false;
         
         // if we're in raid mode...

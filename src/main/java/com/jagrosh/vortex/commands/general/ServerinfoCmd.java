@@ -18,7 +18,6 @@ package com.jagrosh.vortex.commands.general;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.utils.FormatUtil;
-import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -57,7 +56,7 @@ public class ServerinfoCmd extends Command
         }
         String str = linestart+"ID: **"+guild.getId()+"**\n"
                 +linestart+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
-                +linestart+"Location: "+OtherUtil.regionToFlag(guild.getRegion())+" **"+guild.getRegion().getName()+"**\n"
+                +linestart+"Location: "+guild.getRegion().getEmoji()+" **"+guild.getRegion().getName()+"**\n"
                 +linestart+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 +linestart+"Users: **"+guild.getMembers().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
                 +linestart+"Channels: **"+guild.getTextChannels().size()+"** Text, **"+guild.getVoiceChannels().size()+"** Voice\n"

@@ -123,40 +123,4 @@ public class OtherUtil
             return new String[0];
         }
     }
-    
-    public static String regionToFlag(Region region)
-    {
-        switch(region)
-        {
-            case AMSTERDAM:        return "\uD83C\uDDF3\uD83C\uDDF1";
-            case BRAZIL:           return "\uD83C\uDDE7\uD83C\uDDF7";
-            case EU_CENTRAL:       return "\uD83C\uDDEA\uD83C\uDDFA";
-            case EU_WEST:          return "\uD83C\uDDEA\uD83C\uDDFA";
-            case FRANKFURT:        return "\uD83C\uDDE9\uD83C\uDDEA";
-            case HONG_KONG:        return "\uD83C\uDDED\uD83C\uDDF0";
-            case JAPAN:            return "\uD83C\uDDEF\uD83C\uDDF5";
-            case LONDON:           return "\uD83C\uDDEC\uD83C\uDDE7";
-            case RUSSIA:           return "\uD83C\uDDF7\uD83C\uDDFA";
-            case SINGAPORE:        return "\uD83C\uDDF8\uD83C\uDDEC";
-            case SYDNEY:           return "\uD83C\uDDE6\uD83C\uDDFA";
-            case US_CENTRAL:       return "\uD83C\uDDFA\uD83C\uDDF8";
-            case US_EAST:          return "\uD83C\uDDFA\uD83C\uDDF8";
-            case US_SOUTH:         return "\uD83C\uDDFA\uD83C\uDDF8";
-            case US_WEST:          return "\uD83C\uDDFA\uD83C\uDDF8";
-            case VIP_AMSTERDAM:    return "\uD83C\uDDF3\uD83C\uDDF1";
-            case VIP_BRAZIL:       return "\uD83C\uDDE7\uD83C\uDDF7";
-            case VIP_EU_CENTRAL:   return "\uD83C\uDDEA\uD83C\uDDFA";
-            case VIP_EU_WEST:      return "\uD83C\uDDEA\uD83C\uDDFA";
-            case VIP_FRANKFURT:    return "\uD83C\uDDE9\uD83C\uDDEA";
-            case VIP_JAPAN:        return "\uD83C\uDDEF\uD83C\uDDF5";
-            case VIP_LONDON:       return "\uD83C\uDDEC\uD83C\uDDE7";
-            case VIP_SINGAPORE:    return "\uD83C\uDDF8\uD83C\uDDEC";
-            case VIP_SYDNEY:       return "\uD83C\uDDE6\uD83C\uDDFA";
-            case VIP_US_CENTRAL:   return "\uD83C\uDDFA\uD83C\uDDF8";
-            case VIP_US_EAST:      return "\uD83C\uDDFA\uD83C\uDDF8";
-            case VIP_US_SOUTH:     return "\uD83C\uDDFA\uD83C\uDDF8";
-            case VIP_US_WEST:      return "\uD83C\uDDFA\uD83C\uDDF8";
-            case UNKNOWN: default: return "\uD83C\uDFF3";
-        }
-    }
 }

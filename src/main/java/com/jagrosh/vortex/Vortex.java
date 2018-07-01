@@ -267,7 +267,7 @@ public class Vortex
             if(!g.isAvailable())
                 return false;
             int botcount = (int)g.getMembers().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMembers().size()-botcount<5 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
+            if(g.getMembers().size()-botcount<7 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
             {
                 if(database.settings.hasSettings(g))
                     return false;
