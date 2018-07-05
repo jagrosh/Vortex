@@ -362,6 +362,17 @@ public class AutoMod
             }
         }
         
+        if(settings.everyoneStrikes > 0 && preventSpam && !message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
+        {
+            if(message.getContentRaw().contains("@everyone") || message.getContentRaw().contains("@here")
+                    || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
+            {
+                strikeTotal += settings.everyoneStrikes;
+                reason.append(", ").append("Attempted @\u0435veryone/here");
+                shouldDelete = true;
+            }
+        }
+        
         // anti-invite
         if(settings.inviteStrikes > 0 && preventInvites)
         {

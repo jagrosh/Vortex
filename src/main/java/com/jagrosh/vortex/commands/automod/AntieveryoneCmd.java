@@ -26,19 +26,19 @@ import com.jagrosh.vortex.database.managers.PunishmentManager;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class AnticopypastaCmd extends Command
+public class AntieveryoneCmd extends Command
 {
     private final Vortex vortex;
     
-    public AnticopypastaCmd(Vortex vortex)
+    public AntieveryoneCmd(Vortex vortex)
     {
         this.vortex = vortex;
-        this.name = "anticopypasta";
+        this.name = "antieveryone";
         this.guildOnly = true;
-        this.aliases = new String[]{"antipasta","anti-copypasta"};
+        this.aliases = new String[]{"antiateveryone", "anti-everyone", "anti-ateveryone"};
         this.category = new Category("AutoMod");
         this.arguments = "<strikes>";
-        this.help = "sets strikes for posting copypastas";
+        this.help = "sets strikes for failed @\u0435veryone/here attempts";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 
@@ -70,8 +70,10 @@ public class AnticopypastaCmd extends Command
             event.replyError("The number of strikes must be between 0 and "+AutomodManager.MAX_STRIKES);
             return;
         }
-        vortex.getDatabase().automod.setCopypastaStrikes(event.getGuild(), numstrikes);
+        vortex.getDatabase().automod.setEveryoneStrikes(event.getGuild(), numstrikes);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for posting copypastas."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for attempting to ping @\u0435veryone/here. "
+                + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually "
+                + "have permission to ping everyone."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }
 }

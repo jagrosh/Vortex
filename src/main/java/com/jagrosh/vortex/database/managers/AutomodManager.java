@@ -51,6 +51,7 @@ public class AutomodManager extends DataManager
     public final static SQLColumn<Integer> INVITE_STRIKES = new IntegerColumn("INVITE_STRIKES", false, 0);
     public final static SQLColumn<Integer> REF_STRIKES = new IntegerColumn("REF_STRIKES", false, 0);
     public final static SQLColumn<Integer> COPYPASTA_STRIKES = new IntegerColumn("COPYPASTA_STRIKES", false, 0);
+    public final static SQLColumn<Integer> EVERYONE_STRIKES = new IntegerColumn("EVERYONE_STRIKES", false, 0);
     
     public final static SQLColumn<Integer> DUPE_STRIKES = new IntegerColumn("DUPE_STRIKES", false, 0);
     public final static SQLColumn<Integer> DUPE_DELETE_THRESH = new IntegerColumn("DUPE_DELETE_THRESH", false, 0);
@@ -95,10 +96,11 @@ public class AutomodManager extends DataManager
                     ? "Disabled\n\n" 
                     : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "`" + settings.maxMentions + "`\n") +
                       "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "`" + settings.maxRoleMentions + "`\n\n"))
-                + "__Spam Prevention__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0
+                + "__Spam Prevention__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0 && settings.everyoneStrikes==0
                     ? "Disabled\n\n"
                     : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
-                      "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
+                      "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
+                      "Attempted @\u0435veryone: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
                 + "__Miscellaneous__\n"
                     + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
                         ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 
@@ -296,6 +298,26 @@ public class AutomodManager extends DataManager
         });
     }
     
+    public void setEveryoneStrikes(Guild guild, int strikes)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+            {
+                EVERYONE_STRIKES.updateValue(rs, strikes);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                EVERYONE_STRIKES.updateValue(rs, strikes);
+                rs.insertRow();
+            }
+        });
+    }
+    
     public void setDupeSettings(Guild guild, int strikes, int deleteThresh, int strikeThresh)
     {
         invalidateCache(guild);
@@ -356,7 +378,7 @@ public class AutomodManager extends DataManager
         public final int maxMentions, maxRoleMentions;
         public final int maxLines;
         public final int raidmodeNumber, raidmodeTime;
-        public final int inviteStrikes, refStrikes, copypastaStrikes;
+        public final int inviteStrikes, refStrikes, copypastaStrikes, everyoneStrikes;
         public final int dupeStrikes, dupeDeleteThresh, dupeStrikeThresh;
         public final char dehoistChar;
         
@@ -371,6 +393,7 @@ public class AutomodManager extends DataManager
             this.inviteStrikes = 0;
             this.refStrikes = 0;
             this.copypastaStrikes = 0;
+            this.everyoneStrikes = 0;
             this.dupeStrikes = 0;
             this.dupeDeleteThresh = 0;
             this.dupeStrikeThresh = 0;
@@ -388,6 +411,7 @@ public class AutomodManager extends DataManager
             this.inviteStrikes = INVITE_STRIKES.getValue(rs);
             this.refStrikes = REF_STRIKES.getValue(rs);
             this.copypastaStrikes = COPYPASTA_STRIKES.getValue(rs);
+            this.everyoneStrikes = EVERYONE_STRIKES.getValue(rs);
             this.dupeStrikes = DUPE_STRIKES.getValue(rs);
             this.dupeDeleteThresh = DUPE_DELETE_THRESH.getValue(rs);
             this.dupeStrikeThresh = DUPE_STRIKE_THRESH.getValue(rs);

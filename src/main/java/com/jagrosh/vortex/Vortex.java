@@ -144,6 +144,7 @@ public class Vortex
                             // Automoderation
                             new AntiinviteCmd(this),
                             new AnticopypastaCmd(this),
+                            new AntieveryoneCmd(this),
                             new AntirefCmd(this),
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
