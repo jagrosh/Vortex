@@ -218,7 +218,7 @@ public class BasicLogger
         OffsetDateTime now = OffsetDateTime.now();
         long seconds = event.getUser().getCreationTime().until(now, ChronoUnit.SECONDS);
         log(now, tc, "\uD83D\uDCE5", FormatUtil.formatFullUser(event.getUser())+" joined the server. "
-                +(seconds<16*60 ? "NEW" : "")
+                +(seconds<16*60 ? "\uD83C\uDD95" : "")
                 +"\nCreation: "+event.getUser().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)", null);
     }
     

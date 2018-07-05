@@ -187,6 +187,10 @@ public class AutoMod
         if(member==null || member.getGuild()==null)
             return false;
         
+        // ignore broken guilds
+        if(member.getGuild().getSelfMember()==null || member.getGuild().getOwner()==null)
+            return false;
+        
         // ignore bots
         if(member.getUser().isBot())
             return false;
