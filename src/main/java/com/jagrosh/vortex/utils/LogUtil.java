@@ -101,7 +101,7 @@ public class LogUtil
         if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
             return 0;
         String match = "(?is)`\\[.{8}\\]` `\\["+(caseNum==-1 ? "(\\d+)" : caseNum)+"\\]` .+";
-        if(m.getContentRaw().matches(match))
+        if(m.getContentRaw().matches(match) && (caseNum!=-1 || m.getContentRaw().endsWith(NO_REASON)))
             return caseNum==-1 ? Integer.parseInt(m.getContentRaw().replaceAll(match, "$1")) : caseNum;
         return 0;
     }

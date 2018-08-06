@@ -48,12 +48,16 @@ pnd.tl
 wn.nr
 featu.re
 pointsprizes.com
+weeklyjob.online
+justdoit.cards
 
 // Scams
+oprewards.com
 free-gg.com
 rbxfree.com
 fortnitevb.com
 fortnite-gifts.com
+fortnite-giveaway.com
 fortnite-special.com
 fortnite-vbucks.net
 fortnite-vbucks.de
@@ -67,3 +71,4 @@ steamspecial.com
 easter-event.com
 steam-wallet-rewards.com
 steam-gift-codes.com
+steam-money.org
