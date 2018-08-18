@@ -62,7 +62,7 @@ public class AutoraidmodeCmd extends Command
         {
             event.replyError("Valid options are `OFF`, `ON`, or `<joins>/<seconds>`"
                     + "\nSetting to `OFF` means the bot will never automatically enable raid mode"
-                    + "\nSetting to `ON` will use the recommended value of 10 joins per 10 seconds to rigger Anti-Raid mode"
+                    + "\nSetting to `ON` will use the recommended value of 10 joins per 10 seconds to trigger Anti-Raid mode"
                     + "\nSetting a customizable threshhold is possible; ex: `10/20` for 10 joins in 20 seconds"
                     + "\nFor more information, check out the wiki: <"+Constants.Wiki.RAID_MODE+">");
             return;

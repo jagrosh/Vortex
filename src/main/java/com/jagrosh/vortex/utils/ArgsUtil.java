@@ -15,8 +15,10 @@
  */
 package com.jagrosh.vortex.utils;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.dv8tion.jda.core.entities.Guild;
@@ -41,10 +43,10 @@ public class ArgsUtil
     
     public static ResolvedArgs resolve(String args, boolean allowTime, Guild guild)
     {
-        List<Member> members = new LinkedList<>();
-        List<User> users = new LinkedList<>();
-        List<Long> ids = new LinkedList<>();
-        List<String> unresolved = new LinkedList<>();
+        Set<Member> members = new LinkedHashSet<>();
+        Set<User> users = new LinkedHashSet<>();
+        Set<Long> ids = new LinkedHashSet<>();
+        Set<String> unresolved = new LinkedHashSet<>();
         Matcher mat;
         User u;
         long i;
@@ -125,14 +127,14 @@ public class ArgsUtil
     
     public static class ResolvedArgs
     {
-        public final List<Member> members;
-        public final List<User> users;
-        public final List<Long> ids;
-        public final List<String> unresolved;
+        public final Set<Member> members;
+        public final Set<User> users;
+        public final Set<Long> ids;
+        public final Set<String> unresolved;
         public final int time;
         public final String reason;
         
-        private ResolvedArgs(List<Member> members, List<User> users, List<Long> ids, List<String> unresolved, int time, String reason)
+        private ResolvedArgs(Set<Member> members, Set<User> users, Set<Long> ids, Set<String> unresolved, int time, String reason)
         {
             this.members = members;
             this.users = users;

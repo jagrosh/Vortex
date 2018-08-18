@@ -47,6 +47,7 @@ import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
 
@@ -84,7 +85,7 @@ public class Vortex
          * 9  - number of shards
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
-        waiter = new EventWaiter();
+        waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(40);
         database = new Database(tokens.get(4), tokens.get(5), tokens.get(6));
         uploader = new TextUploader(this, Long.parseLong(tokens.get(8)));
@@ -103,6 +104,8 @@ public class Vortex
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
                         .setListener(new CommandExceptionListener())
+                        .setScheduleExecutor(threadpool)
+                        .setShutdownAutomatically(false)
                         .addCommands(// General
                             new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
                                                         new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
@@ -188,6 +191,22 @@ public class Vortex
                 .setGame(Game.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
+                .setSessionController(new SessionControllerAdapter()
+                {
+                    @Override
+                    protected void runWorker()
+                    {
+                        synchronized (lock)
+                        {
+                            if (workerHandle == null)
+                            {
+                                workerHandle = new SessionControllerAdapter.QueueWorker(15);
+                                System.gc();
+                                workerHandle.start();
+                            }
+                        }
+                    }
+                })
                 .build();
         
         modlog.start();

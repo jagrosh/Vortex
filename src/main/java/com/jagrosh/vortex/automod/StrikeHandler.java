@@ -69,7 +69,7 @@ public class StrikeHandler
     
     public void applyStrikes(Member moderator, OffsetDateTime nowo, User target, int number, String reason)
     {
-        boolean shouldDM = moderator.getGuild().getMemberById(target.getIdLong())!=null;
+        boolean isMember = moderator.getGuild().getMemberById(target.getIdLong())!=null;
         Instant now = nowo.toInstant();
         int[] counts = vortex.getDatabase().strikes.addStrikes(moderator.getGuild(), target.getIdLong(), number);
         if(counts[0]>110 && counts[1]>110)
@@ -79,7 +79,7 @@ public class StrikeHandler
         if(punishments.isEmpty())
         {
             vortex.getModLogger().postStrikeCase(moderator, nowo, number, counts[0], counts[1], target, reason);
-            OtherUtil.safeDM(target, dmmsg, shouldDM, ()->{});
+            OtherUtil.safeDM(target, dmmsg, isMember, ()->{});
         }
         else
         {
@@ -87,7 +87,7 @@ public class StrikeHandler
             boolean canBan = moderator.getGuild().getSelfMember().hasPermission(Permission.BAN_MEMBERS);
             if(punishments.stream().anyMatch(p -> p.action==Action.BAN) && canBan)
             {
-                OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), shouldDM, 
+                OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), isMember, 
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue());
                 vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong());
                 return;
@@ -106,7 +106,7 @@ public class StrikeHandler
             if(banDuration>0 && canBan)
             {
                 int finalBanDuration = banDuration;
-                OtherUtil.safeDM(target, dmmsg + punishTime(Action.TEMPBAN, moderator.getGuild(), banDuration), shouldDM, 
+                OtherUtil.safeDM(target, dmmsg + punishTime(Action.TEMPBAN, moderator.getGuild(), banDuration), isMember, 
                         () -> moderator.getGuild().getController().ban(target, 7, LogUtil.auditStrikeReasonFormat(moderator, finalBanDuration, counts[0], counts[1], reason)).queue());
                 vortex.getDatabase().tempbans.setBan(moderator.getGuild(), target.getIdLong(), now.plus(banDuration, ChronoUnit.MINUTES));
                 if(muteDuration>0)
@@ -115,7 +115,7 @@ public class StrikeHandler
             }
             if(punishments.stream().anyMatch(p -> p.action==Action.SOFTBAN) && canBan)
             {
-                OtherUtil.safeDM(target, dmmsg + punish(Action.SOFTBAN, moderator.getGuild()), shouldDM, 
+                OtherUtil.safeDM(target, dmmsg + punish(Action.SOFTBAN, moderator.getGuild()), isMember, 
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue(
                                 s -> moderator.getGuild().getController().unban(target).reason(notimeaudit).queueAfter(4, TimeUnit.SECONDS)));
                 if(muteDuration>0)
@@ -127,7 +127,7 @@ public class StrikeHandler
             {
                 if(moderator.getGuild().isMember(target))
                 {
-                    OtherUtil.safeDM(target, dmmsg + punish(Action.KICK, moderator.getGuild()), shouldDM, 
+                    OtherUtil.safeDM(target, dmmsg + punish(Action.KICK, moderator.getGuild()), isMember, 
                         () -> moderator.getGuild().getController().kick(target.getId(), notimeaudit).queue());
                 }
                 else
@@ -147,7 +147,7 @@ public class StrikeHandler
                 if(muted==null || mem==null || !moderator.getGuild().getSelfMember().canInteract(muted))
                 {
                     vortex.getModLogger().postStrikeCase(moderator, nowo, number, counts[0], counts[1], target, reason);
-                    OtherUtil.safeDM(target, dmmsg, shouldDM, ()->{});
+                    OtherUtil.safeDM(target, dmmsg, isMember, ()->{});
                     return;
                 }
                 if(mem.getRoles().contains(muted))
@@ -163,7 +163,7 @@ public class StrikeHandler
                         .queue();
                 }
                 OtherUtil.safeDM(target, dmmsg + (muteDuration==Integer.MAX_VALUE ? punish(Action.MUTE, moderator.getGuild()) 
-                        : punishTime(Action.TEMPMUTE, moderator.getGuild(), muteDuration)), shouldDM, ()->{});
+                        : punishTime(Action.TEMPMUTE, moderator.getGuild(), muteDuration)), isMember, ()->{});
             }
         }
     }

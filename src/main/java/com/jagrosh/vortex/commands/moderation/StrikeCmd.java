@@ -23,6 +23,7 @@ import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
@@ -127,7 +128,7 @@ public class StrikeCmd extends ModCommand
             });
     }
     
-    private void strikeAll(List<User> users, int numstrikes, String reason, StringBuilder builder, CommandEvent event)
+    private void strikeAll(Set<User> users, int numstrikes, String reason, StringBuilder builder, CommandEvent event)
     {
         users.forEach(u -> 
         {

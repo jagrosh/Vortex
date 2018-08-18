@@ -3,8 +3,13 @@
 
 // IP Loggers
 iplogger.com
+iplogger.org
+iplogger.ru
 blasze.tk
 ps3cfw.com
+2no.co
+yip.su
+gotyouripboi.com
 
 // Grabify (IP Loggers)
 grabify.link
@@ -24,6 +29,11 @@ starbucksisbadforyou.com
 bucks.as
 discörd.com
 minecräft.com
+discördapp.com
+freegiftcards.co
+disçordapp.com
+särahah.eu
+särahah.pl
 shört.co
 cyberh1.xyz
 
@@ -50,6 +60,7 @@ featu.re
 pointsprizes.com
 weeklyjob.online
 justdoit.cards
+free.gg
 
 // Scams
 oprewards.com

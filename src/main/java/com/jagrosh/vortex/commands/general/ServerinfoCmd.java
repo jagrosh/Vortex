@@ -31,7 +31,8 @@ import net.dv8tion.jda.core.entities.Guild;
  */
 public class ServerinfoCmd extends Command
 {
-    private final String linestart = "\u25AB";
+    private final static String LINESTART = "\u25AB";
+    
     public ServerinfoCmd()
     {
         this.name = "serverinfo";
@@ -42,7 +43,8 @@ public class ServerinfoCmd extends Command
     }
     
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event) 
+    {
         Guild guild = event.getGuild();
         long onlineCount = guild.getMembers().stream().filter((u) -> (u.getOnlineStatus()!=OnlineStatus.OFFLINE)).count();
         long botCount = guild.getMembers().stream().filter(m -> m.getUser().isBot()).count();
@@ -54,17 +56,19 @@ public class ServerinfoCmd extends Command
             case HIGH:    verif = "(╯°□°）╯︵ ┻━┻"; break;
             default:      verif = guild.getVerificationLevel().name(); break;
         }
-        String str = linestart+"ID: **"+guild.getId()+"**\n"
-                +linestart+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
-                +linestart+"Location: "+guild.getRegion().getEmoji()+" **"+guild.getRegion().getName()+"**\n"
-                +linestart+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
-                +linestart+"Users: **"+guild.getMembers().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
-                +linestart+"Channels: **"+guild.getTextChannels().size()+"** Text, **"+guild.getVoiceChannels().size()+"** Voice\n"
-                +linestart+"Verification: **"+verif+"**";
+        String str = LINESTART+"ID: **"+guild.getId()+"**\n"
+                +LINESTART+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
+                +LINESTART+"Location: "+(guild.getRegion().getEmoji()==null ? "\u2754" : guild.getRegion().getEmoji())+" **"+guild.getRegion().getName()+"**\n"
+                +LINESTART+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                +LINESTART+"Users: **"+guild.getMemberCache().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
+                +LINESTART+"Channels: **"+guild.getTextChannelCache().size()+"** Text, **"+guild.getVoiceChannelCache().size()+"** Voice, **"+guild.getCategoryCache().size()+"** Categories\n"
+                +LINESTART+"Verification: **"+verif+"**";
+        if(!guild.getFeatures().isEmpty())
+            str += "\n"+LINESTART+"Features: **"+String.join("**, **", guild.getFeatures())+"**";
         if(guild.getSplashId()!=null)
         {
             builder.setImage(guild.getSplashUrl()+"?size=1024");
-            str += "\n<:partner:314068430556758017> **Discord Partner** <:partner:314068430556758017>";
+            str += "\n"+LINESTART+"Splash: ";
         }
         if(guild.getIconUrl()!=null)
             builder.setThumbnail(guild.getIconUrl());
@@ -72,5 +76,4 @@ public class ServerinfoCmd extends Command
         builder.setDescription(str);
         event.reply(new MessageBuilder().append(title).setEmbed(builder.build()).build());
     }
-    
 }

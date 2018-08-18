@@ -89,7 +89,7 @@ public class UnbanCmd extends ModCommand
             for(int i=0; i<toUnban.size(); i++)
             {
                 Ban ban = toUnban.get(i);
-                boolean last = i+1 == args.ids.size();
+                boolean last = i+1 == toUnban.size();
                 event.getGuild().getController().unban(ban.getUser()).reason(reason).queue(success -> 
                 {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unbanned ").append(FormatUtil.formatUser(ban.getUser()));

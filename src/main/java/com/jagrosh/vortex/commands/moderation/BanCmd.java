@@ -26,6 +26,8 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import net.dv8tion.jda.core.entities.Role;
 
 /**
@@ -66,6 +68,7 @@ public class BanCmd extends ModCommand
         String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
         Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
+        List<Long> ids = new ArrayList<>(args.ids);
         
         args.members.forEach(m -> 
         {
@@ -76,29 +79,29 @@ public class BanCmd extends ModCommand
             else if(modrole!=null && m.getRoles().contains(modrole))
                 builder.append("\n").append(event.getClient().getError()).append(" I won't ban ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
             else
-                args.ids.add(m.getUser().getIdLong());
+                ids.add(m.getUser().getIdLong());
         });
         
         args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a user ID"));
         
-        args.users.forEach(u -> args.ids.add(u.getIdLong()));
+        args.users.forEach(u -> ids.add(u.getIdLong()));
         
-        if(args.ids.isEmpty())
+        if(ids.isEmpty())
         {
             event.reply(builder.toString());
             return;
         }
         
-        if(args.ids.size() > 5)
+        if(ids.size() > 5)
             event.reactSuccess();
         
         Instant unbanTime = Instant.now().plus(minutes, ChronoUnit.MINUTES);
         String time = minutes==0 ? "" : " for "+FormatUtil.secondsToTimeCompact(minutes*60);
-        for(int i=0; i<args.ids.size(); i++)
+        for(int i=0; i<ids.size(); i++)
         {
-            long uid = args.ids.get(i);
+            long uid = ids.get(i);
             String id = Long.toString(uid);
-            boolean last = i+1 == args.ids.size();
+            boolean last = i+1 == ids.size();
             event.getGuild().getController().ban(id, 1, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
