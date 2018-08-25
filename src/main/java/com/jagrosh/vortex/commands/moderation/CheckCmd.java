@@ -36,7 +36,7 @@ public class CheckCmd extends ModCommand
 {
     public CheckCmd(Vortex vortex)
     {
-        super(vortex, Permission.MESSAGE_SEND);
+        super(vortex, Permission.MESSAGE_SEND); //removed Permission.BAN_MEMBERS because its not needed /shrug
         this.name = "check";
         this.arguments = "<user>";
         this.help = "checks a user";
