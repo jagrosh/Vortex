@@ -57,6 +57,12 @@ restorecosm.bid
 sh.st
 udmoney.club
 zipansion.com
+teemo.gg
+codeforces.com
+spoj.com
+urionlinejudge.com.br
+a2oj.com
+
 
 // Referral Sites
 featu.re
