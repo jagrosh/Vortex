@@ -2,92 +2,96 @@
 // This list contains referral sites
 
 // IP Loggers
+2no.co
+blasze.tk
+gotyouripboi.com
 iplogger.com
 iplogger.org
 iplogger.ru
-blasze.tk
 ps3cfw.com
-2no.co
 yip.su
-gotyouripboi.com
 
 // Grabify (IP Loggers)
-grabify.link
 bmwforum.co
-leancoding.co
-quickmessage.io
-spottyfly.com
-spötify.com
-stopify.co
-yoütu.be
-yoütübe.co
-yoütübe.com
-xda-developers.io
-starbucksiswrong.com
-starbucks.bio
-starbucksisbadforyou.com
 bucks.as
+cyberh1.xyz
 discörd.com
-minecräft.com
 discördapp.com
-freegiftcards.co
 disçordapp.com
+fortnight.space
+fortnitechat.site
+freegiftcards.co
+grabify.link
+joinmy.site
+leancoding.co
+minecräft.com
+quickmessage.us
 särahah.eu
 särahah.pl
 shört.co
-cyberh1.xyz
+spottyfly.com
+spötify.com
+starbucks.bio
+starbucksisbadforyou.com
+starbucksiswrong.com
+stopify.co
+xda-developers.us
+youshouldclick.us
+yoütu.be
+yoütübe.co
+yoütübe.com
 
 // Ad sites
-adf.ly
-zipansion.com
-restorecosm.bid
-sh.st
-ceesty.com
-linkshrink.net
 adexchangecloud.com
+adf.ly
+adfoc.us
+bc.vc
+btcclicks.com
+ceesty.com
 cur.lv
 getcryptotab.com
-udmoney.club
-btcclicks.com
-bc.vc
-adfoc.us
 linkbucks.com
+linkshrink.net
 pnd.tl
+restorecosm.bid
+sh.st
+udmoney.club
+zipansion.com
 
 // Referral Sites
-wn.nr
 featu.re
+free.gg
+justdoit.cards
 pointsprizes.com
 weeklyjob.online
-justdoit.cards
-free.gg
+wn.nr
 
 // Coin Miners
-freebitco.in
+baymack.com
 btconline.io
 btcpool.io
-baymack.com
+freebitco.in
 outbuck.com
 
 // Scams
-giveawaybot.pw
-oprewards.com
-free-gg.com
-rbxfree.com
+easter-event.com
 fortnitevb.com
 fortnite-gifts.com
 fortnite-giveaway.com
 fortnite-special.com
-fortnite-vbucks.net
-fortnite-vbucks.de
 fortnite-vbuck.com
+fortnite-vbucks.de
+fortnite-vbucks.net
+free-gg.com
 free-steam-code.com
-steamquests.com
+giveawaybot.pw
+oprewards.com
+rbxfree.com
 steampromote.com
-steamsummer.com
+steamquests.com
 steamreward.com
 steamspecial.com
-easter-event.com
-steam-wallet-rewards.com
+steamsummer.com
 steam-gift-codes.com
 steam-money.org
+steam-wallet-rewards.com
