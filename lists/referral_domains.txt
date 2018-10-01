@@ -4,6 +4,7 @@
 // IP Loggers
 2no.co
 blasze.tk
+blasze.com
 gotyouripboi.com
 iplogger.com
 iplogger.org
@@ -52,10 +53,15 @@ cur.lv
 getcryptotab.com
 linkbucks.com
 linkshrink.net
+l2s.pet
+ouo.io
 pnd.tl
 restorecosm.bid
 sh.st
+shorte.st
 udmoney.club
+uii.io
+vivads.net
 zipansion.com
 
 // Referral Sites
