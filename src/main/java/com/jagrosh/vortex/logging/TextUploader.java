@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Category;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,26 +40,22 @@ public class TextUploader
     private final Logger LOG = LoggerFactory.getLogger("Upload");
     private final Vortex vortex;
     private final long categoryId;
-    private Category category;
+    private final long guildId;
     private int index = 0;
     
-    public TextUploader(Vortex vortex, long categoryId)
+    public TextUploader(Vortex vortex, long guildId, long categoryId)
     {
         this.vortex = vortex;
+        this.guildId = guildId;
         this.categoryId = categoryId;
     }
     
     public void upload(String content, String filename, Result done)
     {
-        if(category==null)
-        {
-            category = vortex.getShardManager().getCategoryById(categoryId);
-            if(category==null)
-            {
-                LOG.warn("Ignored upload due to unknown category");
-                return;
-            }
-        }
+        Guild guild = vortex.getShardManager().getGuildById(guildId);
+        if(guild==null)
+            return;
+        Category category = guild.getCategoryById(categoryId);
         List<TextChannel> list = category.getTextChannels();
         list.get(index % list.size()).sendFile(content.getBytes(StandardCharsets.UTF_8), filename+".txt", null).queue(
                 m -> done.consume(

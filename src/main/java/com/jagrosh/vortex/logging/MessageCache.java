@@ -21,8 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.bot.sharding.ShardManager;
+import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.entities.Message.Attachment;
 
 /**
  *
@@ -31,26 +32,91 @@ import net.dv8tion.jda.core.entities.Message;
 public class MessageCache
 {
     private final static int SIZE = 1000;
-    private final HashMap<Long,FixedCache<Long,Message>> cache = new HashMap<>();
+    private final HashMap<Long,FixedCache<Long,CachedMessage>> cache = new HashMap<>();
     
-    public Message putMessage(Message m)
+    public CachedMessage putMessage(Message m)
     {
         if(!cache.containsKey(m.getGuild().getIdLong()))
             cache.put(m.getGuild().getIdLong(), new FixedCache<>(SIZE));
-        return cache.get(m.getGuild().getIdLong()).put(m.getIdLong(), m);
+        return cache.get(m.getGuild().getIdLong()).put(m.getIdLong(), new CachedMessage(m));
     }
     
-    public Message pullMessage(Guild guild, long messageId)
+    public CachedMessage pullMessage(Guild guild, long messageId)
     {
         if(!cache.containsKey(guild.getIdLong()))
             return null;
         return cache.get(guild.getIdLong()).pull(messageId);
     }
     
-    public List<Message> getMessages(Guild guild, Predicate<Message> predicate)
+    public List<CachedMessage> getMessages(Guild guild, Predicate<CachedMessage> predicate)
     {
         if(!cache.containsKey(guild.getIdLong()))
             return Collections.EMPTY_LIST;
         return cache.get(guild.getIdLong()).getValues().stream().filter(predicate).collect(Collectors.toList());
+    }
+    
+    public class CachedMessage implements ISnowflake
+    {
+        private final String content;
+        private final long id, author, channel, guild;
+        private final List<Attachment> attachments;
+        
+        private CachedMessage(Message message)
+        {
+            content = message.getContentRaw();
+            id = message.getIdLong();
+            author = message.getAuthor().getIdLong();
+            channel = message.getChannel().getIdLong();
+            guild = message.getGuild()==null ? 0L : message.getGuild().getIdLong();
+            attachments = message.getAttachments();
+        }
+        
+        public String getContentRaw()
+        {
+            return content;
+        }
+        
+        public List<Attachment> getAttachments()
+        {
+            return attachments;
+        }
+        
+        public User getAuthor(ShardManager shardManager)
+        {
+            return shardManager.getUserById(author);
+        }
+        
+        public long getAuthorId()
+        {
+            return author;
+        }
+        
+        public TextChannel getTextChannel(ShardManager shardManager)
+        {
+            if (guild == 0L)
+                return null;
+            Guild g = shardManager.getGuildById(guild);
+            if (g == null)
+                return null;
+            return g.getTextChannelById(channel);
+        }
+        
+        public TextChannel getTextChannel(Guild guild)
+        {
+            return guild.getTextChannelById(channel);
+        }
+        
+        public Guild getGuild(ShardManager shardManager)
+        {
+            if (guild == 0L)
+                return null;
+            return shardManager.getGuildById(guild);
+        }
+
+        @Override
+        public long getIdLong()
+        {
+            return id;
+        }
     }
 }

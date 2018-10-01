@@ -62,7 +62,15 @@ weeklyjob.online
 justdoit.cards
 free.gg
 
+// Coin Miners
+freebitco.in
+btconline.io
+btcpool.io
+baymack.com
+outbuck.com
+
 // Scams
+giveawaybot.pw
 oprewards.com
 free-gg.com
 rbxfree.com

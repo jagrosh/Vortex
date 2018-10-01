@@ -16,12 +16,14 @@
 package com.jagrosh.vortex.utils;
 
 import com.jagrosh.vortex.Action;
+import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
@@ -125,6 +127,29 @@ public class LogUtil
                 .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                 .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
                 .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
+            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
+        }
+        return sb.toString().trim();
+    }
+    
+    public static String logCachedMessagesForwards(String title, List<CachedMessage> messages, ShardManager shardManager)
+    {
+        TextChannel deltc = messages.get(0).getTextChannel(shardManager);
+        Guild delg = deltc.getGuild();
+        StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
+        CachedMessage m;
+        for(int i=0; i<messages.size(); i++)
+        {
+            m = messages.get(i);
+            User author = m.getAuthor(shardManager);
+            sb.append("\r\n\r\n[")
+                .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                .append("] ");
+            if(author==null)
+                sb.append("Unknown User#0000 (").append(m.getAuthorId());
+            else
+                sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
+            sb.append(") : ").append(m.getContentRaw());
             m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
         }
         return sb.toString().trim();

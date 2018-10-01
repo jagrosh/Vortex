@@ -19,6 +19,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
+import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
@@ -278,7 +279,7 @@ public class AutoMod
                 if(offenses==settings.dupeDeleteThresh)
                 {
                     shouldChannelMute = "Please stop spamming.";
-                    purgeMessages(message.getGuild(), m -> m.getAuthor().getIdLong()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
+                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
                 }
                 else if(offenses>settings.dupeDeleteThresh)
                     shouldDelete = true;
@@ -502,13 +503,15 @@ public class AutoMod
         }
     }
     
-    private void purgeMessages(Guild guild, Predicate<Message> predicate)
+    private void purgeMessages(Guild guild, Predicate<CachedMessage> predicate)
     {
         vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
         {
             try
             {
-                m.delete().queue(s->{}, f->{});
+                TextChannel mtc = m.getTextChannel(guild);
+                if(mtc!=null)
+                    mtc.deleteMessageById(m.getIdLong()).queue(s->{}, f->{});
             }
             catch(PermissionException ex) {}
         });

@@ -15,6 +15,7 @@
  */
 package com.jagrosh.vortex;
 
+import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -80,7 +81,7 @@ public class Listener implements EventListener
                 vortex.getAutoMod().performAutomod(m);
                 
                 // Store and log the edit
-                Message old = vortex.getMessageCache().putMessage(m);
+                CachedMessage old = vortex.getMessageCache().putMessage(m);
                 vortex.getBasicLogger().logMessageEdit(m, old);
             }
         }
@@ -89,7 +90,7 @@ public class Listener implements EventListener
             GuildMessageDeleteEvent gevent = (GuildMessageDeleteEvent) event;
             
             // Log the deletion
-            Message old = vortex.getMessageCache().pullMessage(gevent.getGuild(), gevent.getMessageIdLong());
+            CachedMessage old = vortex.getMessageCache().pullMessage(gevent.getGuild(), gevent.getMessageIdLong());
             vortex.getBasicLogger().logMessageDelete(old);
         }
         else if (event instanceof MessageBulkDeleteEvent)
@@ -97,7 +98,7 @@ public class Listener implements EventListener
             MessageBulkDeleteEvent gevent = (MessageBulkDeleteEvent) event;
             
             // Get the messages we had cached
-            List<Message> logged = gevent.getMessageIds().stream()
+            List<CachedMessage> logged = gevent.getMessageIds().stream()
                     .map(id -> vortex.getMessageCache().pullMessage(gevent.getGuild(), Long.parseLong(id)))
                     .filter(m -> m!=null)
                     .collect(Collectors.toList());

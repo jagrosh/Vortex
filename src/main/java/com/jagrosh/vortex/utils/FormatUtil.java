@@ -23,6 +23,7 @@ import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.VoiceChannel;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.awt.Color;
 import java.util.Collections;
 import java.util.function.Function;
@@ -52,6 +53,18 @@ public class FormatUtil {
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
         return sb.length()>2048 ? sb.toString().substring(0, 2040) : sb.toString();
+    }
+    
+    public static String formatMessage(CachedMessage m)
+    {
+        StringBuilder sb = new StringBuilder(m.getContentRaw());
+        m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
+        return sb.length()>2048 ? sb.toString().substring(0, 2040) : sb.toString();
+    }
+    
+    public static String formatFullUserId(long userId)
+    {
+        return "<@"+userId+"> (ID:"+userId+")";
     }
     
     public static String formatUser(User user)

@@ -17,6 +17,7 @@ package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.utils.AvatarUtil;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.awt.Color;
@@ -28,10 +29,7 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
@@ -86,11 +84,12 @@ public class BasicLogger
     
     // Message Logs
     
-    public void logMessageEdit(Message newMessage, Message oldMessage)
+    public void logMessageEdit(Message newMessage, CachedMessage oldMessage)
     {
         if(oldMessage==null)
             return;
-        PermissionOverride po = oldMessage.getTextChannel().getPermissionOverride(oldMessage.getGuild().getSelfMember());
+        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
         TextChannel tc = vortex.getDatabase().settings.getSettings(newMessage.getGuild()).getMessageLogChannel(newMessage.getGuild());
@@ -111,14 +110,18 @@ public class BasicLogger
                 FormatUtil.formatFullUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
     }
     
-    public void logMessageDelete(Message oldMessage)
+    public void logMessageDelete(CachedMessage oldMessage)
     {
         if(oldMessage==null)
             return;
-        PermissionOverride po = oldMessage.getTextChannel().getPermissionOverride(oldMessage.getGuild().getSelfMember());
+        Guild guild = oldMessage.getGuild(vortex.getShardManager());
+        if(guild==null)
+            return;
+        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        PermissionOverride po = mtc.getPermissionOverride(guild.getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
-        TextChannel tc = vortex.getDatabase().settings.getSettings(oldMessage.getGuild()).getMessageLogChannel(oldMessage.getGuild());
+        TextChannel tc = vortex.getDatabase().settings.getSettings(guild).getMessageLogChannel(guild);
         if(tc==null)
             return;
         String formatted = FormatUtil.formatMessage(oldMessage);
@@ -127,11 +130,12 @@ public class BasicLogger
         EmbedBuilder delete = new EmbedBuilder()
                 .setColor(Color.RED)
                 .appendDescription(formatted);
-        log(OffsetDateTime.now(), tc, "\u274C", 
-                FormatUtil.formatFullUser(oldMessage.getAuthor())+"'s message has been deleted from "+oldMessage.getTextChannel().getAsMention()+":", delete.build());
+        User author = oldMessage.getAuthor(vortex.getShardManager());
+        String user = author==null ? FormatUtil.formatFullUserId(oldMessage.getAuthorId()) : FormatUtil.formatFullUser(author);
+        log(OffsetDateTime.now(), tc, "\u274C", user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
     }
     
-    public void logMessageBulkDelete(List<Message> messages, int count, TextChannel text)
+    public void logMessageBulkDelete(List<CachedMessage> messages, int count, TextChannel text)
     {
         if(count==0)
             return;
@@ -143,7 +147,8 @@ public class BasicLogger
             //log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
             return;
         }
-        PermissionOverride po = messages.get(0).getTextChannel().getPermissionOverride(messages.get(0).getGuild().getSelfMember());
+        TextChannel mtc = messages.get(0).getTextChannel(vortex.getShardManager());
+        PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
         if(messages.size()==1)
@@ -154,11 +159,12 @@ public class BasicLogger
             EmbedBuilder delete = new EmbedBuilder()
                     .setColor(Color.RED)
                     .appendDescription(formatted);
-            log(OffsetDateTime.now(), tc, "\u274C", 
-                    FormatUtil.formatFullUser(messages.get(0).getAuthor())+"'s message has been deleted from "+messages.get(0).getTextChannel().getAsMention()+":", delete.build());
+            User author = messages.get(0).getAuthor(vortex.getShardManager());
+            String user = author==null ? FormatUtil.formatFullUserId(messages.get(0).getAuthorId()) : FormatUtil.formatFullUser(author);
+            log(OffsetDateTime.now(), tc, "\u274C", user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
             return;
         }
-        vortex.getTextUploader().upload(LogUtil.logMessagesForwards("Deleted Messages", messages), "DeletedMessages", (view, download) ->
+        vortex.getTextUploader().upload(LogUtil.logCachedMessagesForwards("Deleted Messages", messages, vortex.getShardManager()), "DeletedMessages", (view, download) ->
         {
             log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged):", 
                 new EmbedBuilder().setColor(Color.RED.darker().darker())

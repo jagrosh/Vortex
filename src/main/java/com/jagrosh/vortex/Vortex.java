@@ -42,12 +42,14 @@ import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
+import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.SessionControllerAdapter;
+import net.dv8tion.jda.core.utils.cache.CacheFlag;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
 
@@ -81,14 +83,15 @@ public class Vortex
          * 5  - database username
          * 6  - database password
          * 7  - log webhook url
-         * 8  - category id
+         * 8  - guild id : category id
          * 9  - number of shards
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        threadpool = Executors.newScheduledThreadPool(40);
+        threadpool = Executors.newScheduledThreadPool(50);
         database = new Database(tokens.get(4), tokens.get(5), tokens.get(6));
-        uploader = new TextUploader(this, Long.parseLong(tokens.get(8)));
+        String[] split = tokens.get(8).split(":");
+        uploader = new TextUploader(this, Long.parseLong(split[0].trim()), Long.parseLong(split[1].trim()));
         modlog = new ModLogger(this);
         basiclog = new BasicLogger(this);
         messages = new MessageCache();
@@ -191,6 +194,7 @@ public class Vortex
                 .setGame(Game.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE))
                 .setSessionController(new SessionControllerAdapter()
                 {
                     @Override
@@ -200,7 +204,7 @@ public class Vortex
                         {
                             if (workerHandle == null)
                             {
-                                workerHandle = new SessionControllerAdapter.QueueWorker(15);
+                                workerHandle = new SessionControllerAdapter.QueueWorker(20);
                                 System.gc();
                                 workerHandle.start();
                             }
@@ -287,7 +291,7 @@ public class Vortex
             if(!g.isAvailable())
                 return false;
             int botcount = (int)g.getMembers().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMembers().size()-botcount<7 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
+            if(g.getMembers().size()-botcount<10 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
             {
                 if(database.settings.hasSettings(g))
                     return false;

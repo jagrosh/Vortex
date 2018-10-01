@@ -100,7 +100,7 @@ public class AutomodManager extends DataManager
                     ? "Disabled\n\n"
                     : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
                       "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
-                      "Attempted @\u0435veryone: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
+                      "@\u0435veryone Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
                 + "__Miscellaneous__\n"
                     + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
                         ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 
