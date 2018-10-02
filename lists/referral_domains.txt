@@ -57,6 +57,14 @@ restorecosm.bid
 sh.st
 udmoney.club
 zipansion.com
+quikr.com
+clixsense.com
+saybucks.com
+swagbucks.com
+cinchbucks.com
+toluna.com
+neobux.com
+
 
 // Referral Sites
 featu.re
