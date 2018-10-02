@@ -44,6 +44,8 @@ yoütübe.com
 
 // Ad sites
 adexchangecloud.com
+adblade.com
+adcash.com
 adf.ly
 adfoc.us
 bc.vc
@@ -77,6 +79,9 @@ justdoit.cards
 pointsprizes.com
 weeklyjob.online
 wn.nr
+black-friday.ga
+easycommerce.cf
+makeprogress.ga
 
 // Coin Miners
 baymack.com
@@ -84,6 +89,7 @@ btconline.io
 btcpool.io
 freebitco.in
 outbuck.com
+minero.cc
 
 // Scams
 easter-event.com
@@ -107,3 +113,5 @@ steamsummer.com
 steam-gift-codes.com
 steam-money.org
 steam-wallet-rewards.com
+myetherermwallet.com
+
