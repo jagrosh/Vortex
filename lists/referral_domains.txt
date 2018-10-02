@@ -65,6 +65,7 @@ justdoit.cards
 pointsprizes.com
 weeklyjob.online
 wn.nr
+bajamach.com
 
 // Coin Miners
 baymack.com
@@ -72,6 +73,7 @@ btconline.io
 btcpool.io
 freebitco.in
 outbuck.com
+coinhive.com
 
 // Scams
 easter-event.com
