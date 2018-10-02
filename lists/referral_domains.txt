@@ -44,20 +44,26 @@ yoütübe.com
 // Ad sites
 adblade.com
 adcash.com
+adcell.de
 adexchangecloud.com
 adf.ly
 adfoc.us
+adforce.com
 bc.vc
 bitl.cc
 btcclicks.com
 ceesty.com
 cur.lv
+fastclick.com
 getcryptotab.com
+gmads.net
 l2s.pet
 linkbucks.com
 linkshrink.net
 miniurl.pw
+nitroclicks.com
 ouo.io
+pay-ads.com
 petty.link
 pnd.tl
 restorecosm.bid
@@ -69,6 +75,8 @@ udmoney.club
 uii.io
 ur-l.me
 vivads.net
+xponsor.com
+zeusclicks.com
 zipansion.com
 
 // Referral Sites
