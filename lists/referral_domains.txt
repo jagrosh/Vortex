@@ -1,8 +1,9 @@
-﻿// Referral Domain List
+// Referral Domain List
 // This list contains referral sites
 
 // IP Loggers
 2no.co
+blasze.com
 blasze.tk
 gotyouripboi.com
 iplogger.com
@@ -16,7 +17,6 @@ bmwforum.co
 bucks.as
 cyberh1.xyz
 discörd.com
-discördapp.com
 disçordapp.com
 fortnight.space
 fortnitechat.site
@@ -29,8 +29,8 @@ quickmessage.us
 särahah.eu
 särahah.pl
 shört.co
-spottyfly.com
 spötify.com
+spottyfly.com
 starbucks.bio
 starbucksisbadforyou.com
 starbucksiswrong.com
@@ -42,26 +42,50 @@ yoütübe.co
 yoütübe.com
 
 // Ad sites
+adblade.com
+adcash.com
+adcell.de
 adexchangecloud.com
 adf.ly
 adfoc.us
+adforce.com
 bc.vc
+bitl.cc
 btcclicks.com
 ceesty.com
 cur.lv
+fastclick.com
 getcryptotab.com
+gmads.net
+l2s.pet
 linkbucks.com
 linkshrink.net
+miniurl.pw
+nitroclicks.com
+ouo.io
+pay-ads.com
+petty.link
 pnd.tl
 restorecosm.bid
 sh.st
+short.es
+shorte.st
+shrtz.me
 udmoney.club
+uii.io
+ur-l.me
+vivads.net
+xponsor.com
+zeusclicks.com
 zipansion.com
 
 // Referral Sites
+black-friday.ga
+easycommerce.cf
 featu.re
 free.gg
 justdoit.cards
+makeprogress.ga
 pointsprizes.com
 weeklyjob.online
 wn.nr
@@ -71,27 +95,30 @@ baymack.com
 btconline.io
 btcpool.io
 freebitco.in
+minero.cc
 outbuck.com
 
 // Scams
 easter-event.com
-fortnitevb.com
 fortnite-gifts.com
 fortnite-giveaway.com
 fortnite-special.com
 fortnite-vbuck.com
 fortnite-vbucks.de
 fortnite-vbucks.net
+fortnitevb.com
 free-gg.com
 free-steam-code.com
 giveawaybot.pw
+myetherermwallet.com
 oprewards.com
 rbxfree.com
+steam-gift-codes.com
+steam-money.org
+steam-wallet-rewards.com
 steampromote.com
 steamquests.com
 steamreward.com
 steamspecial.com
 steamsummer.com
-steam-gift-codes.com
-steam-money.org
-steam-wallet-rewards.com
+
