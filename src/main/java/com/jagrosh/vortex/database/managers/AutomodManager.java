@@ -35,7 +35,7 @@ public class AutomodManager extends DataManager
     public final static int MAX_STRIKES = 100;
     public final static int MENTION_MINIMUM = 4;
     public final static int ROLE_MENTION_MINIMUM = 2;
-    private static final String SETTINGS_TITLE = "\uD83D\uDEE1 Automod Settings";
+    private static final String SETTINGS_TITLE = "\uD83D\uDEE1 Automod Settings"; // 🛡
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
     
@@ -100,7 +100,7 @@ public class AutomodManager extends DataManager
                     ? "Disabled\n\n"
                     : "Max Lines / Msg: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
                       "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
-                      "@\u0435very1 Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
+                      "@\u0435very1 Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n") // cyrillic e
                 + "__Miscellaneous__\n"
                     + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
                         ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 

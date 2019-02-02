@@ -34,8 +34,8 @@ import net.dv8tion.jda.core.entities.VoiceChannel;
  */
 public class SetupCmd extends Command
 {
-    private final String CANCEL = "\u274C";
-    private final String CONFIRM = "\u2611";
+    private final String CANCEL = "\u274C"; // ❌
+    private final String CONFIRM = "\u2611"; // ☑
     
     private final Vortex vortex;
     

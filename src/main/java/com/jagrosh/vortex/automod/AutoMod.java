@@ -97,10 +97,12 @@ public class AutoMod
     {
         vortex.getDatabase().settings.enableRaidMode(guild);
         if(guild.getVerificationLevel().getKey()<VerificationLevel.HIGH.getKey())
+        {
             try
             {
                 guild.getManager().setVerificationLevel(VerificationLevel.HIGH).reason("Enabling Anti-Raid Mode").queue();
-            } catch(PermissionException ex) {}
+            } catch(PermissionException ignore) {}
+        }
         vortex.getModLogger().postRaidmodeCase(moderator, now, true, reason);
     }
     
@@ -108,10 +110,12 @@ public class AutoMod
     {
         VerificationLevel last = vortex.getDatabase().settings.disableRaidMode(guild);
         if(guild.getVerificationLevel()!=last)
+        {
             try
             {
                 guild.getManager().setVerificationLevel(last).reason("Disabling Anti-Raid Mode").queue();
-            } catch(PermissionException ex) {}
+            } catch(PermissionException ignore) {}
+        }
         vortex.getModLogger().postRaidmodeCase(moderator, now, false, reason);
     }
     
@@ -159,13 +163,13 @@ public class AutoMod
         
         if(kicking)
         {
-            OtherUtil.safeDM(event.getUser(),
-                    "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. Please try joining again later. Sorry for the inconvenience.", true, () -> 
+            OtherUtil.safeDM(event.getUser(), "Sorry, **"+event.getGuild().getName()+"** is currently under lockdown. "
+                    + "Please try joining again later. Sorry for the inconvenience.", true, () -> 
                     {
                         try
                         {
                             event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
-                        }catch(Exception ex){}
+                        }catch(Exception ignore){}
                     });
         }
         else
@@ -174,8 +178,10 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController().addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild())).reason(RESTORE_MUTE_ROLE_AUDIT).queue();
-                } catch(Exception ex){}
+                    event.getGuild().getController()
+                            .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
+                            .reason(RESTORE_MUTE_ROLE_AUDIT).queue();
+                } catch(Exception ignore){}
             }
             dehoist(event.getMember());
         }
@@ -240,7 +246,7 @@ public class AutoMod
         {
             OtherUtil.dehoist(member, settings.dehoistChar);
         }
-        catch(Exception ex) {}
+        catch(Exception ignore) {}
     }
     
     public void performAutomod(Message message) 
@@ -409,7 +415,7 @@ public class AutoMod
             try
             {
                 message.delete().reason("Automod").queue(v->{}, f->{});
-            }catch(PermissionException e){}
+            }catch(PermissionException ignore){}
         }
         
         // channel mute if applicable (prevent sending messages in that channel for a short time as a 'warning'
@@ -429,7 +435,7 @@ public class AutoMod
                             try
                             {
                                 p.delete().queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
-                            } catch(Exception ex) {}
+                            } catch(Exception ignore) {}
                         }, f->{});
                     }
                     else
@@ -440,10 +446,10 @@ public class AutoMod
                             try
                             {
                                 po.getManager().deny(existingDenied).queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
-                            } catch(Exception ex) {}
+                            } catch(Exception ignore) {}
                         }, f->{});
                     }
-                } catch(Exception ex) {}
+                } catch(Exception ignore) {}
             }, f->{});
         }
         
@@ -497,7 +503,7 @@ public class AutoMod
                         try
                         {
                             message.delete().reason("Automod").queue(v->{}, f->{});
-                        }catch(PermissionException e){}
+                        }catch(PermissionException ignore){}
                         vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
                             latestTime(message), message.getAuthor(), rstrikeTotal, rreason);
                     }
@@ -515,7 +521,7 @@ public class AutoMod
                 if(mtc!=null)
                     mtc.deleteMessageById(m.getIdLong()).queue(s->{}, f->{});
             }
-            catch(PermissionException ex) {}
+            catch(PermissionException ignore) {}
         });
     }
     

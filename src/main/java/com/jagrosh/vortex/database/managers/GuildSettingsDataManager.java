@@ -41,7 +41,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class GuildSettingsDataManager extends DataManager implements GuildSettingsManager
 {
     public final static int PREFIX_MAX_LENGTH = 40;
-    private static final String SETTINGS_TITLE = "\uD83D\uDCCA Server Settings";
+    private static final String SETTINGS_TITLE = "\uD83D\uDCCA Server Settings"; // 📊
     private static final ZoneId DEFAULT_TIMEZONE = ZoneId.of("GMT-4");
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
@@ -56,7 +56,10 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     public final static SQLColumn<String> PREFIX = new StringColumn("PREFIX", true, null, PREFIX_MAX_LENGTH);
     public final static SQLColumn<String> TIMEZONE = new StringColumn("TIMEZONE",true,null,32);
 
-    public final static SQLColumn<Integer> RAIDMODE = new IntegerColumn("RAIDMODE",false,-2); // -2 = Raid Mode not activated, -1+ = Raid Mode active, level to set permission when finished
+    public final static SQLColumn<Integer> RAIDMODE = new IntegerColumn("RAIDMODE",false,-2); 
+    // -2 = Raid Mode not activated
+    // -1+ = Raid Mode active
+    // level to set permission when finished
     
     // Cache
     private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(1000);

@@ -183,7 +183,7 @@ public class Vortex
                                 try
                                 {
                                     event.getMessage().addReaction(Constants.HELP_REACTION).queue(s->{}, f->{});
-                                } catch(PermissionException ex) {}
+                                } catch(PermissionException ignore) {}
                         }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
                         .setDiscordBotsKey(tokens.get(1))
                         //.setCarbonitexKey(tokens.get(2))

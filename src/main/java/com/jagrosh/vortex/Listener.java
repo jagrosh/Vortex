@@ -212,7 +212,7 @@ public class Listener implements EventListener
             ShardInfo si = event.getJDA().getShardInfo();
             String shardinfo = si==null ? "1/1" : (si.getShardId()+1)+"/"+si.getShardTotal();
             LOG.info("Shard "+shardinfo+" is ready.");
-            vortex.getLogWebhook().send("\uD83C\uDF00 Shard `"+shardinfo+"` has connected. Guilds: `"
+            vortex.getLogWebhook().send("\uD83C\uDF00 Shard `"+shardinfo+"` has connected. Guilds: `" // 🌀
                     +event.getJDA().getGuildCache().size()+"` Users: `"+event.getJDA().getUserCache().size()+"`");
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempbans.checkUnbans(event.getJDA()), 0, 2, TimeUnit.MINUTES);
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempmutes.checkUnmutes(event.getJDA(), vortex.getDatabase().settings), 0, 45, TimeUnit.SECONDS);

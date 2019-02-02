@@ -41,11 +41,13 @@ import net.dv8tion.jda.core.entities.TextChannel;
 public class FormatUtil {
     
     private final static String MULTIPLE_FOUND = "**Multiple %s found matching \"%s\":**";
-    private final static String CMD_EMOJI = "\uD83D\uDCDC";
+    private final static String CMD_EMOJI = "\uD83D\uDCDC"; // 📜
     
     public static String filterEveryone(String input)
     {
-        return input.replace("@everyone","@\u0435veryone").replace("@here","@h\u0435re").replace("discord.gg/", "dis\u0441ord.gg/");
+        return input.replace("@everyone","@\u0435veryone") // cyrillic e
+                .replace("@here","@h\u0435re") // cyrillic e
+                .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
     }
     
     public static String formatMessage(Message m)
@@ -297,9 +299,9 @@ public class FormatUtil {
     
     public static String helpLinks(CommandEvent event)
     {
-        return "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"
+        return "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n" // 🔗
                 + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
-                + "\uD83D\uDCDC [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
+                +  CMD_EMOJI + " [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
                 + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")";
     }
 }

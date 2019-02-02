@@ -40,6 +40,9 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class CleanCmd extends ModCommand
 {
+    private final static String VIEW = "\uD83D\uDCC4"; // 📄
+    private final static String DOWNLOAD = "\uD83D\uDCE9"; // 📩
+    
     private final Pattern LINK_PATTERN = Pattern.compile("https?:\\/\\/.+");
     private final Pattern QUOTES_PATTERN = Pattern.compile("[\"“”](.*?)[\"“”]", Pattern.DOTALL);
     private final Pattern CODE_PATTERN = Pattern.compile("`(.*?)`", Pattern.DOTALL);
@@ -180,10 +183,11 @@ public class CleanCmd extends ModCommand
                     del.add(msg);
                     continue;
                 }
-                try{
+                try
+                {
                     if(p!=null && msg.getContentRaw().matches(p))
                         del.add(msg);
-                }catch(Exception e){}
+                } catch(Exception ignore) {}
             }
 
             if(del.isEmpty())
@@ -234,7 +238,7 @@ public class CleanCmd extends ModCommand
             {
                 vortex.getModLogger().postCleanCase(event.getMember(), event.getMessage().getCreationTime(), del.size(),
                         event.getTextChannel(), params, null, new EmbedBuilder().setColor(event.getSelfMember().getColor())
-                                .appendDescription("[`\uD83D\uDCC4 View`]("+view+")  |  [`\uD83D\uDCE9 Download`]("+download+")").build());
+                                .appendDescription("[`"+VIEW+" View`]("+view+")  |  [`"+DOWNLOAD+" Download`]("+download+")").build());
             });
         });
     }

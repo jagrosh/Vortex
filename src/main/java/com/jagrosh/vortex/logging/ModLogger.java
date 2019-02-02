@@ -144,7 +144,7 @@ public class ModLogger
                                 i, moderator.getUser(), numMessages, target, criteria, reason)))
                         .build()).queue();
             }
-            catch(PermissionException ex) {}
+            catch(PermissionException ignore) {}
         });
     }
     
@@ -221,9 +221,15 @@ public class ModLogger
                 Action act = null;
                 switch(ale.getType())
                 {
-                    case BAN: act = Action.BAN; break;
-                    case KICK: act = Action.KICK; break;
-                    case UNBAN: act = Action.UNBAN; break;
+                    case BAN: 
+                        act = Action.BAN; 
+                        break;
+                    case KICK: 
+                        act = Action.KICK; 
+                        break;
+                    case UNBAN: 
+                        act = Action.UNBAN; 
+                        break;
                     case MEMBER_ROLE_UPDATE:
                         if(mRole==null)
                             break;
@@ -246,6 +252,7 @@ public class ModLogger
                             }
                         }
                         break;
+                    default:
                 }
                 if(act!=null)
                 {
@@ -340,6 +347,22 @@ public class ModLogger
         }
     }
     
+    private static int getCaseNumber(Message m)
+    {
+        if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
+            return -1;
+        if(!m.getContentRaw().startsWith("`["))
+            return -1;
+        try
+        {
+            return Integer.parseInt(m.getContentRaw().substring(15, m.getContentRaw().indexOf("]` ",15)));
+        }
+        catch(Exception e)
+        {
+            return -1;
+        }
+    }
+    
     private void getCaseNumberAsync(TextChannel tc, Consumer<Integer> result)
     {
         if(caseNum.containsKey(tc.getGuild().getIdLong()))
@@ -372,21 +395,5 @@ public class ModLogger
     private static String banCacheKey(AuditLogEntry ale, User mod)
     {
         return ale.getGuild().getId()+"|"+ale.getTargetId()+"|"+mod.getId();
-    }
-    
-    private static int getCaseNumber(Message m)
-    {
-        if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
-            return -1;
-        if(!m.getContentRaw().startsWith("`["))
-            return -1;
-        try
-        {
-            return Integer.parseInt(m.getContentRaw().substring(15, m.getContentRaw().indexOf("]` ",15)));
-        }
-        catch(Exception e)
-        {
-            return -1;
-        }
     }
 }

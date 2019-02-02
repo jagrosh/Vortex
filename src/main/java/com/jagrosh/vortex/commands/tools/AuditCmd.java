@@ -42,7 +42,7 @@ import net.dv8tion.jda.core.requests.restaction.pagination.AuditLogPaginationAct
 public class AuditCmd extends Command
 {
     private final String actions;
-    private final String linestart = "\u25AB";
+    private final String linestart = "\u25AB"; // ▫
     private final String unknown = "*Unknown*";
     
     public AuditCmd()
@@ -232,8 +232,8 @@ public class AuditCmd extends Command
             case WEBHOOK_REMOVE:          return "<:deleteWebhook:417574812098101250>";
             case WEBHOOK_UPDATE:          return "<:updateWebhook:417574812534439946>";
             
-            case UNKNOWN:                 return "\u2753";
-            default:                      return "\u2753";
+            case UNKNOWN:                 return "\u2753"; // ❓
+            default:                      return "\u2753"; // ❓
         }
     }
 }
