@@ -187,7 +187,7 @@ public class BasicLogger
             return;
         StringBuilder sb = new StringBuilder(REDIR_END+" **"+link+"**");
         for(int i=0; i<redirects.size(); i++)
-            sb.append("\n").append(redirects.size()-1==i ? REDIR_END + " **" : REDIR_MID.append(redirects.get(i)).append(redirects.size()-1==i ? "**" : "");
+            sb.append("\n").append(redirects.size()-1==i ? REDIR_END + " **" : REDIR_MID).append(redirects.get(i)).append(redirects.size()-1==i ? "**" : "");
         log(OffsetDateTime.now(), tc, REDIRECT, 
                 FormatUtil.formatFullUser(message.getAuthor())+"'s message in "+message.getTextChannel().getAsMention()+" contained redirects:", 
                 new EmbedBuilder().setColor(Color.BLUE.brighter().brighter()).appendDescription(sb.toString()).build());

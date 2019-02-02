@@ -34,9 +34,10 @@ import net.dv8tion.jda.core.entities.Invite;
  */
 public class InvitepruneCmd extends Command
 {
+    private final static String CANCEL = "\u274C"; // ❌
+    private final static String CONFIRM = "\u2611"; // ☑
+    
     private final Vortex vortex;
-    private final String CANCEL = "\u274C";
-    private final String CONFIRM = "\u2611";
     
     public InvitepruneCmd(Vortex vortex)
     {

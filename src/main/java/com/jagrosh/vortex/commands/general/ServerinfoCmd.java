@@ -31,7 +31,9 @@ import net.dv8tion.jda.core.entities.Guild;
  */
 public class ServerinfoCmd extends Command
 {
-    private final static String LINESTART = "\u25AB";
+    private final static String LINESTART = "\u25AB"; // ▫
+    private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
+    private final static String NO_REGION = "\u2754"; // ❔
     
     public ServerinfoCmd()
     {
@@ -49,16 +51,22 @@ public class ServerinfoCmd extends Command
         long onlineCount = guild.getMembers().stream().filter((u) -> (u.getOnlineStatus()!=OnlineStatus.OFFLINE)).count();
         long botCount = guild.getMembers().stream().filter(m -> m.getUser().isBot()).count();
         EmbedBuilder builder = new EmbedBuilder();
-        String title = FormatUtil.filterEveryone("\uD83D\uDDA5 Information about **"+guild.getName()+"**:");
+        String title = FormatUtil.filterEveryone(GUILD_EMOJI + " Information about **"+guild.getName()+"**:");
         String verif;
         switch(guild.getVerificationLevel()) {
-            case VERY_HIGH: verif = "┻━┻ミヽ(ಠ益ಠ)ノ彡┻━┻"; break;
-            case HIGH:    verif = "(╯°□°）╯︵ ┻━┻"; break;
-            default:      verif = guild.getVerificationLevel().name(); break;
+            case VERY_HIGH: 
+                verif = "┻━┻ミヽ(ಠ益ಠ)ノ彡┻━┻"; 
+                break;
+            case HIGH:    
+                verif = "(╯°□°）╯︵ ┻━┻"; 
+                break;
+            default:      
+                verif = guild.getVerificationLevel().name(); 
+                break;
         }
         String str = LINESTART+"ID: **"+guild.getId()+"**\n"
                 +LINESTART+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
-                +LINESTART+"Location: "+(guild.getRegion().getEmoji()==null ? "\u2754" : guild.getRegion().getEmoji())+" **"+guild.getRegion().getName()+"**\n"
+                +LINESTART+"Location: "+(guild.getRegion().getEmoji()==null ? NO_REGION : guild.getRegion().getEmoji())+" **"+guild.getRegion().getName()+"**\n"
                 +LINESTART+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 +LINESTART+"Users: **"+guild.getMemberCache().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
                 +LINESTART+"Channels: **"+guild.getTextChannelCache().size()+"** Text, **"+guild.getVoiceChannelCache().size()+"** Voice, **"+guild.getCategoryCache().size()+"** Categories\n"

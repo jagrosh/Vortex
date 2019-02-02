@@ -35,8 +35,10 @@ public class OtherUtil
 {
     private final static Logger LOG = LoggerFactory.getLogger(OtherUtil.class);
     
-    public final static char[] DEHOIST_ORIGINAL =     {'!',      '"',      '#',      '$',      '%',      '&',      '\'',     '(',      ')',      '*',      '+',      ',',      '-',      '.',      '/'};
-    public final static char[] DEHOIST_REPLACEMENTS = {'\u01C3', '\u201C', '\u2D4C', '\uFF04', '\u2105', '\u214B', '\u2018', '\u2768', '\u2769', '\u2217', '\u2722', '\u201A', '\u2013', '\uFBB3', '\u2044'};
+    public final static char[] DEHOIST_ORIGINAL =     {'!',      '"',      '#',      '$',      '%',      
+        '&',      '\'',     '(',      ')',      '*',      '+',      ',',      '-',      '.',      '/'};
+    public final static char[] DEHOIST_REPLACEMENTS = {'\u01C3', '\u201C', '\u2D4C', '\uFF04', '\u2105',     // visually
+        '\u214B', '\u2018', '\u2768', '\u2769', '\u2217', '\u2722', '\u201A', '\u2013', '\uFBB3', '\u2044'}; // similar
     public final static String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", DEHOIST_ORIGINAL)+"`";
     
     public final static boolean dehoist(Member m, char symbol)
@@ -69,7 +71,7 @@ public class OtherUtil
                     .queue(pc -> pc.sendMessage(message).queue(s->then.run(), 
                             f->then.run()), f->then.run());
         }
-        catch(Exception ex){}
+        catch(Exception ignore) {}
     }
     
     public static Member findMember(String username, String discriminator, Guild guild)

@@ -38,7 +38,7 @@ public class AntieveryoneCmd extends Command
         this.aliases = new String[]{"antiateveryone", "anti-everyone", "anti-ateveryone"};
         this.category = new Category("AutoMod");
         this.arguments = "<strikes>";
-        this.help = "sets strikes for failed @\u0435veryone/here attempts";
+        this.help = "sets strikes for failed @\u0435veryone/here attempts"; // cyrillic e
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 
@@ -72,7 +72,7 @@ public class AntieveryoneCmd extends Command
         }
         vortex.getDatabase().automod.setEveryoneStrikes(event.getGuild(), numstrikes);
         boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for attempting to ping @\u0435veryone/here. "
+        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for attempting to ping @\u0435veryone/here. " // cyrillic e
                 + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually "
                 + "have permission to ping everyone."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
     }

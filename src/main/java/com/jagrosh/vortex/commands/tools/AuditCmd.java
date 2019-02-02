@@ -41,9 +41,10 @@ import net.dv8tion.jda.core.requests.restaction.pagination.AuditLogPaginationAct
  */
 public class AuditCmd extends Command
 {
+    private final static String LINESTART = "\u25AB"; // ▫
+    private final static String UNKNOWN = "*Unknown*";
+    
     private final String actions;
-    private final String linestart = "\u25AB"; // ▫
-    private final String unknown = "*Unknown*";
     
     public AuditCmd()
     {
@@ -115,19 +116,19 @@ public class AuditCmd extends Command
             list.forEach(ale -> 
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append(linestart).append("User: ").append(FormatUtil.formatFullUser(ale.getUser()));
+                sb.append(LINESTART).append("User: ").append(FormatUtil.formatFullUser(ale.getUser()));
                 switch(ale.getTargetType())
                 {
                     case CHANNEL: 
                         TextChannel tc = event.getGuild().getTextChannelById(ale.getTargetIdLong());
-                        sb.append("\n").append(linestart).append("Channel: ")
-                                .append(tc==null ? unknown : "**#"+tc.getName()+"**")
+                        sb.append("\n").append(LINESTART).append("Channel: ")
+                                .append(tc==null ? UNKNOWN : "**#"+tc.getName()+"**")
                                 .append(" (ID:").append(ale.getTargetId()).append(")"); 
                         break;
                     case EMOTE:
                         Emote e = event.getGuild().getEmoteById(ale.getTargetIdLong());
-                        sb.append("\n").append(linestart).append("Emote: ")
-                                .append(e==null ? unknown : e.getAsMention())
+                        sb.append("\n").append(LINESTART).append("Emote: ")
+                                .append(e==null ? UNKNOWN : e.getAsMention())
                                 .append(" (ID:").append(ale.getTargetId()).append(")");
                         break;
                     case GUILD:
@@ -136,38 +137,38 @@ public class AuditCmd extends Command
                         break;
                     case MEMBER:
                         User u = event.getJDA().getUserById(ale.getTargetIdLong());
-                        sb.append("\n").append(linestart).append("Member: ")
-                                .append(u==null ? unknown : FormatUtil.formatUser(u))
+                        sb.append("\n").append(LINESTART).append("Member: ")
+                                .append(u==null ? UNKNOWN : FormatUtil.formatUser(u))
                                 .append(" (ID:").append(ale.getTargetId()).append(")");
                         break;
                     case ROLE:
                         Role r = event.getGuild().getRoleById(ale.getTargetIdLong());
-                        sb.append("\n").append(linestart).append("Role: ")
-                                .append(r==null ? unknown : "**"+r.getName()+"**")
+                        sb.append("\n").append(LINESTART).append("Role: ")
+                                .append(r==null ? UNKNOWN : "**"+r.getName()+"**")
                                 .append(" (ID:").append(ale.getTargetId()).append(")");
                         break;
                     case WEBHOOK:
-                        sb.append("\n").append(linestart).append("Webhook ID: ").append(ale.getTargetId());
+                        sb.append("\n").append(LINESTART).append("Webhook ID: ").append(ale.getTargetId());
                         break;
                     case UNKNOWN:
                     default:
-                        sb.append("\n").append(linestart).append("Target ID: ").append(ale.getTargetId());
+                        sb.append("\n").append(LINESTART).append("Target ID: ").append(ale.getTargetId());
                 }
                 ale.getChanges().keySet().forEach(change -> 
                 {
-                    sb.append("\n").append(linestart).append(fixCase(change)).append(": ")
+                    sb.append("\n").append(LINESTART).append(fixCase(change)).append(": ")
                             .append(ale.getChangeByKey(change).getOldValue()==null ? "" : "**"+ale.getChangeByKey(change).getOldValue()+"**")
                             .append(ale.getChangeByKey(change).getOldValue()==null || ale.getChangeByKey(change).getNewValue()==null ? "" : " → ")
                             .append(ale.getChangeByKey(change).getNewValue()==null ? "" : "**"+ale.getChangeByKey(change).getNewValue()+"**");
                 });
                 ale.getOptions().keySet().forEach(option -> 
                 {
-                    sb.append("\n").append(linestart).append(fixCase(option)).append(": ")
-                            .append(ale.getOptionByName(option)==null ? unknown : "**"+ale.getOptionByName(option)+"**");
+                    sb.append("\n").append(LINESTART).append(fixCase(option)).append(": ")
+                            .append(ale.getOptionByName(option)==null ? UNKNOWN : "**"+ale.getOptionByName(option)+"**");
                 });
                 if(ale.getReason()!=null)
-                    sb.append("\n").append(linestart).append("Reason: ").append(ale.getReason());
-                sb.append("\n").append(linestart).append("Time: **").append(ale.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
+                    sb.append("\n").append(LINESTART).append("Reason: ").append(ale.getReason());
+                sb.append("\n").append(LINESTART).append("Time: **").append(ale.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
                 String str = sb.length()>1024 ? sb.substring(0,1020)+" ..." : sb.toString();
                 eb.addField(actionToEmote(ale.getType())+" "+fixCase(ale.getType().name()), str, true);
             });

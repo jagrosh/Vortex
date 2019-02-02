@@ -85,9 +85,12 @@ public class VoicemoveCmd extends ModCommand
             event.replyError("I don't have permission to move users out of **"+vc.getName()+"**!");
             return;
         }
-        try {
+        try 
+        {
             event.getGuild().getAudioManager().openAudioConnection(vc);
-        } catch(Exception e) {
+        }
+        catch(Exception e) 
+        {
             event.replyWarning("I could not connect to **"+vc.getName()+"**");
             return;
         }
@@ -101,7 +104,7 @@ public class VoicemoveCmd extends ModCommand
                     event.getGuild().getAudioManager().closeAudioConnection();
                     event.replyWarning("You waited too long, "+event.getMember().getAsMention());
                 });
-        event.reply("\uD83C\uDF9B Now, move me and I'll drag users to a new voice channel.");
+        event.reply("\uD83C\uDF9B Now, move me and I'll drag users to a new voice channel."); // 🎛
     }
     
 }

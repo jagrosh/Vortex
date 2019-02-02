@@ -382,7 +382,7 @@ public class AutoMod
                     || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
             {
                 strikeTotal += settings.everyoneStrikes;
-                reason.append(", ").append("Attempted @\u0435veryone/here");
+                reason.append(", ").append("Attempted @\u0435veryone/here"); // cyrillic e
                 shouldDelete = true;
             }
         }

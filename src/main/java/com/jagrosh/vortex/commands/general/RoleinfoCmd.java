@@ -34,7 +34,8 @@ import net.dv8tion.jda.core.entities.Role;
  */
 public class RoleinfoCmd extends Command
 {
-    private final String linestart = "\u25AB";
+    private final static String LINESTART = "\u25AB"; // ▫
+    private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
     
     public RoleinfoCmd()
     {
@@ -71,21 +72,21 @@ public class RoleinfoCmd extends Command
             }
         }
         
-        String title = "\uD83C\uDFAD Information about **"+role.getName()+"**:";
+        String title = ROLE_EMOJI + " Information about **"+role.getName()+"**:";
         List<Member> list = role.isPublicRole() ? event.getGuild().getMembers() : event.getGuild().getMembersWithRoles(role);
-        StringBuilder desr = new StringBuilder(linestart+"ID: **"+role.getId()+"**\n"
-                + linestart+"Creation: **"+role.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
-                + linestart+"Position: **"+role.getPosition()+"**\n"
-                + linestart+"Color: **#"+(role.getColor()==null ? "000000" : Integer.toHexString(role.getColor().getRGB()).toUpperCase().substring(2))+"**\n"
-                + linestart+"Mentionable: **"+role.isMentionable()+"**\n"
-                + linestart+"Hoisted: **"+role.isHoisted()+"**\n"
-                + linestart+"Managed: **"+role.isManaged()+"**\n"
-                + linestart+"Permissions: ");
+        StringBuilder desr = new StringBuilder(LINESTART+"ID: **"+role.getId()+"**\n"
+                + LINESTART+"Creation: **"+role.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                + LINESTART+"Position: **"+role.getPosition()+"**\n"
+                + LINESTART+"Color: **#"+(role.getColor()==null ? "000000" : Integer.toHexString(role.getColor().getRGB()).toUpperCase().substring(2))+"**\n"
+                + LINESTART+"Mentionable: **"+role.isMentionable()+"**\n"
+                + LINESTART+"Hoisted: **"+role.isHoisted()+"**\n"
+                + LINESTART+"Managed: **"+role.isManaged()+"**\n"
+                + LINESTART+"Permissions: ");
         if(role.getPermissions().isEmpty())
             desr.append("None");
         else
             desr.append(role.getPermissions().stream().map(p -> "`, `"+p.getName()).reduce("", String::concat).substring(3)).append("`");
-        desr.append("\n").append(linestart).append("Members: **").append(list.size()).append("**\n");
+        desr.append("\n").append(LINESTART).append("Members: **").append(list.size()).append("**\n");
         if(list.size()*24<=2048-desr.length())
             list.forEach(m -> desr.append("<@").append(m.getUser().getId()).append("> "));
         

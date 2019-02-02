@@ -35,8 +35,12 @@ import net.dv8tion.jda.core.utils.WidgetUtil.Widget;
  */
 public class LookupCmd extends Command
 {
+    private final static String BOT_EMOJI = "<:botTag:230105988211015680>";
+    private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
+    private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
+    private final static String LINESTART = "\u25AB"; // ▫
+    
     private final Vortex vortex;
-    private final String linestart = "\u25AB";
     
     public LookupCmd(Vortex vortex)
     {
@@ -69,16 +73,16 @@ public class LookupCmd extends Command
                 {
                     u = event.getJDA().retrieveUserById(id).complete();
                 }
-                catch(Exception ex) {}
+                catch(Exception ignore) {}
                 if(u!=null)
                 {
-                    String text = (u.isBot()?"<:botTag:230105988211015680>":"\uD83D\uDC64")+" Information about **"+u.getName()+"**#"+u.getDiscriminator()+":";
+                    String text = (u.isBot() ? BOT_EMOJI : USER_EMOJI)+" Information about **"+u.getName()+"**#"+u.getDiscriminator()+":";
                     EmbedBuilder eb = new EmbedBuilder();
                     eb.setThumbnail(u.getEffectiveAvatarUrl());
-                    String str = linestart+"Discord ID: **"+u.getId()+"**";
+                    String str = LINESTART+"Discord ID: **"+u.getId()+"**";
                     if(u.getAvatarId()!=null && u.getAvatarId().startsWith("a_"))
                         str+= " <:nitro:314068430611415041>";
-                    str+="\n"+linestart+"Account Creation: **"+MiscUtil.getDateTimeString(u.getCreationTime())+"**";
+                    str+="\n"+LINESTART+"Account Creation: **"+MiscUtil.getDateTimeString(u.getCreationTime())+"**";
                     eb.setDescription(str);
                     event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
                     return;
@@ -99,22 +103,23 @@ public class LookupCmd extends Command
                         {
                             inv = Invite.resolve(event.getJDA(), widget.getInviteCode()).complete();
                         }
-                        catch(Exception ex){}
+                        catch(Exception ignore){}
                     }
-                    String text = "\uD83D\uDDA5 Information about **"+widget.getName()+"**:";
+                    String text = GUILD_EMOJI + " Information about **"+widget.getName()+"**:";
                     EmbedBuilder eb = new EmbedBuilder();
-                    String str = linestart+"ID: **"+widget.getId()+"**\n"
-                        +linestart+"Creation: **"+widget.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
-                        +linestart+"Channels: **"+widget.getVoiceChannels().size()+"** Voice\n"
-                        +linestart+"Users: **"+widget.getMembers().size()+"** online\n";
+                    String str = LINESTART+"ID: **"+widget.getId()+"**\n"
+                        +LINESTART+"Creation: **"+widget.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                        +LINESTART+"Channels: **"+widget.getVoiceChannels().size()+"** Voice\n"
+                        +LINESTART+"Users: **"+widget.getMembers().size()+"** online\n";
                     if(inv!=null)
                     {
                         eb.setThumbnail(inv.getGuild().getIconUrl());
-                        str+=linestart+"Invite: **"+inv.getCode()+"** "+(inv.getChannel().getType()==ChannelType.TEXT 
+                        str+=LINESTART+"Invite: **"+inv.getCode()+"** "+(inv.getChannel().getType()==ChannelType.TEXT 
                                 ? "#"+inv.getChannel().getName() : inv.getChannel().getName())+" (ID:"+inv.getChannel().getId()+")";
+                        
                         if(inv.getGuild().getSplashId()!=null)
                         {
-                            str+="\n\n<:partner:314068430556758017> **Discord Partner** <:partner:314068430556758017>";
+                            str += "\n"+LINESTART+"Splash: ";
                             eb.setImage(inv.getGuild().getSplashUrl()+"?size=1024");
                         }
                     }
@@ -123,9 +128,7 @@ public class LookupCmd extends Command
                     return;
                 }
             }
-            catch(NumberFormatException ex)
-            {
-            }
+            catch(NumberFormatException ignore) {}
             catch(RateLimitedException ex)
             {
                 event.reactWarning();
@@ -141,7 +144,7 @@ public class LookupCmd extends Command
             {
                 inv = Invite.resolve(event.getJDA(), code).complete();
             }
-            catch(Exception ex){}
+            catch(Exception ignore){}
             if(inv==null)
             {
                 event.replyError("No users, guilds, or invites found.");
@@ -152,22 +155,22 @@ public class LookupCmd extends Command
             {
                 widget = WidgetUtil.getWidget(inv.getGuild().getIdLong());
             }
-            catch(RateLimitedException ex) {}
-            String text = "\uD83D\uDDA5 Information about Invite Code **"+code+"**:";
+            catch(RateLimitedException ignore) {}
+            String text = GUILD_EMOJI + " Information about Invite Code **"+code+"**:";
             EmbedBuilder eb = new EmbedBuilder();
             eb.setThumbnail(inv.getGuild().getIconUrl());
-            String str = linestart+"Guild: **"+inv.getGuild().getName()+"**\n"
-                    + linestart+"Channel: **"+(inv.getChannel().getType()==ChannelType.TEXT?"#":"")+inv.getChannel().getName()+"** (ID:"+inv.getChannel().getId()+")\n"
-                    + linestart+"Inviter: "+(inv.getInviter()==null?"N/A":"**"+inv.getInviter().getName()+"**#"+inv.getInviter().getDiscriminator()+" (ID:"+inv.getInviter().getId()+")");
+            String str = LINESTART+"Guild: **"+inv.getGuild().getName()+"**\n"
+                    + LINESTART+"Channel: **"+(inv.getChannel().getType()==ChannelType.TEXT?"#":"")+inv.getChannel().getName()+"** (ID:"+inv.getChannel().getId()+")\n"
+                    + LINESTART+"Inviter: "+(inv.getInviter()==null?"N/A":"**"+inv.getInviter().getName()+"**#"+inv.getInviter().getDiscriminator()+" (ID:"+inv.getInviter().getId()+")");
             eb.setDescription(str);
-            str = linestart+"ID: **"+inv.getGuild().getId()+"**\n"
-                        +linestart+"Creation: **"+inv.getGuild().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n";
+            str = LINESTART+"ID: **"+inv.getGuild().getId()+"**\n"
+                        +LINESTART+"Creation: **"+inv.getGuild().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n";
             if(widget!=null && widget.isAvailable())
-                str += linestart+"Channels: **"+widget.getVoiceChannels().size()+"** Voice\n"
-                      +linestart+"Users: **"+widget.getMembers().size()+"** online";
+                str += LINESTART+"Channels: **"+widget.getVoiceChannels().size()+"** Voice\n"
+                      +LINESTART+"Users: **"+widget.getMembers().size()+"** online";
             if(inv.getGuild().getSplashId()!=null)
             {
-                str+="\n\n<:partner:314068430556758017> **Discord Partner** <:partner:314068430556758017>";
+                str += "\n"+LINESTART+"Splash: ";
                 eb.setImage(inv.getGuild().getSplashUrl()+"?size=1024");
             }
             eb.addField("Guild Info", str, false);
