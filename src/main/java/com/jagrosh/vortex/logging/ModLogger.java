@@ -25,12 +25,14 @@ import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.LogUtil.ParsedAuditReason;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
@@ -39,6 +41,8 @@ import net.dv8tion.jda.core.audit.AuditLogEntry;
 import net.dv8tion.jda.core.audit.AuditLogKey;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.exceptions.PermissionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -46,6 +50,7 @@ import net.dv8tion.jda.core.exceptions.PermissionException;
  */
 public class ModLogger
 {
+    private final static Logger LOG = LoggerFactory.getLogger(ModLogger.class);
     private final HashMap<Long,Integer> caseNum = new HashMap<>();
     private final HashSet<Long> needsUpdate = new HashSet<>();
     private final FixedCache<String, Message> banLogCache = new FixedCache<>(1000);
@@ -62,6 +67,7 @@ public class ModLogger
         if(isStarted)
             return;
         isStarted=true;
+        
         vortex.getThreadpool().scheduleWithFixedDelay(()->
         {
             Set<Long> toUpdate;
@@ -70,8 +76,18 @@ public class ModLogger
                 toUpdate = new HashSet<>(needsUpdate);
                 needsUpdate.clear();
             }
-            toUpdate.forEach(gid -> update(vortex.getShardManager().getGuildById(gid), 30));
-        }, 0, 2, TimeUnit.SECONDS);
+            if(!toUpdate.isEmpty())
+            {
+                try
+                {
+                    toUpdate.forEach(gid -> update(vortex.getShardManager().getGuildById(gid), 40));
+                } catch(Exception ex)
+                {
+                    LOG.error("Exception thrown during modlog update loop: "+ex);
+                    ex.printStackTrace();
+                }
+            }
+        }, 0, 3, TimeUnit.SECONDS);
     }
     
     public void setNeedUpdate(Guild guild)
@@ -84,7 +100,7 @@ public class ModLogger
             {
                 needsUpdate.add(guild.getIdLong());
             }
-        }, 1, TimeUnit.SECONDS);
+        }, 2, TimeUnit.SECONDS);
     }
     
     public int updateCase(Guild guild, int num, String reason)
@@ -199,7 +215,7 @@ public class ModLogger
         Role mRole = gs.getMutedRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).complete();
+            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;
@@ -288,8 +304,13 @@ public class ModLogger
                 }
             }
         }
+        catch (TimeoutException ex)
+        {
+            LOG.warn("Retreiving audit logs for "+guild+" took longer than 30 seconds!");
+        }
         catch(Exception ex)
         {
+            LOG.error("Exception thrown during modlog update: "+ex);
             ex.printStackTrace();
         }
     }

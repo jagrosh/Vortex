@@ -146,7 +146,7 @@ public class LogUtil
                 .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                 .append("] ");
             if(author==null)
-                sb.append("Unknown User#0000 (").append(m.getAuthorId());
+                sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
             else
                 sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
             sb.append(") : ").append(m.getContentRaw());

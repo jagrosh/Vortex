@@ -33,7 +33,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 public class AutomodManager extends DataManager
 {
     public final static int MAX_STRIKES = 100;
-    public final static int MENTION_MINIMUM = 7;
+    public final static int MENTION_MINIMUM = 4;
     public final static int ROLE_MENTION_MINIMUM = 2;
     private static final String SETTINGS_TITLE = "\uD83D\uDEE1 Automod Settings";
     
@@ -94,13 +94,13 @@ public class AutomodManager extends DataManager
                     : "Disabled\n\n")
                 + "__Maximum Mentions__\n" + (settings.maxMentions==0 && settings.maxRoleMentions==0 
                     ? "Disabled\n\n" 
-                    : "Max User Mentions: " + (settings.maxMentions==0 ? "None\n" : "`" + settings.maxMentions + "`\n") +
-                      "Max Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "`" + settings.maxRoleMentions + "`\n\n"))
-                + "__Spam Prevention__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0 && settings.everyoneStrikes==0
+                    : "User Mentions: " + (settings.maxMentions==0 ? "None\n" : "`" + settings.maxMentions + "`\n") +
+                      "Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "`" + settings.maxRoleMentions + "`\n\n"))
+                + "__Misc Msg Settings__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0 && settings.everyoneStrikes==0
                     ? "Disabled\n\n"
-                    : "Max Lines / Message: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
+                    : "Max Lines / Msg: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
                       "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
-                      "@\u0435veryone Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
+                      "@\u0435very1 Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n")
                 + "__Miscellaneous__\n"
                     + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
                         ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 

@@ -157,7 +157,6 @@ public class UserinfoCmd extends Command
             default:
                 str="Playing"; 
                 break;
-            
         }
         return str+" *"+game.getName()+"*";
     }

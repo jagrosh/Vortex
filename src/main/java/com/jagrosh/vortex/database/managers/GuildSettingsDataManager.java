@@ -96,7 +96,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nVoice Log: "+(voicelog==null ? "None" : voicelog.getAsMention())
                 + "\nAvatar Log: "+(avylog==null ? "None" : avylog.getAsMention())
                 + "\nServer Log: "+(serverlog==null ? "None" : serverlog.getAsMention())
-                + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
+                + "\nTZone: **"+settings.timezone+"**\n\u200B", true);
     }
     
     public boolean hasSettings(Guild guild)

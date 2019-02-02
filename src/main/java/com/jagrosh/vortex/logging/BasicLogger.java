@@ -15,7 +15,7 @@
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.utils.AvatarUtil;
+import com.jagrosh.vortex.pro.AvatarUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -131,7 +131,7 @@ public class BasicLogger
                 .setColor(Color.RED)
                 .appendDescription(formatted);
         User author = oldMessage.getAuthor(vortex.getShardManager());
-        String user = author==null ? FormatUtil.formatFullUserId(oldMessage.getAuthorId()) : FormatUtil.formatFullUser(author);
+        String user = author==null ? FormatUtil.formatCachedMessageFullUser(oldMessage) : FormatUtil.formatFullUser(author);
         log(OffsetDateTime.now(), tc, "\u274C", user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
     }
     
@@ -160,7 +160,7 @@ public class BasicLogger
                     .setColor(Color.RED)
                     .appendDescription(formatted);
             User author = messages.get(0).getAuthor(vortex.getShardManager());
-            String user = author==null ? FormatUtil.formatFullUserId(messages.get(0).getAuthorId()) : FormatUtil.formatFullUser(author);
+            String user = author==null ? FormatUtil.formatCachedMessageFullUser(messages.get(0)) : FormatUtil.formatFullUser(author);
             log(OffsetDateTime.now(), tc, "\u274C", user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
             return;
         }

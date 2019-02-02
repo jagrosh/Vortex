@@ -68,13 +68,15 @@ public class AuditCacheManager extends DataManager
                     filtered.add(0, entry);
             
             OLD.updateValue(rs, list.get(0).getIdLong());
-            if(list.size()>1)
+            if(list.size()>=3)
             {
                 OLDER.updateValue(rs, list.get(1).getIdLong());
-                if(list.size()>2)
-                    OLDEST.updateValue(rs, list.get(2).getIdLong());
-                else
-                    OLDEST.updateValue(rs, list.get(1).getIdLong());
+                OLDEST.updateValue(rs, list.get(2).getIdLong());
+            }
+            else if(list.size()==2)
+            {
+                OLDER.updateValue(rs, list.get(1).getIdLong());
+                OLDEST.updateValue(rs, list.get(1).getIdLong());
             }
             else
             {

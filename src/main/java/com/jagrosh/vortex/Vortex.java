@@ -22,7 +22,6 @@ import com.jagrosh.vortex.commands.moderation.*;
 import com.jagrosh.vortex.commands.tools.*;
 import com.jagrosh.vortex.commands.owner.*;
 import com.jagrosh.vortex.commands.settings.*;
-import java.awt.Color;
 import java.nio.file.*;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -41,6 +40,7 @@ import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
+import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +48,6 @@ import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.SessionControllerAdapter;
 import net.dv8tion.jda.core.utils.cache.CacheFlag;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
@@ -85,6 +84,8 @@ public class Vortex
          * 7  - log webhook url
          * 8  - guild id : category id
          * 9  - number of shards
+         * 10 - url resolver url
+         * 11 - url resolver secret
          */
         List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
@@ -96,11 +97,12 @@ public class Vortex
         basiclog = new BasicLogger(this);
         messages = new MessageCache();
         logwebhook = new WebhookClientBuilder(tokens.get(7)).build();
-        automod = new AutoMod(this);
+        automod = new AutoMod(this, tokens);
         strikehandler = new StrikeHandler(this);
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.watching("Type "+Constants.PREFIX+"help"))
+                        //.setGame(Game.watching("Type "+Constants.PREFIX+"help"))
+                        .setGame(Game.playing(Constants.Wiki.SHORT_WIKI))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -110,8 +112,9 @@ public class Vortex
                         .setScheduleExecutor(threadpool)
                         .setShutdownAutomatically(false)
                         .addCommands(// General
-                            new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
-                                                        new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
+                            //new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
+                            //                            new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
+                            new AboutCmd(),
                             new InviteCmd(),
                             new PingCommand(),
                             new RoleinfoCmd(),
@@ -194,23 +197,8 @@ public class Vortex
                 .setGame(Game.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE))
-                .setSessionController(new SessionControllerAdapter()
-                {
-                    @Override
-                    protected void runWorker()
-                    {
-                        synchronized (lock)
-                        {
-                            if (workerHandle == null)
-                            {
-                                workerHandle = new SessionControllerAdapter.QueueWorker(20);
-                                System.gc();
-                                workerHandle.start();
-                            }
-                        }
-                    }
-                })
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
+                .setSessionController(new BlockingSessionController())
                 .build();
         
         modlog.start();
@@ -290,8 +278,8 @@ public class Vortex
         {
             if(!g.isAvailable())
                 return false;
-            int botcount = (int)g.getMembers().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMembers().size()-botcount<10 || (botcount>20 && ((double)botcount/g.getMembers().size())>0.65))
+            int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
+            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.65))
             {
                 if(database.settings.hasSettings(g))
                     return false;

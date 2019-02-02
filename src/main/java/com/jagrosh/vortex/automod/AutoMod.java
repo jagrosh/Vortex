@@ -20,6 +20,7 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
+import com.jagrosh.vortex.pro.URLResolver;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
@@ -51,7 +52,7 @@ public class AutoMod
     
     
     private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:\\S+\\.)?(\\S+\\.\\S+?)[/?]\\S+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
     private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
     private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
@@ -63,15 +64,16 @@ public class AutoMod
     private final Vortex vortex;
     
     private String[] refLinkList;
-    private final URLResolver urlResolver = new URLResolver();
+    private final URLResolver urlResolver;
     private final InviteResolver inviteResolver = new InviteResolver();
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     
-    public AutoMod(Vortex vortex)
+    public AutoMod(Vortex vortex, List<String> config)
     {
         this.vortex = vortex;
+        urlResolver = new URLResolver(config.get(10), config.get(11));
         loadCopypastas();
         loadReferralDomains();
     }
@@ -520,7 +522,7 @@ public class AutoMod
     private boolean isReferralUrl(String url)
     {
         for(String reflink: refLinkList)
-            if(reflink.equals(url))
+            if(reflink.equalsIgnoreCase(url))
                 return true;
         return false;
     }

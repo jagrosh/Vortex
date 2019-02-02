@@ -47,7 +47,7 @@ public class CleanCmd extends ModCommand
     private final Pattern ID_PATTERN = Pattern.compile("\\b(\\d{17,22})\\b");
     private final Pattern NUM_PATTERN = Pattern.compile("\\b(\\d{1,4})\\b");
     private final String week2limit = " Note: Messages older than 2 weeks cannot be cleaned.";
-    private final String noparams = "**No valid cleaning paramaters included!**\n"
+    private final String noparams = "**No valid cleaning parameters included!**\n"
                 +"This command is to remove many messages quickly. Pinned messages are ignored. "
                 + "Messages can be filtered with various parameters. Mutliple arguments can be used, and "
                 + "the order of parameters does not matter. The following parameters are supported:\n"

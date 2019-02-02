@@ -1,4 +1,4 @@
-// Referral Domain List
+﻿// Referral Domain List
 // This list contains referral sites
 
 // IP Loggers
@@ -81,12 +81,14 @@ zipansion.com
 
 // Referral Sites
 black-friday.ga
+boost.ink
 easycommerce.cf
 featu.re
 free.gg
 justdoit.cards
 makeprogress.ga
 pointsprizes.com
+selly.gg
 weeklyjob.online
 wn.nr
 
@@ -99,7 +101,9 @@ minero.cc
 outbuck.com
 
 // Scams
+amazingsexdating.com
 easter-event.com
+fortnite-christmas.com
 fortnite-gifts.com
 fortnite-giveaway.com
 fortnite-special.com
@@ -113,6 +117,8 @@ giveawaybot.pw
 myetherermwallet.com
 oprewards.com
 rbxfree.com
+roblox-christmas.com
+steam-event.com
 steam-gift-codes.com
 steam-money.org
 steam-wallet-rewards.com
@@ -121,4 +127,4 @@ steamquests.com
 steamreward.com
 steamspecial.com
 steamsummer.com
-
+whatsappx.com

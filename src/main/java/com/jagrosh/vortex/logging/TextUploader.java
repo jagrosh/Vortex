@@ -59,7 +59,7 @@ public class TextUploader
         List<TextChannel> list = category.getTextChannels();
         list.get(index % list.size()).sendFile(content.getBytes(StandardCharsets.UTF_8), filename+".txt", null).queue(
                 m -> done.consume(
-                        "http://txt.discord.website?txt="+m.getAttachments().get(0).getUrl().substring(m.getAttachments().get(0).getUrl().indexOf("s/")+2, m.getAttachments().get(0).getUrl().length()-4), 
+                        "https://txt.discord.website?txt="+m.getAttachments().get(0).getUrl().substring(m.getAttachments().get(0).getUrl().indexOf("s/")+2, m.getAttachments().get(0).getUrl().length()-4), 
                         m.getAttachments().get(0).getUrl()), 
                 f -> LOG.error("Failed to upload: "+f));
         index++;

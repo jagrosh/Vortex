@@ -45,7 +45,7 @@ public class FormatUtil {
     
     public static String filterEveryone(String input)
     {
-        return input.replace("@everyone","@\u0435veryone").replace("@here","@h\u0435re");
+        return input.replace("@everyone","@\u0435veryone").replace("@here","@h\u0435re").replace("discord.gg/", "dis\u0441ord.gg/");
     }
     
     public static String formatMessage(Message m)
@@ -65,6 +65,11 @@ public class FormatUtil {
     public static String formatFullUserId(long userId)
     {
         return "<@"+userId+"> (ID:"+userId+")";
+    }
+    
+    public static String formatCachedMessageFullUser(CachedMessage msg)
+    {
+        return filterEveryone("**"+msg.getUsername()+"**#"+msg.getDiscriminator()+" (ID:"+msg.getAuthorId()+")");
     }
     
     public static String formatUser(User user)
@@ -285,12 +290,16 @@ public class FormatUtil {
                     "[**"+cmd.getHelp()+"**]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
         }
         
-        builder.addField("Additional Help", "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"
-                + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
-                + "\uD83D\uDCDC [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
-                + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")", false);
+        builder.addField("Additional Help", helpLinks(event), false);
         
         return new MessageBuilder().append(content).setEmbed(builder.build()).build();
     }
     
+    public static String helpLinks(CommandEvent event)
+    {
+        return "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n"
+                + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
+                + "\uD83D\uDCDC [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
+                + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")";
+    }
 }
