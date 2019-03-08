@@ -7,6 +7,7 @@ dis.gd
 discordapp.net
 discordapp.com
 discordcdn.com
+discord.gift
 
 // Video & Stream Hosts
 youtube.com
