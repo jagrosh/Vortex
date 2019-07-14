@@ -89,8 +89,14 @@ justdoit.cards
 makeprogress.ga
 pointsprizes.com
 selly.gg
+shoppy.gg
 weeklyjob.online
 wn.nr
+
+// NSFW Spam Sites
+nakedphotos.club
+privatepage.vip
+viewc.site
 
 // Coin Miners
 baymack.com
@@ -103,6 +109,8 @@ outbuck.com
 // Scams
 amazingsexdating.com
 easter-event.com
+fortnite.cards
+fortnite.events
 fortnite-christmas.com
 fortnite-gifts.com
 fortnite-giveaway.com

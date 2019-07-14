@@ -25,7 +25,6 @@ import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.LogUtil.ParsedAuditReason;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -124,7 +123,7 @@ public class ModLogger
         }
         if(m==null)
             return num==-1 ? -4 : -3;
-        m.editMessage(m.getContentRaw().replaceAll("(?is)\n`\\[ Reason \\]` .+", "\n`[ Reason ]` "+reason)).queue();
+        m.editMessage(m.getContentRaw().replaceAll("(?is)\n`\\[ Reason \\]` .+", "\n`[ Reason ]` "+FormatUtil.filterEveryone(reason))).queue();
         return thiscase;
     }
     

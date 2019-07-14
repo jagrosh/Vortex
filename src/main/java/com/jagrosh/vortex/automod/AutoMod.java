@@ -70,10 +70,10 @@ public class AutoMod
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     
-    public AutoMod(Vortex vortex, List<String> config)
+    public AutoMod(Vortex vortex, String url, String secret)
     {
         this.vortex = vortex;
-        urlResolver = new URLResolver(config.get(10), config.get(11));
+        urlResolver = new URLResolver(url, secret);
         loadCopypastas();
         loadReferralDomains();
     }

@@ -172,7 +172,7 @@ public class FormatUtil {
             builder.append("**").append(years).append("** years, ");
             timeseconds = timeseconds % (60*60*24*365);
         }
-        int weeks = (int)(timeseconds / (60*60*24*365));
+        int weeks = (int)(timeseconds / (60*60*24*7));
         if(weeks>0)
         {
             builder.append("**").append(weeks).append("** weeks, ");
@@ -215,7 +215,7 @@ public class FormatUtil {
             builder.append("**").append(years).append("**y ");
             timeseconds = timeseconds % (60*60*24*365);
         }
-        int weeks = (int)(timeseconds / (60*60*24*365));
+        int weeks = (int)(timeseconds / (60*60*24*7));
         if(weeks>0)
         {
             builder.append("**").append(weeks).append("**w ");

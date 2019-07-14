@@ -42,6 +42,9 @@ import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.OtherUtil;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
@@ -72,36 +75,22 @@ public class Vortex
     
     public Vortex() throws Exception
     {
-        /**
-         * Tokens:
-         * 0  - bot token
-         * 1  - bots.discord.pw token
-         * 2  - other token 1 (unused)
-         * 3  - other token 2 (unused)
-         * 4  - database location
-         * 5  - database username
-         * 6  - database password
-         * 7  - log webhook url
-         * 8  - guild id : category id
-         * 9  - number of shards
-         * 10 - url resolver url
-         * 11 - url resolver secret
-         */
-        List<String> tokens = Files.readAllLines(Paths.get("config.txt"));
+        System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
+        Config config = ConfigFactory.load();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(50);
-        database = new Database(tokens.get(4), tokens.get(5), tokens.get(6));
-        String[] split = tokens.get(8).split(":");
-        uploader = new TextUploader(this, Long.parseLong(split[0].trim()), Long.parseLong(split[1].trim()));
+        database = new Database(config.getString("database.host"), 
+                                       config.getString("database.username"), 
+                                       config.getString("database.password"));
+        uploader = new TextUploader(this, config.getLong("uploader.guild"), config.getLong("uploader.category"));
         modlog = new ModLogger(this);
         basiclog = new BasicLogger(this);
         messages = new MessageCache();
-        logwebhook = new WebhookClientBuilder(tokens.get(7)).build();
-        automod = new AutoMod(this, tokens);
+        logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
+        automod = new AutoMod(this, config.getString("url-resolver.url"), config.getString("url-resolver.secret"));
         strikehandler = new StrikeHandler(this);
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        //.setGame(Game.watching("Type "+Constants.PREFIX+"help"))
                         .setGame(Game.playing(Constants.Wiki.SHORT_WIKI))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
@@ -111,9 +100,8 @@ public class Vortex
                         .setListener(new CommandExceptionListener())
                         .setScheduleExecutor(threadpool)
                         .setShutdownAutomatically(false)
-                        .addCommands(// General
-                            //new AboutCommand(Color.CYAN, "and I'm here to keep your Discord server safe and make moderating easy!", 
-                            //                            new String[]{"Moderation commands","Configurable automoderation","Very easy setup"},Constants.PERMISSIONS),
+                        .addCommands(
+                            // General
                             new AboutCmd(),
                             new InviteCmd(),
                             new PingCommand(),
@@ -174,8 +162,8 @@ public class Vortex
                             // Owner
                             new EvalCmd(this),
                             new DebugCmd(this),
-                            new ReloadCmd(this),
-                            new TransferCmd(this)
+                            new ReloadCmd(this)
+                            //new TransferCmd(this)
                         )
                         .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m -> 
                         {
@@ -185,13 +173,12 @@ public class Vortex
                                     event.getMessage().addReaction(Constants.HELP_REACTION).queue(s->{}, f->{});
                                 } catch(PermissionException ignore) {}
                         }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
-                        .setDiscordBotsKey(tokens.get(1))
-                        //.setCarbonitexKey(tokens.get(2))
-                        //.setDiscordBotListKey(tokens.get(3))
+                        .setDiscordBotsKey(config.getString("listing.discord-bots"))
+                        //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
         shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(Integer.parseInt(tokens.get(9)))
-                .setToken(tokens.get(0))
+                .setShardsTotal(config.getInt("shards-total"))
+                .setToken(config.getString("bot-token"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setGame(Game.playing("loading..."))
@@ -208,6 +195,8 @@ public class Vortex
         threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
     
+    
+    // Getters
     public EventWaiter getEventWaiter()
     {
         return waiter;
@@ -263,6 +252,8 @@ public class Vortex
         return strikehandler;
     }
     
+    
+    // Global methods
     public void cleanPremium()
     {
         database.premium.cleanPremiumList().forEach((gid) ->
@@ -279,7 +270,7 @@ public class Vortex
             if(!g.isAvailable())
                 return false;
             int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.65))
+            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.5))
             {
                 if(database.settings.hasSettings(g))
                     return false;
@@ -288,8 +279,16 @@ public class Vortex
                 return true;
             }
             return false;
-        }).forEach(g -> g.leave().queue());
+        }).forEach(g -> 
+        {
+            OtherUtil.safeDM(g.getOwner()==null ? null : g.getOwner().getUser(), Constants.ERROR + " Sorry, your server **" 
+                    + g.getName() + "** does not meet the minimum requirements for using Vortex. You can find the requirements "
+                    + "here: <" + Constants.Wiki.START + ">. \n\n" + Constants.WARNING + "You may want to consider using a "
+                    + "different bot that is designed for servers like yours. You can find a public list of bots here: "
+                    + "<https://discord.bots.gg>.", true, () -> g.leave().queue());
+        });
     }
+    
     
     /**
      * @param args the command line arguments

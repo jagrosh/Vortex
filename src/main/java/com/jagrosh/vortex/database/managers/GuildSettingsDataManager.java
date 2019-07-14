@@ -26,6 +26,7 @@ import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.ZoneId;
+import java.time.zone.ZoneRulesException;
 import java.util.Collection;
 import java.util.Collections;
 import net.dv8tion.jda.core.entities.Guild;
@@ -99,7 +100,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nVoice Log: "+(voicelog==null ? "None" : voicelog.getAsMention())
                 + "\nAvatar Log: "+(avylog==null ? "None" : avylog.getAsMention())
                 + "\nServer Log: "+(serverlog==null ? "None" : serverlog.getAsMention())
-                + "\nTZone: **"+settings.timezone+"**\n\u200B", true);
+                + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
     }
     
     public boolean hasSettings(Guild guild)
@@ -358,7 +359,18 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.avatarlog = AVATARLOG_ID.getValue(rs);
             this.prefix = PREFIX.getValue(rs);
             String str = TIMEZONE.getValue(rs);
-            this.timezone = str==null ? DEFAULT_TIMEZONE : ZoneId.of(str);
+            ZoneId zid;
+            if(str == null)
+                zid = DEFAULT_TIMEZONE;
+            else try
+            {
+                zid = ZoneId.of(str);
+            }
+            catch(ZoneRulesException ex)
+            {
+                zid = DEFAULT_TIMEZONE;
+            }
+            this.timezone = zid;
             this.raidMode = RAIDMODE.getValue(rs);
         }
         

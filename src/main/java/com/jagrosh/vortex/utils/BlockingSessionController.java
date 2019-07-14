@@ -25,7 +25,7 @@ import net.dv8tion.jda.core.utils.SessionControllerAdapter;
  */
 public class BlockingSessionController extends SessionControllerAdapter
 {
-    private final int MAX_DELAY = 30*1000;
+    private final int MAX_DELAY = 60*1000; // 1 minute
     
     @Override
     protected void runWorker()
