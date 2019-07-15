@@ -20,9 +20,13 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Action;
+import com.jagrosh.vortex.database.ArrayColumn;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
+
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 
@@ -58,6 +62,8 @@ public class AutomodManager extends DataManager
     public final static SQLColumn<Integer> DUPE_STRIKE_THRESH = new IntegerColumn("DUPE_STRIKES_THRESH", false, 0);
     
     public final static SQLColumn<Integer> DEHOIST_CHAR = new IntegerColumn("DEHOIST_CHAR", false, 0);
+
+    public final static SQLColumn<List<Long>> WHITELISTED_INVITES = new ArrayColumn("WHITELISTED_INVITES");
             
     // Cache
     private final FixedCache<Long, AutomodSettings> cache = new FixedCache<>(1000);
@@ -361,6 +367,26 @@ public class AutomodManager extends DataManager
             }
         });
     }
+
+    public void setWhitelistedInvites(Guild guild, List<Long> whitelistedIds)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+            {
+                WHITELISTED_INVITES.updateValue(rs, whitelistedIds);
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                WHITELISTED_INVITES.updateValue(rs, whitelistedIds);
+                rs.insertRow();
+            }
+        });
+    }
     
     private void invalidateCache(Guild guild)
     {
@@ -381,6 +407,7 @@ public class AutomodManager extends DataManager
         public final int inviteStrikes, refStrikes, copypastaStrikes, everyoneStrikes;
         public final int dupeStrikes, dupeDeleteThresh, dupeStrikeThresh;
         public final char dehoistChar;
+        public final List<Long> whitelistedInvites;
         
         private AutomodSettings()
         {
@@ -398,6 +425,7 @@ public class AutomodManager extends DataManager
             this.dupeDeleteThresh = 0;
             this.dupeStrikeThresh = 0;
             this.dehoistChar = 0;
+            this.whitelistedInvites = Collections.emptyList();
         }
         
         private AutomodSettings(ResultSet rs) throws SQLException
@@ -416,6 +444,7 @@ public class AutomodManager extends DataManager
             this.dupeDeleteThresh = DUPE_DELETE_THRESH.getValue(rs);
             this.dupeStrikeThresh = DUPE_STRIKE_THRESH.getValue(rs);
             this.dehoistChar = (char)((int)DEHOIST_CHAR.getValue(rs));
+            this.whitelistedInvites = Collections.unmodifiableList(WHITELISTED_INVITES.getValue(rs));
         }
         
         public boolean useAutoRaidMode()

@@ -398,7 +398,7 @@ public class AutoMod
             for(String inviteCode : invites)
             {
                 long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
-                if(gid != message.getGuild().getIdLong())
+                if(gid != message.getGuild().getIdLong() && !settings.whitelistedInvites.contains(gid))
                 {
                     strikeTotal += settings.inviteStrikes;
                     reason.append(", Advertising");
@@ -482,7 +482,8 @@ public class AutoMod
                         {
                             if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
                             {
-                                if(inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1")) != message.getGuild().getIdLong())
+                                long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
+                                if(invite != message.getGuild().getIdLong() && !settings.whitelistedInvites.contains(invite))
                                     containsInvite = true;
                             }
                             if(settings.refStrikes>0)

@@ -18,6 +18,12 @@
             <name>jcenter-bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>
+        <!-- For EasySQL -->
+        <repository>
+            <id>jcenter-jagrosh</id>
+            <name>jcenter-jagrosh</name>
+            <url>https://dl.bintray.com/jagrosh/maven</url>
+        </repository>
     </repositories>
     
     <dependencies>
