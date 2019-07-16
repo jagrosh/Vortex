@@ -33,6 +33,7 @@ public class Database extends DatabaseConnector
     public final TempMuteManager tempmutes;
     public final TempBanManager tempbans;
     public final PremiumManager premium;
+    public final InviteWhitelistManager inviteWhitelist;
     
     public Database(String host, String user, String pass) throws Exception
     {
@@ -47,6 +48,7 @@ public class Database extends DatabaseConnector
         tempmutes = new TempMuteManager(this);
         tempbans = new TempBanManager(this);
         premium = new PremiumManager(this);
+        inviteWhitelist = new InviteWhitelistManager(this);
         
         init();
     }

@@ -20,7 +20,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,9 +49,9 @@ public class WhitelistInvitesCmd extends Command
         String[] args = event.getArgs().toLowerCase().split("\\s+");
         if(event.getArgs().equalsIgnoreCase("show") || (args.length == 2 && (args[0].equals("add") || args[0].equals("remove"))))
         {
-            List<Long> currentWL = vortex.getDatabase().automod.getSettings(event.getGuild()).whitelistedInvites;
             if(event.getArgs().equalsIgnoreCase("show"))
             {
+                List<Long> currentWL = vortex.getDatabase().inviteWhitelist.readWhitelist(event.getGuild());
                 event.replySuccess("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
                         currentWL.stream().map(String::valueOf).collect(Collectors.joining(", "))));
             }
@@ -68,35 +67,28 @@ public class WhitelistInvitesCmd extends Command
                     event.replyWarning("Invalid Guild-ID provided!");
                     return;
                 }
-                List<Long> newWhitelist;
                 if(args[0].equals("add"))
                 {
-                    if(currentWL.contains(guildId))
+                    if(!vortex.getDatabase().inviteWhitelist.addToWhitelist(event.getGuild(), guildId))
                     {
                         event.replyWarning("Given Guild was already whitelisted");
                         return;
                     }
-                    newWhitelist = new ArrayList<>(currentWL.size() + 1);
-                    newWhitelist.addAll(currentWL);
-                    newWhitelist.add(guildId);
                 }
                 else
                 {
-                    if(!currentWL.contains(guildId))
+                    if(!vortex.getDatabase().inviteWhitelist.removeFromWhitelist(event.getGuild(), guildId))
                     {
                         event.replyWarning("Given Guild was not whitelisted");
                         return;
                     }
-                    newWhitelist = new ArrayList<>(currentWL.size() - 1);
-                    currentWL.stream().filter(id -> id != guildId).forEach(newWhitelist::add);
                 }
-                vortex.getDatabase().automod.setWhitelistedInvites(event.getGuild(), newWhitelist);
                 event.replySuccess("Whitelist has been modified");
             }
         }
         else
         {
-            event.replyWarning(DESCRIPTION+"\nValid options are `ADD GUILD_ID`, `REMOVE GUILD_ID` and `show`");
+            event.replyWarning(DESCRIPTION+"\nValid options are `ADD GUILD_ID`, `REMOVE GUILD_ID` and `SHOW`");
         }
         
     }

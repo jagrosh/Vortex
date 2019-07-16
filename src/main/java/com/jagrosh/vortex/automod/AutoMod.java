@@ -207,19 +207,19 @@ public class AutoMod
         // ignore users vortex cant interact with
         if(!member.getGuild().getSelfMember().canInteract(member))
             return false;
-        
+
         // ignore users that can kick
         if(member.hasPermission(Permission.KICK_MEMBERS))
             return false;
-        
+
         // ignore users that can ban
         if(member.hasPermission(Permission.BAN_MEMBERS))
             return false;
-        
+
         // ignore users that can manage server
         if(member.hasPermission(Permission.MANAGE_SERVER))
             return false;
-        
+
         // if a channel is specified, ignore users that can manage messages in that channel
         if(channel!=null && (member.hasPermission(channel, Permission.MESSAGE_MANAGE) || vortex.getDatabase().ignores.isIgnored(channel)))
             return false;
@@ -257,6 +257,7 @@ public class AutoMod
         
         //get the settings
         AutomodSettings settings = vortex.getDatabase().automod.getSettings(message.getGuild());
+        List<Long> inviteWhitelist = vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         if(settings==null)
             return;
         
@@ -398,7 +399,7 @@ public class AutoMod
             for(String inviteCode : invites)
             {
                 long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
-                if(gid != message.getGuild().getIdLong() && !settings.whitelistedInvites.contains(gid))
+                if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
                     strikeTotal += settings.inviteStrikes;
                     reason.append(", Advertising");
@@ -483,7 +484,7 @@ public class AutoMod
                             if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
                             {
                                 long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
-                                if(invite != message.getGuild().getIdLong() && !settings.whitelistedInvites.contains(invite))
+                                if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
                             if(settings.refStrikes>0)
