@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- *
- * @author John Grosh (john.a.grosh@gmail.com)
+ * @author Michael Ritter (Kantenkugel)
  */
 public class WhitelistInvitesCmd extends Command
 {
