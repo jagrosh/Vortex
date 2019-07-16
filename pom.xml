@@ -57,6 +57,7 @@
             <groupId>com.jagrosh</groupId>
             <artifactId>Vortex-Pro</artifactId>
             <version>0.2</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
     
