@@ -7,9 +7,13 @@ import com.jagrosh.easysql.columns.LongColumn;
 import com.jagrosh.vortex.utils.FixedCache;
 import net.dv8tion.jda.core.entities.Guild;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class InviteWhitelistManager extends DataManager
 {
@@ -45,6 +49,28 @@ public class InviteWhitelistManager extends DataManager
         });
     }
 
+    public void addAllToWhitelist(Guild guild, Collection<Long> whitelistIds)
+    {
+        invalidateCache(guild);
+        Set<Long> ids = new HashSet<>(whitelistIds);
+        readWrite(selectAll(String.format("%s AND %s IN (%s)",
+                GUILD_ID.is(guild.getId()), WHITELIST_ID.name,
+                ids.stream().map(String::valueOf).collect(Collectors.joining(",")))),rs ->
+        {
+            while(rs.next())
+            {
+                ids.remove(WHITELIST_ID.getValue(rs));
+            }
+            for(long id : ids)
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                WHITELIST_ID.updateValue(rs, id);
+                rs.insertRow();
+            }
+        });
+    }
+
     public boolean removeFromWhitelist(Guild guild, long whitelistId)
     {
         invalidateCache(guild);
@@ -56,6 +82,20 @@ public class InviteWhitelistManager extends DataManager
                 return true;
             }
             return false;
+        });
+    }
+
+    public void removeAllFromWhitelist(Guild guild, Collection<Long> whitelistIds)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(String.format("%s AND %s IN (%s)",
+                GUILD_ID.is(guild.getId()), WHITELIST_ID.name,
+                whitelistIds.stream().map(String::valueOf).collect(Collectors.joining(",")))),rs ->
+        {
+            while(rs.next())
+            {
+                rs.deleteRow();
+            }
         });
     }
 

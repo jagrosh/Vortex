@@ -20,6 +20,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +38,7 @@ public class WhitelistInvitesCmd extends Command
         this.name = "whitelist";
         this.guildOnly = true;
         this.category = new Category("AutoMod");
-        this.arguments = "<ADD GUILD_ID|REMOVE GUILD_ID|SHOW>";
+        this.arguments = "<ADD GUILD_ID[ GUILD_ID...]|REMOVE GUILD_ID[ GUILD_ID...]|SHOW>";
         this.help = "if strikes for invites are enabled, add/remove whitelisted guilds";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
@@ -46,7 +47,7 @@ public class WhitelistInvitesCmd extends Command
     protected void execute(CommandEvent event)
     {
         String[] args = event.getArgs().toLowerCase().split("\\s+");
-        if(event.getArgs().equalsIgnoreCase("show") || (args.length == 2 && (args[0].equals("add") || args[0].equals("remove"))))
+        if(event.getArgs().equalsIgnoreCase("show") || (args.length > 1 && (args[0].equals("add") || args[0].equals("remove"))))
         {
             if(event.getArgs().equalsIgnoreCase("show"))
             {
@@ -56,19 +57,19 @@ public class WhitelistInvitesCmd extends Command
             }
             else
             {
-                long guildId;
-                try
+                List<Long> guildIds = readIds(args);
+                if(guildIds == null)
                 {
-                    guildId = Long.parseUnsignedLong(args[1]);
-                }
-                catch(NumberFormatException ex)
-                {
-                    event.replyWarning("Invalid Guild-ID provided!");
+                    event.replyWarning("Invalid Guild-ID(s) provided!");
                     return;
                 }
                 if(args[0].equals("add"))
                 {
-                    if(!vortex.getDatabase().inviteWhitelist.addToWhitelist(event.getGuild(), guildId))
+                    if(guildIds.size() > 1)
+                    {
+                        vortex.getDatabase().inviteWhitelist.addAllToWhitelist(event.getGuild(), guildIds);
+                    }
+                    else if(!vortex.getDatabase().inviteWhitelist.addToWhitelist(event.getGuild(), guildIds.get(0)))
                     {
                         event.replyWarning("Given Guild was already whitelisted");
                         return;
@@ -76,7 +77,11 @@ public class WhitelistInvitesCmd extends Command
                 }
                 else
                 {
-                    if(!vortex.getDatabase().inviteWhitelist.removeFromWhitelist(event.getGuild(), guildId))
+                    if(guildIds.size() > 1)
+                    {
+                        vortex.getDatabase().inviteWhitelist.removeAllFromWhitelist(event.getGuild(), guildIds);
+                    }
+                    else if(!vortex.getDatabase().inviteWhitelist.removeFromWhitelist(event.getGuild(), guildIds.get(0)))
                     {
                         event.replyWarning("Given Guild was not whitelisted");
                         return;
@@ -87,8 +92,25 @@ public class WhitelistInvitesCmd extends Command
         }
         else
         {
-            event.replyWarning(DESCRIPTION+"\nValid options are `ADD GUILD_ID`, `REMOVE GUILD_ID` and `SHOW`");
+            event.replyWarning(DESCRIPTION+"\nValid options are `ADD GUILD_ID[ GUILD_ID...]`, `REMOVE GUILD_ID[ GUILD_ID...]` and `SHOW`");
         }
         
+    }
+
+    private List<Long> readIds(String[] args)
+    {
+        List<Long> guildIds = new ArrayList<>(args.length - 1);
+        try
+        {
+            for(int i = 1; i < args.length; i++)
+            {
+                guildIds.add(Long.parseUnsignedLong(args[i]));
+            }
+        }
+        catch(NumberFormatException ex)
+        {
+            return null;
+        }
+        return guildIds;
     }
 }

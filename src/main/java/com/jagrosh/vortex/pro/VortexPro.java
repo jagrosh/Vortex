@@ -57,31 +57,36 @@ public class VortexPro
             }
             implClass = (Class<? extends T>) anno.mock();
         }
+        T instance = null;
+        if(implClass != null)
+        {
+            instance = createInstance(implClass, args);
+        }
+        IMPLS.put(apiClass, instance);
+        return instance;
+    }
+
+    private static <T> T createInstance(Class<? extends T> clazz, Object[] args)
+    {
+        Set<Constructor<? extends T>> constructors = Arrays.stream(clazz.getConstructors())
+                .filter(c -> c.getParameterCount() == 0 || c.getParameterCount() == args.length)
+                .map(c -> (Constructor<? extends T>) c)
+                .collect(Collectors.toSet());
+        if(constructors.size() != 1)
+        {
+            throw new IllegalArgumentException("Could not find a (single) Constructor with 0 or matching amount of arguments. Arguments provided: " + Arrays.toString(args));
+        }
+        Constructor<? extends T> constructor = constructors.iterator().next();
         try
         {
-            T instance = null;
-            if(implClass != null)
-            {
-                Set<Constructor<? extends T>> constructors = Arrays.stream(implClass.getConstructors())
-                        .filter(c -> c.getParameterCount() == 0 || c.getParameterCount() == args.length)
-                        .map(c -> (Constructor<? extends T>) c)
-                        .collect(Collectors.toSet());
-                if(constructors.size() != 1)
-                {
-                    throw new IllegalArgumentException("Could not find a (single) Constructor with 0 or matching amount of arguments. Arguments provided: " + Arrays.toString(args));
-                }
-                Constructor<? extends T> constructor = constructors.iterator().next();
-                if(constructor.getParameterCount() == 0)
-                    instance = constructor.newInstance();
-                else
-                    instance = constructor.newInstance(args);
-            }
-            IMPLS.put(apiClass, instance);
-            return instance;
+            if(constructor.getParameterCount() == 0)
+                return constructor.newInstance();
+            else
+                return constructor.newInstance(args);
         }
         catch(InvocationTargetException | InstantiationException | IllegalAccessException e)
         {
-            throw new IllegalStateException("Can not instanciate class "+implClass.getName()+". Does it have a public no-arg constructor?", e);
+            throw new IllegalStateException("Can not instantiate class "+clazz.getName()+". Does it have a public no-arg constructor?", e);
         }
     }
 
