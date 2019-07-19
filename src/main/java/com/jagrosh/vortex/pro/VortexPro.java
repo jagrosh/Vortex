@@ -38,6 +38,10 @@ public class VortexPro
             return (T) IMPLS.get(apiClass);
         }
         ProFeature anno = apiClass.getAnnotation(ProFeature.class);
+        if(anno == null)
+        {
+            throw new IllegalArgumentException("Class " + apiClass.getName() + " is not annotated with the " + ProFeature.class.getName() + " annotation!");
+        }
         Class<? extends T> implClass = null;
         try
         {
@@ -68,6 +72,7 @@ public class VortexPro
 
     private static <T> T createInstance(Class<? extends T> clazz, Object[] args)
     {
+        @SuppressWarnings("unchecked")
         Set<Constructor<? extends T>> constructors = Arrays.stream(clazz.getConstructors())
                 .filter(c -> c.getParameterCount() == 0 || c.getParameterCount() == args.length)
                 .map(c -> (Constructor<? extends T>) c)
