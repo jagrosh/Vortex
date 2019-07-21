@@ -258,9 +258,11 @@ public class AutoMod
         
         //get the settings
         AutomodSettings settings = vortex.getDatabase().automod.getSettings(message.getGuild());
-        List<Long> inviteWhitelist = vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         if(settings==null)
             return;
+
+        List<Long> inviteWhitelist = settings.inviteStrikes == 0 ? null
+                : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         
         // check the channel for channel-specific settings
         boolean preventSpam = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
@@ -482,6 +484,7 @@ public class AutoMod
                         redirects = urlResolver.findRedirects(link);
                         for(String resolved: redirects)
                         {
+                            //TODO: add && preventInvites like for other check? (topic)
                             if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
                             {
                                 long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));

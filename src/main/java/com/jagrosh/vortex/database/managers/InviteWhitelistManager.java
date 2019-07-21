@@ -6,7 +6,10 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import com.jagrosh.vortex.utils.FixedCache;
 import net.dv8tion.jda.core.entities.Guild;
+import org.slf4j.LoggerFactory;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class InviteWhitelistManager extends DataManager
 {
@@ -88,15 +92,23 @@ public class InviteWhitelistManager extends DataManager
     public void removeAllFromWhitelist(Guild guild, Collection<Long> whitelistIds)
     {
         invalidateCache(guild);
-        readWrite(selectAll(String.format("%s AND %s IN (%s)",
-                GUILD_ID.is(guild.getId()), WHITELIST_ID.name,
-                whitelistIds.stream().map(String::valueOf).collect(Collectors.joining(",")))),rs ->
+        try
         {
-            while(rs.next())
+            PreparedStatement stmt = getConnection().prepareStatement("DELETE FROM " + getTableName() + " WHERE " +
+                    GUILD_ID.name + " = ? AND " + WHITELIST_ID.name + " IN (" +
+                    IntStream.range(0, whitelistIds.size()).mapToObj(i -> "?").collect(Collectors.joining(",")) + ')');
+            int paramIndex = 0;
+            stmt.setLong(++paramIndex, guild.getIdLong());
+            for(Long whitelistId : whitelistIds)
             {
-                rs.deleteRow();
+                stmt.setLong(++paramIndex, whitelistId);
             }
-        });
+            stmt.executeUpdate();
+        }
+        catch(SQLException e)
+        {
+            LoggerFactory.getLogger(DatabaseConnector.class).error("Exception in SQL: "+e);
+        }
     }
 
     public List<Long> readWhitelist(Guild guild)
