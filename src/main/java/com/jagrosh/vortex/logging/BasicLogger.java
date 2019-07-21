@@ -15,11 +15,11 @@
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.pro.AvatarUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
+import com.typesafe.config.Config;
 import java.awt.Color;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -61,10 +61,12 @@ public class BasicLogger
     private final static String AVATAR = "\uD83D\uDDBC"; // 🖼
     
     private final Vortex vortex;
+    private final AvatarSaver avatarSaver;
     
-    public BasicLogger(Vortex vortex)
+    public BasicLogger(Vortex vortex, Config config)
     {
         this.vortex = vortex;
+        this.avatarSaver = new AvatarSaver(config);
     }
     
     private void log(OffsetDateTime now, TextChannel tc, String emote, String message, MessageEmbed embed)
@@ -300,7 +302,7 @@ public class BasicLogger
         OffsetDateTime now = OffsetDateTime.now();
         vortex.getThreadpool().execute(() -> 
         {
-            byte[] im = AvatarUtil.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
+            byte[] im = avatarSaver.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
             if(im!=null)
                 logs.forEach(tc -> logFile(now, tc, AVATAR, FormatUtil.formatFullUser(event.getUser())+" has changed avatars"
                         +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " <:gif:314068430624129039>" : "")

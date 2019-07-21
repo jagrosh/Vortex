@@ -22,8 +22,6 @@ import com.jagrosh.vortex.commands.moderation.*;
 import com.jagrosh.vortex.commands.tools.*;
 import com.jagrosh.vortex.commands.owner.*;
 import com.jagrosh.vortex.commands.settings.*;
-import java.nio.file.*;
-import java.util.List;
 import java.util.concurrent.Executors;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
@@ -84,10 +82,10 @@ public class Vortex
                                        config.getString("database.password"));
         uploader = new TextUploader(this, config.getLong("uploader.guild"), config.getLong("uploader.category"));
         modlog = new ModLogger(this);
-        basiclog = new BasicLogger(this);
+        basiclog = new BasicLogger(this, config);
         messages = new MessageCache();
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
-        automod = new AutoMod(this, config.getString("url-resolver.url"), config.getString("url-resolver.secret"));
+        automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)

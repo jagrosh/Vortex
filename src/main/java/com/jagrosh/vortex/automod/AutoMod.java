@@ -20,9 +20,11 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
-import com.jagrosh.vortex.pro.URLResolver;
+import com.jagrosh.vortex.logging.URLResolver;
+import com.jagrosh.vortex.logging.URLResolver.*;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
+import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -50,7 +52,6 @@ public class AutoMod
     private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|app\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
             Pattern.CASE_INSENSITIVE);
     
-    
     private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
     private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
@@ -70,10 +71,10 @@ public class AutoMod
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     
-    public AutoMod(Vortex vortex, String url, String secret)
+    public AutoMod(Vortex vortex, Config config)
     {
         this.vortex = vortex;
-        urlResolver = new URLResolver(url, secret);
+        urlResolver = config.getBoolean("url-resolver.active") ? new ActiveURLResolver(config) : new DummyURLResolver();
         loadCopypastas();
         loadReferralDomains();
     }
