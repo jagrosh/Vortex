@@ -62,6 +62,7 @@ public class WhitelistInvitesCmd extends Command
                 break;
             default:
                 event.replyWarning(DESCRIPTION);
+                break;
         }
     }
 

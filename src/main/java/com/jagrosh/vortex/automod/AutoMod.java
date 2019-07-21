@@ -26,6 +26,7 @@ import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -260,12 +261,13 @@ public class AutoMod
         if(settings==null)
             return;
 
-        List<Long> inviteWhitelist = settings.inviteStrikes == 0 ? null
-                : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
-        
         // check the channel for channel-specific settings
         boolean preventSpam = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
-        boolean preventInvites = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}");
+        boolean preventInvites = (message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
+                && settings.inviteStrikes > 0;
+
+        List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
+                : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         
         boolean shouldDelete = false;
         String shouldChannelMute = null;
@@ -391,7 +393,7 @@ public class AutoMod
         }
         
         // anti-invite
-        if(settings.inviteStrikes > 0 && preventInvites)
+        if(preventInvites)
         {
             List<String> invites = new ArrayList<>();
             Matcher m = INVITES.matcher(message.getContentRaw());
@@ -464,7 +466,7 @@ public class AutoMod
         }
         
         // now, lets resolve links, but async
-        if(!shouldDelete && settings.resolveUrls && (settings.inviteStrikes>0 || settings.refStrikes>0))
+        if(!shouldDelete && settings.resolveUrls && (preventInvites || settings.refStrikes>0))
         {
             List<String> links = new LinkedList<>();
             Matcher m = LINK.matcher(message.getContentRaw());
@@ -483,8 +485,7 @@ public class AutoMod
                         redirects = urlResolver.findRedirects(link);
                         for(String resolved: redirects)
                         {
-                            //TODO: add && preventInvites like for other check? (topic)
-                            if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
+                            if(preventInvites && resolved.matches(INVITE_LINK))
                             {
                                 long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
@@ -497,7 +498,7 @@ public class AutoMod
                             }
                                 
                         }
-                        if((containsInvite || settings.inviteStrikes<1) && (containsRef || settings.refStrikes<1))
+                        if((containsInvite || !preventInvites) && (containsRef || settings.refStrikes<1))
                             break;
                     }
                     int rstrikeTotal = (containsInvite ? settings.inviteStrikes : 0) + (containsRef ? settings.refStrikes : 0);
