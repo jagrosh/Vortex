@@ -15,10 +15,9 @@
  */
 package com.jagrosh.vortex.logging;
 
+import com.jagrosh.vortex.pro.AvatarUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
-import com.jagrosh.vortex.pro.api.AvatarUtil;
-import com.jagrosh.vortex.pro.VortexPro;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.awt.Color;
@@ -292,9 +291,6 @@ public class BasicLogger
     
     public void logAvatarChange(UserUpdateAvatarEvent event)
     {
-        AvatarUtil avatarUtil = VortexPro.from(AvatarUtil.class);
-        if(avatarUtil == null)
-            return;
         List<TextChannel> logs = event.getUser().getMutualGuilds().stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getAvatarLogChannel(guild))
             .filter(tc -> tc!=null)
@@ -304,7 +300,7 @@ public class BasicLogger
         OffsetDateTime now = OffsetDateTime.now();
         vortex.getThreadpool().execute(() -> 
         {
-            byte[] im = avatarUtil.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
+            byte[] im = AvatarUtil.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
             if(im!=null)
                 logs.forEach(tc -> logFile(now, tc, AVATAR, FormatUtil.formatFullUser(event.getUser())+" has changed avatars"
                         +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " <:gif:314068430624129039>" : "")

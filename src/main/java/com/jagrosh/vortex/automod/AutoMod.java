@@ -20,8 +20,7 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
-import com.jagrosh.vortex.pro.api.URLResolver;
-import com.jagrosh.vortex.pro.VortexPro;
+import com.jagrosh.vortex.pro.URLResolver;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.OffsetDateTime;
@@ -74,7 +73,7 @@ public class AutoMod
     public AutoMod(Vortex vortex, String url, String secret)
     {
         this.vortex = vortex;
-        urlResolver = VortexPro.from(URLResolver.class, url, secret);
+        urlResolver = new URLResolver(url, secret);
         loadCopypastas();
         loadReferralDomains();
     }
