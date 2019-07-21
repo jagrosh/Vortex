@@ -23,7 +23,6 @@ import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageEmbed.Field;
 
@@ -362,7 +361,7 @@ public class AutomodManager extends DataManager
             }
         });
     }
-
+    
     private void invalidateCache(Guild guild)
     {
         invalidateCache(guild.getIdLong());
@@ -382,7 +381,7 @@ public class AutomodManager extends DataManager
         public final int inviteStrikes, refStrikes, copypastaStrikes, everyoneStrikes;
         public final int dupeStrikes, dupeDeleteThresh, dupeStrikeThresh;
         public final char dehoistChar;
-
+        
         private AutomodSettings()
         {
             this.resolveUrls = false;
