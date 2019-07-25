@@ -37,9 +37,10 @@ public class AntiinviteCmd extends Command
         this.guildOnly = true;
         this.aliases = new String[]{"antinvite","anti-invite"};
         this.category = new Category("AutoMod");
-        this.arguments = "<strikes>";
+        this.arguments = "<strikes|whitelist...>";
         this.help = "sets strikes for posting invites";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+        this.children = new Command[] {new WhitelistInvitesCmd(vortex)};
     }
 
     @Override

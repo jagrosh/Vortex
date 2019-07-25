@@ -28,6 +28,7 @@ import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -208,19 +209,19 @@ public class AutoMod
         // ignore users vortex cant interact with
         if(!member.getGuild().getSelfMember().canInteract(member))
             return false;
-        
+
         // ignore users that can kick
         if(member.hasPermission(Permission.KICK_MEMBERS))
             return false;
-        
+
         // ignore users that can ban
         if(member.hasPermission(Permission.BAN_MEMBERS))
             return false;
-        
+
         // ignore users that can manage server
         if(member.hasPermission(Permission.MANAGE_SERVER))
             return false;
-        
+
         // if a channel is specified, ignore users that can manage messages in that channel
         if(channel!=null && (member.hasPermission(channel, Permission.MESSAGE_MANAGE) || vortex.getDatabase().ignores.isIgnored(channel)))
             return false;
@@ -260,10 +261,14 @@ public class AutoMod
         AutomodSettings settings = vortex.getDatabase().automod.getSettings(message.getGuild());
         if(settings==null)
             return;
-        
+
         // check the channel for channel-specific settings
         boolean preventSpam = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
-        boolean preventInvites = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}");
+        boolean preventInvites = (message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
+                && settings.inviteStrikes > 0;
+
+        List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
+                : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         
         boolean shouldDelete = false;
         String shouldChannelMute = null;
@@ -389,7 +394,7 @@ public class AutoMod
         }
         
         // anti-invite
-        if(settings.inviteStrikes > 0 && preventInvites)
+        if(preventInvites)
         {
             List<String> invites = new ArrayList<>();
             Matcher m = INVITES.matcher(message.getContentRaw());
@@ -399,7 +404,7 @@ public class AutoMod
             for(String inviteCode : invites)
             {
                 long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
-                if(gid != message.getGuild().getIdLong())
+                if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
                     strikeTotal += settings.inviteStrikes;
                     reason.append(", Advertising");
@@ -462,7 +467,7 @@ public class AutoMod
         }
         
         // now, lets resolve links, but async
-        if(!shouldDelete && settings.resolveUrls && (settings.inviteStrikes>0 || settings.refStrikes>0))
+        if(!shouldDelete && settings.resolveUrls && (preventInvites || settings.refStrikes>0))
         {
             List<String> links = new LinkedList<>();
             Matcher m = LINK.matcher(message.getContentRaw());
@@ -481,9 +486,10 @@ public class AutoMod
                         redirects = urlResolver.findRedirects(link);
                         for(String resolved: redirects)
                         {
-                            if(settings.inviteStrikes>0 && resolved.matches(INVITE_LINK))
+                            if(preventInvites && resolved.matches(INVITE_LINK))
                             {
-                                if(inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1")) != message.getGuild().getIdLong())
+                                long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
+                                if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
                             if(settings.refStrikes>0)
@@ -493,7 +499,7 @@ public class AutoMod
                             }
                                 
                         }
-                        if((containsInvite || settings.inviteStrikes<1) && (containsRef || settings.refStrikes<1))
+                        if((containsInvite || !preventInvites) && (containsRef || settings.refStrikes<1))
                             break;
                     }
                     int rstrikeTotal = (containsInvite ? settings.inviteStrikes : 0) + (containsRef ? settings.refStrikes : 0);
