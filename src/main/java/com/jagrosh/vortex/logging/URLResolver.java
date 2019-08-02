@@ -59,9 +59,9 @@ public interface URLResolver
             prefix = config.getString("url-resolver.prefix");
             suffix = config.getString("url-resolver.suffix");
             form = config.getString("url-resolver.form");
-            request = new Request.Builder().url(config.getString("url-resolver.url"))
-                    .header("Content-Type", "application/x-www-form-urlencoded")
-                    .header(config.getString("url-resolver.key"), config.getString("url-resolver.value"));
+            request = new Request.Builder().url(config.getString("url-resolver.url"));
+            config.getConfig("url-resolver.headers").entrySet()
+                    .forEach(entry -> request.addHeader(entry.getKey(), (String) entry.getValue().unwrapped()));
         }
 
         @Override

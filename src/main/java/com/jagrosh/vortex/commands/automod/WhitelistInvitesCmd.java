@@ -75,7 +75,7 @@ public class WhitelistInvitesCmd extends Command
         }
         List<Long> currentWL = vortex.getDatabase().inviteWhitelist.readWhitelist(event.getGuild());
         event.replySuccess("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
-                currentWL.stream().map(String::valueOf).collect(Collectors.joining(", "))));
+                "`" + currentWL.stream().map(String::valueOf).collect(Collectors.joining("`, `")) + "`"));
     }
 
     private void handleAdd(CommandEvent event, String[] args)
