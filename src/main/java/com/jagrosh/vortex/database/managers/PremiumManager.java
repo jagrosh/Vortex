@@ -22,6 +22,8 @@ import com.jagrosh.easysql.columns.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
 import java.util.LinkedList;
 import java.util.List;
@@ -178,6 +180,13 @@ public class PremiumManager extends DataManager
             if(level==Level.NONE || until==null || until.getEpochSecond()==Instant.MAX.getEpochSecond())
                 return null;
             return until;
+        }
+
+        @Override
+        public String toString()
+        {
+            return level.name + " (Until " + (until == null ? "never" 
+                    : until.atZone(ZoneId.of("GMT-4")).format(DateTimeFormatter.RFC_1123_DATE_TIME)) + ")";
         }
     }
 }

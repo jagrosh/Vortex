@@ -20,8 +20,7 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
-import com.jagrosh.vortex.logging.URLResolver;
-import com.jagrosh.vortex.logging.URLResolver.*;
+import com.jagrosh.vortex.automod.URLResolver.*;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
@@ -263,15 +262,18 @@ public class AutoMod
             return;
 
         // check the channel for channel-specific settings
-        boolean preventSpam = message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
-        boolean preventInvites = (message.getTextChannel().getTopic()==null || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
+        boolean preventSpam = message.getTextChannel().getTopic()==null 
+                || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
+        boolean preventInvites = (message.getTextChannel().getTopic()==null 
+                || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
                 && settings.inviteStrikes > 0;
 
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
+        List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
         
         boolean shouldDelete = false;
-        String shouldChannelMute = null;
+        String channelWarning = null;
         int strikeTotal = 0;
         StringBuilder reason = new StringBuilder();
         
@@ -292,7 +294,7 @@ public class AutoMod
                 
                 if(offenses==settings.dupeDeleteThresh)
                 {
-                    shouldChannelMute = "Please stop spamming.";
+                    channelWarning = "Please stop spamming.";
                     purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
                 }
                 else if(offenses>settings.dupeDeleteThresh)
@@ -343,6 +345,21 @@ public class AutoMod
             }
         }
         
+        // filters
+        if(!filters.isEmpty())
+        {
+            Filter mostStrikesFilter = null;
+            for(Filter filter: filters)
+                if((mostStrikesFilter == null || filter.strikes > mostStrikesFilter.strikes) && filter.test(message.getContentRaw()))
+                    mostStrikesFilter = filter;
+            if(mostStrikesFilter != null)
+            {
+                strikeTotal += mostStrikesFilter.strikes;
+                reason.append(", '").append(mostStrikesFilter.name).append("' Filter");
+                shouldDelete = true;
+            }
+        }
+        
         // prevent referral links
         if(settings.refStrikes > 0)
         {
@@ -381,6 +398,7 @@ public class AutoMod
             }
         }
         
+        // prevent attempted everyone/here mentions
         if(settings.everyoneStrikes > 0 && preventSpam && !message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
         {
             String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "");
@@ -424,39 +442,11 @@ public class AutoMod
             }catch(PermissionException ignore){}
         }
         
-        // channel mute if applicable (prevent sending messages in that channel for a short time as a 'warning'
-        if(shouldChannelMute!=null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MANAGE_PERMISSIONS, Permission.MESSAGE_WRITE)) 
+        // send a short 'warning' message that self-deletes
+        if(channelWarning!=null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_WRITE)) 
         {
-            message.getChannel().sendMessage(message.getAuthor().getAsMention() + Constants.WARNING + " " + shouldChannelMute).queue(m -> 
-            {
-                m.delete().queueAfter(1500, TimeUnit.MILLISECONDS, s->{}, f->{});
-                try
-                {
-                    PermissionOverride po = message.getTextChannel().getPermissionOverride(message.getMember());
-                    if(po==null)
-                    {
-
-                        message.getTextChannel().createPermissionOverride(message.getMember()).setDeny(Permission.MESSAGE_READ).queue(p -> 
-                        {
-                            try
-                            {
-                                p.delete().queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
-                            } catch(Exception ignore) {}
-                        }, f->{});
-                    }
-                    else
-                    {
-                        long existingDenied = po.getDeniedRaw();
-                        po.getManager().deny(Permission.MESSAGE_READ).queue(su -> 
-                        {
-                            try
-                            {
-                                po.getManager().deny(existingDenied).queueAfter(3, TimeUnit.SECONDS, s->{}, f->{});
-                            } catch(Exception ignore) {}
-                        }, f->{});
-                    }
-                } catch(Exception ignore) {}
-            }, f->{});
+            message.getChannel().sendMessage(message.getAuthor().getAsMention() + Constants.WARNING + " " + channelWarning)
+                    .queue(m -> m.delete().queueAfter(2500, TimeUnit.MILLISECONDS, s->{}, f->{}), f->{});
         }
         
         // assign strikes if necessary

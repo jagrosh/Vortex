@@ -145,6 +145,7 @@ public class Vortex
                             new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),
                             new AutodehoistCmd(this),
+                            new FilterCmd(this),
                             new ResolvelinksCmd(this),
                             new AutoraidmodeCmd(this),
                             new IgnoreCmd(this),
@@ -160,6 +161,7 @@ public class Vortex
                             // Owner
                             new EvalCmd(this),
                             new DebugCmd(this),
+                            new PremiumCmd(this),
                             new ReloadCmd(this)
                             //new TransferCmd(this)
                         )
@@ -258,6 +260,7 @@ public class Vortex
         {
             database.automod.setResolveUrls(gid, false);
             database.settings.setAvatarLogChannel(gid, null);
+            database.filters.deleteAllFilters(gid);
         });
     }
     
@@ -266,6 +269,8 @@ public class Vortex
         shards.getGuilds().stream().filter(g -> 
         {
             if(!g.isAvailable())
+                return false;
+            if(Constants.OWNER_ID.equals(g.getOwnerId()))
                 return false;
             int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
             if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.5))

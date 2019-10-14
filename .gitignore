@@ -6,3 +6,4 @@
 /database/
 /.idea/
 nb*.xml
+*.conf

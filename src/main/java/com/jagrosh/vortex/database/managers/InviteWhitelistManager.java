@@ -21,7 +21,8 @@ import java.util.stream.IntStream;
 
 public class InviteWhitelistManager extends DataManager
 {
-
+    public static final int MAX_WHITELISTED_GUILDS = 80;
+    
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L);
     public static final SQLColumn<Long> WHITELIST_ID = new LongColumn("WL_ID", false, 0L);
 
@@ -40,6 +41,8 @@ public class InviteWhitelistManager extends DataManager
 
     public boolean addToWhitelist(Guild guild, long whitelistId)
     {
+        if(readWhitelist(guild).size() + 1 > MAX_WHITELISTED_GUILDS)
+            return false;
         invalidateCache(guild);
         return readWrite(selectAll(GUILD_ID.is(guild.getId()) + " AND " + WHITELIST_ID.is(whitelistId)), rs ->
         {
@@ -55,6 +58,8 @@ public class InviteWhitelistManager extends DataManager
 
     public void addAllToWhitelist(Guild guild, Collection<Long> whitelistIds)
     {
+        if(readWhitelist(guild).size() + whitelistIds.size() > MAX_WHITELISTED_GUILDS)
+            return;
         invalidateCache(guild);
         Set<Long> ids = new HashSet<>(whitelistIds);
         readWrite(selectAll(String.format("%s AND %s IN (%s)",

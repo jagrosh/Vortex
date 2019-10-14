@@ -54,6 +54,7 @@ public class SettingsCmd extends Command
                         .addField(vortex.getDatabase().settings.getSettingsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().actions.getAllPunishmentsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().automod.getSettingsDisplay(event.getGuild()))
+                        .addField(vortex.getDatabase().filters.getFiltersDisplay(event.getGuild()))
                         .setFooter(pi.getFooterString(), null)
                         .setTimestamp(pi.getTimestamp())
                         .setColor(event.getSelfMember().getColor())
