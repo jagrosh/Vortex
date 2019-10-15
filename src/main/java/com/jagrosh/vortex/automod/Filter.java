@@ -58,6 +58,11 @@ public class Filter
         return sb.toString().trim();
     }
     
+    public String printContentEscaped()
+    {
+        return printContent().replace("*", "\\*").replace("`", "\\`");
+    }
+    
     public static Filter parseFilter(String name, int strikes, String content) throws IllegalArgumentException
     {
         // pre checks
@@ -129,7 +134,7 @@ public class Filter
         return filter;
     }
     
-    public abstract class Item
+    public static abstract class Item
     {
         abstract boolean test(String message);
         abstract String print();

@@ -114,7 +114,7 @@ public class FilterCmd extends Command
                 if(vortex.getDatabase().filters.addFilter(event.getGuild(), filter))
                 {
                     event.replySuccess("Filter *" + filter.name + "* (`" + filter.strikes + " " + Action.STRIKE.getEmoji() 
-                            + "`) successfully created with filtered terms:\n`` " + filter.printContent() + " ``");
+                            + "`) successfully created with filtered terms:\n" + filter.printContentEscaped());
                 }
                 else
                 {

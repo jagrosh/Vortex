@@ -84,7 +84,7 @@ public class FilterManager extends DataManager
             return null;
         StringBuilder sb = new StringBuilder();
         filters.forEach(f -> sb.append("\n**").append(f.name).append("** (`").append(f.strikes).append(" ")
-                .append(Action.STRIKE.getEmoji()).append("`): `` ").append(f.printContent()).append(" ``"));
+                .append(Action.STRIKE.getEmoji()).append("`): ").append(f.printContentEscaped()));
         return new Field(SETTINGS_TITLE, sb.toString().trim(), true);
     }
     
