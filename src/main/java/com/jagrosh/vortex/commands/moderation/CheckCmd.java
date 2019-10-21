@@ -22,11 +22,11 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild.Ban;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild.Ban;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -87,7 +87,7 @@ public class CheckCmd extends ModCommand
         if(event.getGuild().isMember(user))
             check(event, user, null);
         else
-            event.getGuild().getBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
+            event.getGuild().retrieveBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
     }
     
     private void check(CommandEvent event, User user, Ban ban)

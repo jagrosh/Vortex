@@ -20,14 +20,13 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
-import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -141,7 +140,7 @@ public class TempMuteManager extends DataManager
                 }
                 Member m = g.getMemberById(USER_ID.getValue(rs));
                 if(m!=null && m.getRoles().contains(mRole))
-                    g.getController().removeSingleRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
+                    g.removeRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
                 rs.deleteRow();
             }
         });

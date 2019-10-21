@@ -19,13 +19,13 @@ import java.util.LinkedList;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -88,7 +88,7 @@ public class KickCmd extends ModCommand
         {
             Member m = toKick.get(i);
             boolean last = i+1 == toKick.size();
-            event.getGuild().getController().kick(m, reason).queue(success -> 
+            event.getGuild().kick(m, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully kicked ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)

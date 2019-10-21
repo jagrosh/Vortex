@@ -19,7 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -46,7 +46,7 @@ public class RaidCmd extends ModCommand
         {
             if(active)
             {
-                vortex.getAutoMod().disableRaidMode(event.getGuild(), event.getMember(), event.getMessage().getCreationTime(), parts.length>1 ? parts[1] : null);
+                vortex.getAutoMod().disableRaidMode(event.getGuild(), event.getMember(), event.getMessage().getTimeCreated(), parts.length>1 ? parts[1] : null);
                 event.replySuccess("Anti-Raid Mode has been disabled.");
             }
             else
@@ -56,7 +56,7 @@ public class RaidCmd extends ModCommand
         {
             if(!active)
             {
-                vortex.getAutoMod().enableRaidMode(event.getGuild(), event.getMember(), event.getMessage().getCreationTime(), parts.length>1 ? parts[1] : null);
+                vortex.getAutoMod().enableRaidMode(event.getGuild(), event.getMember(), event.getMessage().getTimeCreated(), parts.length>1 ? parts[1] : null);
                 event.replySuccess("Anti-Raid Mode enabled. New members will be prevented from joining.");
             }
             else

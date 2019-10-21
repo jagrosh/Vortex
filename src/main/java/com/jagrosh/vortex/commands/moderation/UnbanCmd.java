@@ -18,14 +18,14 @@ package com.jagrosh.vortex.commands.moderation;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild.Ban;
+import net.dv8tion.jda.api.entities.Guild.Ban;
 
 /**
  *
@@ -55,7 +55,7 @@ public class UnbanCmd extends ModCommand
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
         StringBuilder builder = new StringBuilder();
         
-        event.getGuild().getBanList().queue(list -> 
+        event.getGuild().retrieveBanList().queue(list -> 
         {
             List<Ban> toUnban = new LinkedList<>();
             args.members.forEach(m -> args.users.add(m.getUser()));
@@ -90,7 +90,7 @@ public class UnbanCmd extends ModCommand
             {
                 Ban ban = toUnban.get(i);
                 boolean last = i+1 == toUnban.size();
-                event.getGuild().getController().unban(ban.getUser()).reason(reason).queue(success -> 
+                event.getGuild().unban(ban.getUser()).reason(reason).queue(success -> 
                 {
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unbanned ").append(FormatUtil.formatUser(ban.getUser()));
                     if(last)

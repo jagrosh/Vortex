@@ -35,11 +35,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,7 +295,7 @@ public class AutoMod
                 if(offenses==settings.dupeDeleteThresh)
                 {
                     channelWarning = "Please stop spamming.";
-                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
+                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getTimeCreated().plusMinutes(2).isAfter(now));
                 }
                 else if(offenses>settings.dupeDeleteThresh)
                     shouldDelete = true;
@@ -546,7 +546,7 @@ public class AutoMod
     
     private static OffsetDateTime latestTime(Message m)
     {
-        return m.isEdited() ? m.getEditedTime() : m.getCreationTime();
+        return m.isEdited() ? m.getEditedTime() : m.getTimeCreated();
     }
     
     private class DupeStatus

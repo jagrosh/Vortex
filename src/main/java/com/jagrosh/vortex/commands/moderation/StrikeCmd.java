@@ -24,9 +24,9 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -136,7 +136,7 @@ public class StrikeCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
             else
             {
-                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), u, numstrikes, reason);
+                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getTimeCreated(), u, numstrikes, reason);
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(numstrikes)
                         .append("` strikes to ").append(FormatUtil.formatUser(u));
             }

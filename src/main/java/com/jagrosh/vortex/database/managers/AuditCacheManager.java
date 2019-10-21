@@ -21,7 +21,7 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
 
 /**
  *

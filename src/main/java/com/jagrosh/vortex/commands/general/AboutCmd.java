@@ -21,11 +21,11 @@ import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.awt.Color;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDAInfo;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDAInfo;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
  *
@@ -44,7 +44,7 @@ public class AboutCmd extends Command
     @Override
     protected void execute(CommandEvent event)
     {
-        ShardManager sm = event.getJDA().asBot().getShardManager();
+        ShardManager sm = event.getJDA().getShardManager();
         event.reply(new MessageBuilder()
                 .setContent(Constants.VORTEX_EMOJI + " **All about Vortex** " + Constants.VORTEX_EMOJI)
                 .setEmbed(new EmbedBuilder()
@@ -54,7 +54,7 @@ public class AboutCmd extends Command
                                 + "Type `" + event.getClient().getPrefix() + event.getClient().getHelpWord() + "` for help and information.\n\n"
                                 + FormatUtil.helpLinks(event))
                         .addField("Stats", sm.getShardsTotal()+ " Shards\n" + sm.getGuildCache().size() + " Servers", true)
-                        .addField("", sm.getUserCache().size() + " Users\n" + Math.round(sm.getAveragePing()) + "ms Avg Ping", true)
+                        .addField("", sm.getUserCache().size() + " Users\n" + Math.round(sm.getAverageGatewayPing()) + "ms Avg Ping", true)
                         .addField("", sm.getTextChannelCache().size() + " Text Channels\n" + sm.getVoiceChannelCache().size() + " Voice Channels", true)
                         .setFooter("Last restart", null)
                         .setTimestamp(event.getClient().getStartTime())
