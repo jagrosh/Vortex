@@ -21,7 +21,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.commands.ModCommand;

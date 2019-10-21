@@ -33,7 +33,8 @@ import net.dv8tion.jda.core.entities.MessageEmbed.Field;
  */
 public class FilterManager extends DataManager
 {
-    private static final String SETTINGS_TITLE = "\uD83D\uDEAF Filters"; // 🚯
+    private final static int MAX_FILTERS = 15;
+    private final static String SETTINGS_TITLE = "\uD83D\uDEAF Filters"; // 🚯
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L);
     public final static SQLColumn<String> SHORTNAME = new StringColumn("SHORTNAME",false,"",Filter.MAX_NAME_LENGTH);
@@ -92,6 +93,8 @@ public class FilterManager extends DataManager
     {
         String shortname = shortnameOf(filter.name);
         if(shortname.isEmpty())
+            return false;
+        if(getFilters(guild).size() >= MAX_FILTERS)
             return false;
         invalidateCache(guild);
         return readWrite(selectAll(GUILD_ID.is(guild.getId()) + " AND " + SHORTNAME.is("'"+shortname+"'")), rs -> 

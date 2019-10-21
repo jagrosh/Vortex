@@ -57,8 +57,8 @@ public class FilterCmd extends Command
                 + "quote can be checked for by surrounding the word in double quotation marks (\"). \n");
         for(Command cmd: children)
         {
-            sb.append("\n`").append(Constants.PREFIX).append(name).append(" ").append(cmd.getName()).append(" ")
-                    .append(cmd.getArguments()).append("` - ").append(cmd.getHelp());
+            sb.append("\n`").append(Constants.PREFIX).append(name).append(" ").append(cmd.getName())
+                    .append(cmd.getArguments() == null ? "" : " " + cmd.getArguments()).append("` - ").append(cmd.getHelp());
         }
         event.reply(sb.toString());
     }
