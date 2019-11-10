@@ -18,8 +18,6 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
-import com.jagrosh.vortex.Action;
-import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -29,6 +27,7 @@ import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.audit.ActionType;
+import net.dv8tion.jda.core.audit.AuditLogChange;
 import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
@@ -100,9 +99,9 @@ public class AuditCmd extends Command
                 break;
             default:
                 throw new CommandErrorException("Valid subcommands:\n\n"
-                    + "`" + Constants.PREFIX + name + " all` - shows recent audit log entries\n"
-                    + "`" + Constants.PREFIX + name + " from <user>` - shows recent entries by a user\n"
-                    + "`" + Constants.PREFIX + name + " action <action>` shows recent entries of a certain action");
+                    + "`" + event.getClient().getPrefix() + name + " all` - shows recent audit log entries\n"
+                    + "`" + event.getClient().getPrefix() + name + " from <user>` - shows recent entries by a user\n"
+                    + "`" + event.getClient().getPrefix() + name + " action <action>` shows recent entries of a certain action");
         }
         event.getChannel().sendTyping().queue();
         action.queue(list -> 
@@ -156,10 +155,12 @@ public class AuditCmd extends Command
                 }
                 ale.getChanges().keySet().forEach(change -> 
                 {
-                    sb.append("\n").append(LINESTART).append(fixCase(change)).append(": ")
-                            .append(ale.getChangeByKey(change).getOldValue()==null ? "" : "**"+ale.getChangeByKey(change).getOldValue()+"**")
-                            .append(ale.getChangeByKey(change).getOldValue()==null || ale.getChangeByKey(change).getNewValue()==null ? "" : " → ")
-                            .append(ale.getChangeByKey(change).getNewValue()==null ? "" : "**"+ale.getChangeByKey(change).getNewValue()+"**");
+                    AuditLogChange alc = ale.getChangeByKey(change);
+                    if(alc != null)
+                        sb.append("\n").append(LINESTART).append(fixCase(change)).append(": ")
+                            .append(alc.getOldValue()==null ? "" : "**"+alc.getOldValue()+"**")
+                            .append(alc.getOldValue()==null || alc.getNewValue()==null ? "" : " → ")
+                            .append(alc.getNewValue()==null ? "" : "**"+alc.getNewValue()+"**");
                 });
                 ale.getOptions().keySet().forEach(option -> 
                 {
@@ -173,7 +174,7 @@ public class AuditCmd extends Command
                 eb.addField(actionToEmote(ale.getType())+" "+fixCase(ale.getType().name()), str, true);
             });
             event.reply(new MessageBuilder()
-                    .setContent(Constants.SUCCESS+" Recent Audit Logs in **"+FormatUtil.filterEveryone(event.getGuild().getName())+"**:")
+                    .setContent(event.getClient().getSuccess()+" Recent Audit Logs in **"+FormatUtil.filterEveryone(event.getGuild().getName())+"**:")
                     .setEmbed(eb.build()).build());
         }, f -> event.replyWarning("Failed to retrieve audit logs"));
     }
