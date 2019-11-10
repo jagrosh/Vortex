@@ -30,7 +30,7 @@ public class Filter
     public final static int MAX_CONTENT_LENGTH = 255;
     public final static int MAX_STRIKES = 100;
     
-    private final static String[] TEST_CASES = {"welcome", "i will follow the rules"};
+    private final static String[] TEST_CASES = {"welcome", "i will follow the rules", "this is a sentence"};
     
     public final String name;
     public final int strikes;
@@ -150,21 +150,35 @@ public class Filter
             glob = glob.replaceAll("\\*+", "*"); // remove double wildcards
             this.startWildcard = glob.startsWith("*");
             this.endWildcard = glob.endsWith("*");
-            this.glob = (startWildcard ? "" : " ") 
-                    + glob.substring(startWildcard ? 1 : 0, endWildcard ? glob.length()-1 : glob.length()) 
-                    + (endWildcard ? "" : " ");
+            this.glob = glob.substring(startWildcard ? 1 : 0, endWildcard ? glob.length()-1 : glob.length());
         }
         
         @Override
         public boolean test(String message) 
         {
-            return (" " + message.replaceAll("\\s+", " ").toLowerCase() + " ").contains(glob);
+            String lower = message.toLowerCase();
+            int index = -1;
+            while((index = lower.indexOf(glob, index + 1)) > -1)
+            {
+                if((startWildcard || isWordBoundary(lower, index - 1)) 
+                        && (endWildcard || isWordBoundary(lower, index + glob.length())))
+                    return true;
+            }
+            return false;
         }
 
         @Override
         String print()
         {
             return (startWildcard ? "*" : "") + glob.trim() + (endWildcard ? "*" : "");
+        }
+        
+        private static boolean isWordBoundary(String str, int index)
+        {
+            if(index < 0 || index >= str.length())
+                return true;
+            char c = str.charAt(index);
+            return !(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9');
         }
     }
     
