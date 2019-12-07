@@ -36,6 +36,8 @@ import net.dv8tion.jda.core.entities.Role;
  */
 public class BanCmd extends ModCommand
 {
+    protected int daysToDelete = 1;
+    
     public BanCmd(Vortex vortex)
     {
         super(vortex, Permission.BAN_MEMBERS);
@@ -102,7 +104,7 @@ public class BanCmd extends ModCommand
             long uid = ids.get(i);
             String id = Long.toString(uid);
             boolean last = i+1 == ids.size();
-            event.getGuild().getController().ban(id, 1, reason).queue(success -> 
+            event.getGuild().getController().ban(id, daysToDelete, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
                 if(minutes>0)
