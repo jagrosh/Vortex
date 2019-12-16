@@ -20,10 +20,10 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.utils.FixedCache;
-import java.sql.ResultSet;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
@@ -48,32 +48,45 @@ public class IgnoreManager extends DataManager
     
     public boolean isIgnored(TextChannel tc)
     {
-        return read(select(ENTITY_ID.is(tc.getIdLong()), ENTITY_ID), ResultSet::next);
+        return getIgnores(tc.getGuild()).contains(tc.getIdLong());
     }
     
     public boolean isIgnored(Member member)
     {
-        if(cache.contains(member.getGuild().getIdLong()))
-        {
-            for(long rid: cache.get(member.getGuild().getIdLong()))
-                if(member.getRoles().stream().anyMatch(r -> r.getIdLong()==rid))
-                    return true;
-            return false;
-        }
-        return read(select(GUILD_ID.is(member.getGuild().getId())+" AND "+TYPE.is(Type.ROLE.ordinal()), ENTITY_ID), rs ->
-        {
-            while(rs.next())
-            {
-                long id = ENTITY_ID.getValue(rs);
-                if(member.getRoles().stream().anyMatch(r -> r.getIdLong()==id))
-                    return true;
-            }
-            return false;
-        });
+        Set<Long> ignored = getIgnores(member.getGuild());
+        return member.getRoles().stream().anyMatch(r -> ignored.contains(r.getIdLong()));
     }
     
+    public List<TextChannel> getIgnoredChannels(Guild guild)
+    {
+        return getIgnores(guild).stream().map(l -> guild.getTextChannelById(l)).filter(t -> t != null).collect(Collectors.toList());
+    }
+    
+    public List<Role> getIgnoredRoles(Guild guild)
+    {
+        return getIgnores(guild).stream().map(l -> guild.getRoleById(l)).filter(r -> r != null).collect(Collectors.toList());
+    }
+    
+    private Set<Long> getIgnores(Guild guild)
+    {
+        long gid = guild.getIdLong();
+        if(cache.contains(gid))
+            return cache.get(gid);
+        Set<Long> ret = read(selectAll(GUILD_ID.is(gid)), rs -> 
+        {
+            Set<Long> set = new HashSet<>();
+            while(rs.next())
+                set.add(ENTITY_ID.getValue(rs));
+            return set;
+        });
+        cache.put(gid, ret);
+        return ret;
+    }
+    
+    // set things in database
     public boolean ignore(TextChannel tc)
     {
+        invalidateCache(tc.getGuild());
         return readWrite(selectAll(GUILD_ID.is(tc.getGuild().getIdLong())+" AND "+ENTITY_ID.is(tc.getIdLong())), rs ->
         {
             if(rs.next())
@@ -103,49 +116,9 @@ public class IgnoreManager extends DataManager
         });
     }
     
-    public List<TextChannel> getIgnoredChannels(Guild guild)
-    {
-        return read(selectAll(GUILD_ID.is(guild.getIdLong())+" AND "+TYPE.is(Type.TEXT_CHANNEL.ordinal())), rs ->
-        {
-            List<TextChannel> list = new LinkedList<>();
-            while(rs.next())
-            {
-                TextChannel tc = guild.getTextChannelById(ENTITY_ID.getValue(rs));
-                if(tc!=null)
-                    list.add(tc);
-            }
-            return list;
-        });
-    }
-    
-    public List<Role> getIgnoredRoles(Guild guild)
-    {
-        if(cache.contains(guild.getIdLong()))
-        {
-            List<Role> list = new LinkedList<>();
-            for(long rid: cache.get(guild.getIdLong()))
-            {
-                Role role = guild.getRoleById(rid);
-                if(role!=null)
-                    list.add(role);
-            }
-            return list;
-        }
-        return read(selectAll(GUILD_ID.is(guild.getIdLong())+" AND "+TYPE.is(Type.ROLE.ordinal())), rs ->
-        {
-            List<Role> list = new LinkedList<>();
-            while(rs.next())
-            {
-                Role role = guild.getRoleById(ENTITY_ID.getValue(rs));
-                if(role!=null)
-                    list.add(role);
-            }
-            return list;
-        });
-    }
-    
     public boolean unignore(TextChannel tc)
     {
+        invalidateCache(tc.getGuild());
         return readWrite(selectAll(GUILD_ID.is(tc.getGuild().getIdLong())+" AND "+ENTITY_ID.is(tc.getIdLong())), rs ->
         {
             if(rs.next())
