@@ -17,6 +17,7 @@ package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.Vortex;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -105,7 +106,7 @@ public class LookupCmd extends Command
                         }
                         catch(Exception ignore){}
                     }
-                    String text = GUILD_EMOJI + " Information about **"+widget.getName()+"**:";
+                    String text = FormatUtil.filterEveryone(GUILD_EMOJI + " Information about **"+widget.getName()+"**:");
                     EmbedBuilder eb = new EmbedBuilder();
                     String str = LINESTART+"ID: **"+widget.getId()+"**\n"
                         +LINESTART+"Creation: **"+widget.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
