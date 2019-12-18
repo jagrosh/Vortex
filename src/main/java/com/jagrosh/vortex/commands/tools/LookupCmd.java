@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.MessageBuilder;
@@ -84,7 +85,7 @@ public class LookupCmd extends Command
                         str+= " <:nitro:314068430611415041>";
                     str+="\n"+LINESTART+"Account Creation: **"+MiscUtil.getDateTimeString(u.getCreationTime())+"**";
                     eb.setDescription(str);
-                    event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+                    event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
                     return;
                 }
                 
@@ -124,7 +125,7 @@ public class LookupCmd extends Command
                         }
                     }
                     eb.setDescription(str);
-                    event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+                    event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
                     return;
                 }
             }
