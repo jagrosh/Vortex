@@ -175,7 +175,7 @@ public class LookupCmd extends Command
                 eb.setImage(inv.getGuild().getSplashUrl()+"?size=1024");
             }
             eb.addField("Guild Info", str, false);
-            event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+            event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
         });
     }
 }
