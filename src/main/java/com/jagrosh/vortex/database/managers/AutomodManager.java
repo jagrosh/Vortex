@@ -20,6 +20,7 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Action;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,7 +61,7 @@ public class AutomodManager extends DataManager
     public final static SQLColumn<Integer> DEHOIST_CHAR = new IntegerColumn("DEHOIST_CHAR", false, 0);
             
     // Cache
-    private final FixedCache<Long, AutomodSettings> cache = new FixedCache<>(1000);
+    private final FixedCache<Long, AutomodSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
     private final AutomodSettings blankSettings = new AutomodSettings();
     
     public AutomodManager(DatabaseConnector connector)

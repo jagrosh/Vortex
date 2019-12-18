@@ -19,6 +19,7 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +40,7 @@ public class IgnoreManager extends DataManager
     public final static SQLColumn<Long> ENTITY_ID = new LongColumn("ENTITY_ID",false,0L,true);
     public final static SQLColumn<Integer> TYPE = new IntegerColumn("TYPE",false,0);
     
-    private final FixedCache<Long, Set<Long>> cache = new FixedCache<>(1000);
+    private final FixedCache<Long, Set<Long>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
     
     public IgnoreManager(DatabaseConnector connector)
     {
