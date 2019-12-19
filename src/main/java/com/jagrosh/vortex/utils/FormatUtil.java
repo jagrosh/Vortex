@@ -45,7 +45,8 @@ public class FormatUtil {
     
     public static String filterEveryone(String input)
     {
-        return input.replace("@everyone","@\u0435veryone") // cyrillic e
+        return input.replace("\u202E","") // RTL override
+                .replace("@everyone","@\u0435veryone") // cyrillic e
                 .replace("@here","@h\u0435re") // cyrillic e
                 .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
     }
