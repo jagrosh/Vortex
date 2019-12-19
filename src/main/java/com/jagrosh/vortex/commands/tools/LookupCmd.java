@@ -56,6 +56,11 @@ public class LookupCmd extends Command
     @Override
     protected void execute(CommandEvent event)
     {
+        if(event.isFromType(ChannelType.TEXT) && event.getMember().getRoles().isEmpty())
+        {
+            event.reactError();
+            return;
+        }
         if(event.getArgs().isEmpty())
         {
             event.replyError("Please provide a User ID, Server ID, or Invite Code\n"
