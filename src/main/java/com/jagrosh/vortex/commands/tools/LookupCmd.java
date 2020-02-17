@@ -29,6 +29,8 @@ import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.utils.MiscUtil;
 import net.dv8tion.jda.core.utils.WidgetUtil;
 import net.dv8tion.jda.core.utils.WidgetUtil.Widget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -41,7 +43,9 @@ public class LookupCmd extends Command
     private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
     private final static String LINESTART = "\u25AB"; // ▫
     
+    private final Logger log = LoggerFactory.getLogger(LookupCmd.class);
     private final Vortex vortex;
+    private boolean debug = true;
     
     public LookupCmd(Vortex vortex)
     {
@@ -69,6 +73,12 @@ public class LookupCmd extends Command
             return;
         }
         event.getChannel().sendTyping().queue();
+        log.info(event.getGuild().getId() + " - " + event.getMember().getUser().getId() + ": " + event.getMessage().getContentRaw());
+        if(debug && event.getGuild().getMemberById(113156185389092864L)==null && event.getGuild().getMemberById(194257036828082176L)==null)
+        {
+            event.reactError();
+            return;
+        }
         event.async(() -> 
         {
             try

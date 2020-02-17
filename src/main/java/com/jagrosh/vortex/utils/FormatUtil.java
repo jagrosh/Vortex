@@ -295,7 +295,7 @@ public class FormatUtil {
         
         builder.addField("Additional Help", helpLinks(event), false);
         
-        return new MessageBuilder().append(content).setEmbed(builder.build()).build();
+        return new MessageBuilder().append(filterEveryone(content)).setEmbed(builder.build()).build();
     }
     
     public static String helpLinks(CommandEvent event)

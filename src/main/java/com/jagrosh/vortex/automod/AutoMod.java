@@ -70,6 +70,7 @@ public class AutoMod
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
+    private final HashMap<Long,Integer> usage = new HashMap<>();
     
     public AutoMod(Vortex vortex, Config config)
     {
@@ -92,6 +93,11 @@ public class AutoMod
     public final void loadReferralDomains()
     {
         this.refLinkList = OtherUtil.readLines("referral_domains");
+    }
+    
+    public HashMap<Long,Integer> getUsage()
+    {
+        return usage;
     }
     
     public void enableRaidMode(Guild guild, Member moderator, OffsetDateTime now, String reason)
@@ -245,6 +251,7 @@ public class AutoMod
         
         try
         {
+            usage.put(member.getGuild().getIdLong(), usage.getOrDefault(member.getGuild().getIdLong(), 0) + 1);
             OtherUtil.dehoist(member, settings.dehoistChar);
         }
         catch(Exception ignore) {}
@@ -271,6 +278,7 @@ public class AutoMod
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
+        usage.put(message.getGuild().getIdLong(), usage.getOrDefault(message.getGuild().getIdLong(), 0) + 1);
         
         boolean shouldDelete = false;
         String channelWarning = null;
@@ -421,6 +429,7 @@ public class AutoMod
             LOG.trace("Found "+invites.size()+" invites.");
             for(String inviteCode : invites)
             {
+                LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
                 long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
                 if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
@@ -478,7 +487,9 @@ public class AutoMod
                         {
                             if(preventInvites && resolved.matches(INVITE_LINK))
                             {
-                                long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
+                                String code = resolved.replaceAll(INVITE_LINK, "$1");
+                                LOG.info("Delayed resolving invite in " + message.getGuild().getId() + ": " + code);
+                                long invite = inviteResolver.resolve(message.getJDA(), code);
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
@@ -487,7 +498,6 @@ public class AutoMod
                                 if(resolved.matches(REF.pattern()) || isReferralUrl(resolved.replaceAll(BASE_URL.pattern(), "$1")))
                                     containsRef = true;
                             }
-                                
                         }
                         if((containsInvite || !preventInvites) && (containsRef || settings.refStrikes<1))
                             break;

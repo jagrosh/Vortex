@@ -70,6 +70,7 @@ public class Vortex
     private final WebhookClient logwebhook;
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
+    private final CommandExceptionListener listener;
     
     public Vortex() throws Exception
     {
@@ -87,6 +88,7 @@ public class Vortex
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
         automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
+        listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
                         .setGame(Game.playing(Constants.Wiki.SHORT_WIKI))
@@ -95,7 +97,7 @@ public class Vortex
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
-                        .setListener(new CommandExceptionListener())
+                        .setListener(listener)
                         .setScheduleExecutor(threadpool)
                         .setShutdownAutomatically(false)
                         .addCommands(
@@ -187,6 +189,7 @@ public class Vortex
                 .setRequestTimeoutRetry(true)
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
                 .setSessionController(new BlockingSessionController())
+                .setCompressionEnabled(false)
                 .build();
         
         modlog.start();
@@ -251,6 +254,11 @@ public class Vortex
     public StrikeHandler getStrikeHandler()
     {
         return strikehandler;
+    }
+    
+    public CommandExceptionListener getListener()
+    {
+        return listener;
     }
     
     
