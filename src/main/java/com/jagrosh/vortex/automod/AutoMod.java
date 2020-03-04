@@ -23,6 +23,7 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.automod.URLResolver.*;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
+import com.jagrosh.vortex.utils.Usage;
 import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
@@ -70,7 +72,7 @@ public class AutoMod
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
-    private final HashMap<Long,Integer> usage = new HashMap<>();
+    private final Usage usage = new Usage();
     
     public AutoMod(Vortex vortex, Config config)
     {
@@ -95,7 +97,7 @@ public class AutoMod
         this.refLinkList = OtherUtil.readLines("referral_domains");
     }
     
-    public HashMap<Long,Integer> getUsage()
+    public Usage getUsage()
     {
         return usage;
     }
@@ -251,7 +253,7 @@ public class AutoMod
         
         try
         {
-            usage.put(member.getGuild().getIdLong(), usage.getOrDefault(member.getGuild().getIdLong(), 0) + 1);
+            usage.increment(member.getGuild().getIdLong());
             OtherUtil.dehoist(member, settings.dehoistChar);
         }
         catch(Exception ignore) {}
@@ -278,7 +280,7 @@ public class AutoMod
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
-        usage.put(message.getGuild().getIdLong(), usage.getOrDefault(message.getGuild().getIdLong(), 0) + 1);
+        usage.increment(message.getGuild().getIdLong());
         
         boolean shouldDelete = false;
         String channelWarning = null;
@@ -520,8 +522,21 @@ public class AutoMod
     
     private void purgeMessages(Guild guild, Predicate<CachedMessage> predicate)
     {
-        vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
+        vortex.getMessageCache().getMessages(guild, predicate).stream()
+                .collect(Collectors.groupingBy(CachedMessage::getTextChannelId)).entrySet().forEach(entry -> 
         {
+            try
+            {
+                TextChannel mtc = guild.getTextChannelById(entry.getKey());
+                if(mtc != null)
+                    mtc.purgeMessagesById(entry.getValue().stream().map(CachedMessage::getId).collect(Collectors.toList()));
+            }
+            catch(PermissionException ignore) {}
+            catch(Exception ex) { LOG.error("Error in purging messages: ", ex); }
+        });//*/
+        /*vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
+        {
+            
             try
             {
                 TextChannel mtc = m.getTextChannel(guild);
@@ -529,7 +544,7 @@ public class AutoMod
                     mtc.deleteMessageById(m.getIdLong()).queue(s->{}, f->{});
             }
             catch(PermissionException ignore) {}
-        });
+        });//*/
     }
     
     private boolean isReferralUrl(String url)

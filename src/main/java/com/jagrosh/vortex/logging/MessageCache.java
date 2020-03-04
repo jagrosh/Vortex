@@ -113,6 +113,11 @@ public class MessageCache
             return g.getTextChannelById(channel);
         }
         
+        public long getTextChannelId()
+        {
+            return channel;
+        }
+        
         public TextChannel getTextChannel(Guild guild)
         {
             return guild.getTextChannelById(channel);

@@ -18,7 +18,7 @@ package com.jagrosh.vortex.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.CommandListener;
-import java.util.HashMap;
+import com.jagrosh.vortex.utils.Usage;
 import net.dv8tion.jda.core.entities.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class CommandExceptionListener implements CommandListener
 {
     private final Logger log = LoggerFactory.getLogger("Command");
-    private final HashMap<Long,Integer> usage = new HashMap<>();
+    private final Usage usage = new Usage();
     
     @Override
     public void onCommandException(CommandEvent event, Command command, Throwable throwable)
@@ -63,10 +63,10 @@ public class CommandExceptionListener implements CommandListener
     public void onCommand(CommandEvent event, Command command)
     {
         if(event.isFromType(ChannelType.TEXT))
-            usage.put(event.getGuild().getIdLong(), usage.getOrDefault(event.getGuild().getIdLong(), 0) + 1);
+            usage.increment(event.getGuild().getIdLong());
     }
     
-    public HashMap<Long,Integer> getUsage()
+    public Usage getUsage()
     {
         return usage;
     }
