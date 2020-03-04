@@ -17,7 +17,6 @@ package com.jagrosh.vortex.commands.automod;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.vortex.Constants;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
@@ -48,7 +47,7 @@ public class AntiduplicateCmd extends Command
         if(event.getArgs().isEmpty() || event.getArgs().equalsIgnoreCase("help"))
         {
             event.replySuccess("The Anti-Duplicate system prevents and punishes users for sending the same message repeatedly.\n"
-                    + "Usage: `"+Constants.PREFIX+name+" "+arguments+"`\n"
+                    + "Usage: `"+event.getClient().getPrefix()+name+" "+arguments+"`\n"
                     + "`<strike threshold>` - the number of duplicates at which strikes should start being assigned\n"
                     + "`[delete threshold]` - the number of duplicates at which a user's messages should start being deleted\n"
                     + "`[strikes]` - the number of strikes to assign on each duplicate after the strike threshold is met");

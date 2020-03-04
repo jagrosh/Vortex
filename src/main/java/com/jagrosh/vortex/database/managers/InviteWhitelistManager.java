@@ -4,6 +4,7 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.LongColumn;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class InviteWhitelistManager extends DataManager
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L);
     public static final SQLColumn<Long> WHITELIST_ID = new LongColumn("WL_ID", false, 0L);
 
-    private final FixedCache<Long, List<Long>> cache = new FixedCache<>(1000);
+    private final FixedCache<Long, List<Long>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
 
     public InviteWhitelistManager(DatabaseConnector connector)
     {

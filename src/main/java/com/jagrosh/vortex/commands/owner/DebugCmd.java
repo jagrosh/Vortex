@@ -51,7 +51,7 @@ public class DebugCmd extends Command
                 + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
                 + "\nGuilds: **"+vortex.getShardManager().getGuildCache().size()+"**"
                 + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
-                + "\nAverage Ping: **"+vortex.getShardManager().getAveragePing()+"**ms"
+                + "\nAverage Ping: **"+vortex.getShardManager().getAverageGatewayPing()+"**ms"
                 + "\nShard Total: **"+vortex.getShardManager().getShardsTotal()+"**"
                 + "\nShard Connectivity: ```diff");
         vortex.getShardManager().getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")

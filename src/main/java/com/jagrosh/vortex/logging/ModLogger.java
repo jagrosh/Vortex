@@ -214,7 +214,7 @@ public class ModLogger
         Role mRole = gs.getMutedRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;

@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
@@ -170,9 +171,9 @@ public class Listener implements EventListener
         {
             vortex.getBasicLogger().logNameChange((UserUpdateDiscriminatorEvent)event);
         }
-        else if (event instanceof GuildMemberNickChangeEvent)
+        else if (event instanceof GuildMemberUpdateNicknameEvent)
         {
-            vortex.getAutoMod().dehoist(((GuildMemberNickChangeEvent) event).getMember());
+            vortex.getAutoMod().dehoist(((GuildMemberUpdateNicknameEvent) event).getMember());
         }
         else if (event instanceof UserUpdateAvatarEvent)
         {

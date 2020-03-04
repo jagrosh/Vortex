@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -28,6 +29,8 @@ import net.dv8tion.jda.api.exceptions.RateLimitedException;
 import net.dv8tion.jda.api.utils.MiscUtil;
 import net.dv8tion.jda.api.utils.WidgetUtil;
 import net.dv8tion.jda.api.utils.WidgetUtil.Widget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -40,7 +43,9 @@ public class LookupCmd extends Command
     private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
     private final static String LINESTART = "\u25AB"; // ▫
     
+    private final Logger log = LoggerFactory.getLogger(LookupCmd.class);
     private final Vortex vortex;
+    private boolean debug = true;
     
     public LookupCmd(Vortex vortex)
     {
@@ -55,6 +60,11 @@ public class LookupCmd extends Command
     @Override
     protected void execute(CommandEvent event)
     {
+        if(event.isFromType(ChannelType.TEXT) && event.getMember().getRoles().isEmpty())
+        {
+            event.reactError();
+            return;
+        }
         if(event.getArgs().isEmpty())
         {
             event.replyError("Please provide a User ID, Server ID, or Invite Code\n"
@@ -63,6 +73,12 @@ public class LookupCmd extends Command
             return;
         }
         event.getChannel().sendTyping().queue();
+        log.info(event.getGuild().getId() + " - " + event.getMember().getUser().getId() + ": " + event.getMessage().getContentRaw());
+        if(debug && event.getGuild().getMemberById(113156185389092864L)==null && event.getGuild().getMemberById(194257036828082176L)==null)
+        {
+            event.reactError();
+            return;
+        }
         event.async(() -> 
         {
             try
@@ -82,9 +98,9 @@ public class LookupCmd extends Command
                     String str = LINESTART+"Discord ID: **"+u.getId()+"**";
                     if(u.getAvatarId()!=null && u.getAvatarId().startsWith("a_"))
                         str+= " <:nitro:314068430611415041>";
-                    str+="\n"+LINESTART+"Account Creation: **"+MiscUtil.getDateTimeString(u.getTimeCreated())+"**";
+                    str+="\n"+LINESTART+"Account Creation: **"+u.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**";
                     eb.setDescription(str);
-                    event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+                    event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
                     return;
                 }
                 
@@ -124,7 +140,7 @@ public class LookupCmd extends Command
                         }
                     }
                     eb.setDescription(str);
-                    event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+                    event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
                     return;
                 }
             }
@@ -174,7 +190,7 @@ public class LookupCmd extends Command
                 eb.setImage(inv.getGuild().getSplashUrl()+"?size=1024");
             }
             eb.addField("Guild Info", str, false);
-            event.reply(new MessageBuilder().append(text).setEmbed(eb.build()).build());
+            event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
         });
     }
 }

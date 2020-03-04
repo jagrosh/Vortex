@@ -19,7 +19,6 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.OtherUtil;

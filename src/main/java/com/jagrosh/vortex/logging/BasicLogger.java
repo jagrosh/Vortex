@@ -19,6 +19,7 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
+import com.jagrosh.vortex.utils.Usage;
 import com.typesafe.config.Config;
 import java.awt.Color;
 import java.time.OffsetDateTime;
@@ -62,6 +63,7 @@ public class BasicLogger
     
     private final Vortex vortex;
     private final AvatarSaver avatarSaver;
+    private final Usage usage = new Usage();
     
     public BasicLogger(Vortex vortex, Config config)
     {
@@ -69,10 +71,16 @@ public class BasicLogger
         this.avatarSaver = new AvatarSaver(config);
     }
     
+    public Usage getUsage()
+    {
+        return usage;
+    }
+    
     private void log(OffsetDateTime now, TextChannel tc, String emote, String message, MessageEmbed embed)
     {
         try
         {
+            usage.increment(tc.getGuild().getIdLong());
             tc.sendMessage(new MessageBuilder()
                 .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
                 .setEmbed(embed)
@@ -85,9 +93,9 @@ public class BasicLogger
     {
         try
         {
-            tc.sendFile(file, filename, new MessageBuilder()
-                .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
-                .build()).queue();
+            usage.increment(tc.getGuild().getIdLong());
+            tc.sendMessage(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
+                    .addFile(file, filename).queue();
         }
         catch(PermissionException ignore) {}
     }

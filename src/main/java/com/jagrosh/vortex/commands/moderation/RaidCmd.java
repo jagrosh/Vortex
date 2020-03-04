@@ -16,7 +16,6 @@
 package com.jagrosh.vortex.commands.moderation;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
 import net.dv8tion.jda.api.Permission;
@@ -65,8 +64,8 @@ public class RaidCmd extends ModCommand
         else
         {
             event.replySuccess("Anti-Raid Mode is currently `"+(active ? "ACTIVE" : "NOT ACTIVE")+"`\n\n"
-                    + "`"+Constants.PREFIX+name+" ON` to enable Anti-Raid Mode\n"
-                    + "`"+Constants.PREFIX+name+" OFF` to disable Anti-Raid Mode");
+                    + "`"+event.getClient().getPrefix()+name+" ON` to enable Anti-Raid Mode\n"
+                    + "`"+event.getClient().getPrefix()+name+" OFF` to disable Anti-Raid Mode");
         }
     }
 }

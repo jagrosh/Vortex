@@ -37,7 +37,8 @@ public class IgnoreCmd extends Command
     }
 
     @Override
-    protected void execute(CommandEvent event) {
+    protected void execute(CommandEvent event) 
+    {
         if(event.getArgs().isEmpty())
         {
             EmbedBuilder ebuilder = new EmbedBuilder();

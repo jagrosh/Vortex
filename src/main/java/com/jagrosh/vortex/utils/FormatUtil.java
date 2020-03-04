@@ -45,7 +45,8 @@ public class FormatUtil {
     
     public static String filterEveryone(String input)
     {
-        return input.replace("@everyone","@\u0435veryone") // cyrillic e
+        return input.replace("\u202E","") // RTL override
+                .replace("@everyone","@\u0435veryone") // cyrillic e
                 .replace("@here","@h\u0435re") // cyrillic e
                 .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
     }
@@ -259,7 +260,7 @@ public class FormatUtil {
         if(event.getArgs().isEmpty())
         {
             commandsInCategory = Collections.EMPTY_LIST;
-            content = Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** Commands Categories:";
+            content = event.getClient().getSuccess()+" **"+event.getSelfUser().getName()+"** Commands Categories:";
         }
         else
         {
@@ -272,29 +273,29 @@ public class FormatUtil {
                         return cmd.getCategory().getName().toLowerCase().startsWith(event.getArgs().toLowerCase());
                     }).collect(Collectors.toList());
             if(commandsInCategory.isEmpty())
-                content = Constants.WARNING+" No Category `"+event.getArgs()+"` found.";
+                content = event.getClient().getWarning()+" No Category `"+event.getArgs()+"` found.";
             else
-                content = Constants.SUCCESS+" **"+event.getSelfUser().getName()+"** "
+                content = event.getClient().getSuccess()+" **"+event.getSelfUser().getName()+"** "
                         +(commandsInCategory.get(0).getCategory()==null ? "General" : commandsInCategory.get(0).getCategory().getName())
                         +" Commands:";
         }
         
         if(commandsInCategory.isEmpty())
         {
-            builder.addField(CMD_EMOJI+" General Commands", "[**"+Constants.PREFIX+"help general**]("+Constants.Wiki.COMMANDS+"#-general-commands)\n\u200B", false);
+            builder.addField(CMD_EMOJI+" General Commands", "[**"+event.getClient().getPrefix()+"help general**]("+Constants.Wiki.COMMANDS+"#-general-commands)\n\u200B", false);
             event.getClient().getCommands().stream().filter(cmd -> cmd.getCategory()!=null).map(cmd -> cmd.getCategory().getName()).distinct()
-                    .forEach(cat -> builder.addField(CMD_EMOJI+" "+cat+" Commands", "[**"+Constants.PREFIX+"help "+cat.toLowerCase()+"**]("
+                    .forEach(cat -> builder.addField(CMD_EMOJI+" "+cat+" Commands", "[**"+event.getClient().getPrefix()+"help "+cat.toLowerCase()+"**]("
                             +Constants.Wiki.COMMANDS+"#-"+cat.toLowerCase()+"-commands)\n\u200B", false));
         }
         else
         {
-            commandsInCategory.forEach(cmd -> builder.addField(Constants.PREFIX+cmd.getName()+(cmd.getArguments()==null ? "" : " "+cmd.getArguments()), 
+            commandsInCategory.forEach(cmd -> builder.addField(event.getClient().getPrefix()+cmd.getName()+(cmd.getArguments()==null ? "" : " "+cmd.getArguments()), 
                     "[**"+cmd.getHelp()+"**]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
         }
         
         builder.addField("Additional Help", helpLinks(event), false);
         
-        return new MessageBuilder().append(content).setEmbed(builder.build()).build();
+        return new MessageBuilder().append(filterEveryone(content)).setEmbed(builder.build()).build();
     }
     
     public static String helpLinks(CommandEvent event)

@@ -23,6 +23,7 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.automod.URLResolver.*;
 import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.OtherUtil;
+import com.jagrosh.vortex.utils.Usage;
 import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
@@ -70,6 +72,7 @@ public class AutoMod
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
+    private final Usage usage = new Usage();
     
     public AutoMod(Vortex vortex, Config config)
     {
@@ -92,6 +95,11 @@ public class AutoMod
     public final void loadReferralDomains()
     {
         this.refLinkList = OtherUtil.readLines("referral_domains");
+    }
+    
+    public Usage getUsage()
+    {
+        return usage;
     }
     
     public void enableRaidMode(Guild guild, Member moderator, OffsetDateTime now, String reason)
@@ -153,8 +161,8 @@ public class AutoMod
         else if(ams.useAutoRaidMode())
         {
             // find the time that we should be looking after, and count the number of people that joined after that
-            OffsetDateTime min = event.getMember().getJoinDate().minusSeconds(ams.raidmodeTime);
-            long recent = event.getGuild().getMemberCache().stream().filter(m -> !m.getUser().isBot() && m.getJoinDate().isAfter(min)).count();
+            OffsetDateTime min = event.getMember().getTimeJoined().minusSeconds(ams.raidmodeTime);
+            long recent = event.getGuild().getMemberCache().stream().filter(m -> !m.getUser().isBot() && m.getTimeJoined().isAfter(min)).count();
             if(recent>=ams.raidmodeNumber)
             {
                 enableRaidMode(event.getGuild(), event.getGuild().getSelfMember(), now, "Maximum join rate exceeded ("+ams.raidmodeNumber+"/"+ams.raidmodeTime+"s)");
@@ -169,7 +177,7 @@ public class AutoMod
                     {
                         try
                         {
-                            event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
+                            event.getGuild().kick(event.getMember(), "Anti-Raid Mode").queue();
                         }catch(Exception ignore){}
                     });
         }
@@ -179,8 +187,8 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController()
-                            .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
+                    event.getGuild()
+                            .addRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
                             .reason(RESTORE_MUTE_ROLE_AUDIT).queue();
                 } catch(Exception ignore){}
             }
@@ -245,6 +253,7 @@ public class AutoMod
         
         try
         {
+            usage.increment(member.getGuild().getIdLong());
             OtherUtil.dehoist(member, settings.dehoistChar);
         }
         catch(Exception ignore) {}
@@ -271,6 +280,7 @@ public class AutoMod
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
+        usage.increment(message.getGuild().getIdLong());
         
         boolean shouldDelete = false;
         String channelWarning = null;
@@ -421,6 +431,7 @@ public class AutoMod
             LOG.trace("Found "+invites.size()+" invites.");
             for(String inviteCode : invites)
             {
+                LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
                 long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
                 if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
@@ -478,7 +489,9 @@ public class AutoMod
                         {
                             if(preventInvites && resolved.matches(INVITE_LINK))
                             {
-                                long invite = inviteResolver.resolve(message.getJDA(), resolved.replaceAll(INVITE_LINK, "$1"));
+                                String code = resolved.replaceAll(INVITE_LINK, "$1");
+                                LOG.info("Delayed resolving invite in " + message.getGuild().getId() + ": " + code);
+                                long invite = inviteResolver.resolve(message.getJDA(), code);
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
@@ -487,7 +500,6 @@ public class AutoMod
                                 if(resolved.matches(REF.pattern()) || isReferralUrl(resolved.replaceAll(BASE_URL.pattern(), "$1")))
                                     containsRef = true;
                             }
-                                
                         }
                         if((containsInvite || !preventInvites) && (containsRef || settings.refStrikes<1))
                             break;
@@ -510,8 +522,21 @@ public class AutoMod
     
     private void purgeMessages(Guild guild, Predicate<CachedMessage> predicate)
     {
-        vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
+        vortex.getMessageCache().getMessages(guild, predicate).stream()
+                .collect(Collectors.groupingBy(CachedMessage::getTextChannelId)).entrySet().forEach(entry -> 
         {
+            try
+            {
+                TextChannel mtc = guild.getTextChannelById(entry.getKey());
+                if(mtc != null)
+                    mtc.purgeMessagesById(entry.getValue().stream().map(CachedMessage::getId).collect(Collectors.toList()));
+            }
+            catch(PermissionException ignore) {}
+            catch(Exception ex) { LOG.error("Error in purging messages: ", ex); }
+        });//*/
+        /*vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
+        {
+            
             try
             {
                 TextChannel mtc = m.getTextChannel(guild);
@@ -519,7 +544,7 @@ public class AutoMod
                     mtc.deleteMessageById(m.getIdLong()).queue(s->{}, f->{});
             }
             catch(PermissionException ignore) {}
-        });
+        });//*/
     }
     
     private boolean isReferralUrl(String url)
@@ -546,7 +571,7 @@ public class AutoMod
     
     private static OffsetDateTime latestTime(Message m)
     {
-        return m.isEdited() ? m.getEditedTime() : m.getTimeCreated();
+        return m.isEdited() ? m.getTimeEdited(): m.getTimeCreated();
     }
     
     private class DupeStatus

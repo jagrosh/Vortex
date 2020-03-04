@@ -56,7 +56,7 @@ public class SetupCmd extends Command
     {
         StringBuilder sb = new StringBuilder("The following commands can be used to set up a **").append(event.getSelfUser().getName()).append("** feature:\n");
         for(Command cmd: children)
-            sb.append("\n`").append(Constants.PREFIX).append(name).append(" ").append(cmd.getName()).append("` - ").append(cmd.getHelp());
+            sb.append("\n`").append(event.getClient().getPrefix()).append(name).append(" ").append(cmd.getName()).append("` - ").append(cmd.getHelp());
         event.replySuccess(sb.toString());
     }
     
@@ -83,54 +83,54 @@ public class SetupCmd extends Command
                 event.getChannel().sendTyping().queue();
                 StringBuilder sb = new StringBuilder("**Automod setup complete!**");
                 if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
-                    sb.append("\n").append(Constants.SUCCESS).append(" Set up default punishments");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
                 AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
                 if(ams.inviteStrikes==0)
                 {
                     vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), 2);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-invite set to `2` strikes");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-invite set to `2` strikes");
                 }
                 if(ams.refStrikes==0)
                 {
                     vortex.getDatabase().automod.setRefStrikes(event.getGuild(), 3);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-referral set to `3` strikes");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-referral set to `3` strikes");
                 }
                 if(!ams.useAntiDuplicate())
                 {
                     vortex.getDatabase().automod.setDupeSettings(event.getGuild(), 1, 2, 4);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-duplicate will start deleting at duplicate `2`, and will assign `1` strike each duplicate starting at duplicate `4`");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-duplicate will start deleting at duplicate `2`, and will assign `1` strike each duplicate starting at duplicate `4`");
                 }
                 if(ams.copypastaStrikes==0)
                 {
                     vortex.getDatabase().automod.setCopypastaStrikes(event.getGuild(), 1);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-copypasta set to `1` strikes");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-copypasta set to `1` strikes");
                 }
                 if(ams.maxMentions==0)
                 {
                     vortex.getDatabase().automod.setMaxMentions(event.getGuild(), 10);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum mentions set to `10` mentions");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Maximum mentions set to `10` mentions");
                 }
                 if(ams.maxRoleMentions==0)
                 {
                     vortex.getDatabase().automod.setMaxRoleMentions(event.getGuild(), 4);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum role mentions set to `4` mentions");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Maximum role mentions set to `4` mentions");
                 }
                 if(ams.maxLines==0)
                 {
                     vortex.getDatabase().automod.setMaxLines(event.getGuild(), 10);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Maximum lines set to `10` lines");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Maximum lines set to `10` lines");
                 }
                 if(!ams.useAutoRaidMode())
                 {
                     vortex.getDatabase().automod.setAutoRaidMode(event.getGuild(), 10, 10);
-                    sb.append("\n").append(Constants.SUCCESS).append(" Anti-Raid Mode will activate upon `10` joins in `10` seconds");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-Raid Mode will activate upon `10` joins in `10` seconds");
                 }
                 if(ams.dehoistChar==(char)0)
                 {
                     vortex.getDatabase().automod.setDehoistChar(event.getGuild(), '!');
-                    sb.append("\n").append(Constants.SUCCESS).append(" Names starting with `!` will be dehoisted");
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Names starting with `!` will be dehoisted");
                 }
-                sb.append("\n").append(Constants.WARNING).append(" Any settings not shown here were not set due to being already set. Please check the automod section of the wiki (<")
+                sb.append("\n").append(event.getClient().getWarning()).append(" Any settings not shown here were not set due to being already set. Please check the automod section of the wiki (<")
                         .append(Constants.Wiki.AUTOMOD).append(">) for more information about the automod.");
                 event.replySuccess(sb.toString());
             });
@@ -179,7 +179,7 @@ public class SetupCmd extends Command
     
     private void setUpMutedRole(CommandEvent event, Role role)
     {
-        StringBuilder sb = new StringBuilder(Constants.SUCCESS+" Muted role setup started!\n");
+        StringBuilder sb = new StringBuilder(event.getClient().getSuccess()+" Muted role setup started!\n");
         event.reply(sb + Constants.LOADING+" Initializing role...", m -> event.async(() -> 
         {
             try
@@ -187,14 +187,14 @@ public class SetupCmd extends Command
                 Role mutedRole;
                 if(role==null)
                 {
-                    mutedRole = event.getGuild().getController().createRole().setName("Muted").setPermissions().setColor(1).complete();
+                    mutedRole = event.getGuild().createRole().setName("Muted").setPermissions().setColor(1).complete();
                 }
                 else
                 {
                     role.getManager().setPermissions().complete();
                     mutedRole = role;
                 }
-                sb.append(Constants.SUCCESS+" Role initialized!\n");
+                sb.append(event.getClient().getSuccess()).append(" Role initialized!\n");
                 m.editMessage(sb + Constants.LOADING+" Making Category overrides...").complete();
                 PermissionOverride po;
                 for(net.dv8tion.jda.api.entities.Category cat: event.getGuild().getCategories())
@@ -205,7 +205,7 @@ public class SetupCmd extends Command
                     else
                         po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
                 }
-                sb.append(Constants.SUCCESS+" Category overrides complete!\n");
+                sb.append(event.getClient().getSuccess()).append(" Category overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Text Channel overrides...").complete();
                 for(TextChannel tc: event.getGuild().getTextChannels())
                 {
@@ -215,7 +215,7 @@ public class SetupCmd extends Command
                     else
                         po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
                 }
-                sb.append(Constants.SUCCESS+" Text Channel overrides complete!\n");
+                sb.append(event.getClient().getSuccess()).append(" Text Channel overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Voice Channel overrides...").complete();
                 for(VoiceChannel vc: event.getGuild().getVoiceChannels())
                 {
@@ -225,11 +225,11 @@ public class SetupCmd extends Command
                     else
                         po.getManager().deny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
                 }
-                m.editMessage(sb + Constants.SUCCESS+" Voice Channel overrides complete!\n\n" + Constants.SUCCESS+" Muted role setup has completed!").queue();
+                m.editMessage(sb + event.getClient().getSuccess()+" Voice Channel overrides complete!\n\n" + event.getClient().getSuccess()+" Muted role setup has completed!").queue();
             }
             catch(Exception ex)
             {
-                m.editMessage(sb + Constants.ERROR+" An error occurred setting up the Muted role. Please check that I have the Administrator permission and that the Muted role is below my roles.").queue();
+                m.editMessage(sb + event.getClient().getError()+" An error occurred setting up the Muted role. Please check that I have the Administrator permission and that the Muted role is below my roles.").queue();
             }
         }));
     }
@@ -240,7 +240,7 @@ public class SetupCmd extends Command
                 .setChoices(CONFIRM, CANCEL)
                 .setEventWaiter(vortex.getEventWaiter())
                 .setTimeout(1, TimeUnit.MINUTES)
-                .setText(Constants.WARNING+" "+message+"\n\n"+CONFIRM+" Continue\n"+CANCEL+" Cancel")
+                .setText(event.getClient().getWarning()+" "+message+"\n\n"+CONFIRM+" Continue\n"+CANCEL+" Cancel")
                 .setFinalAction(m -> m.delete().queue(s->{}, f->{}))
                 .setUsers(event.getAuthor())
                 .setAction(re ->

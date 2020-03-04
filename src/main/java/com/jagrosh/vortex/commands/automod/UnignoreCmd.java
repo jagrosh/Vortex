@@ -18,7 +18,6 @@ package com.jagrosh.vortex.commands.automod;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
-import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import java.util.List;
 import net.dv8tion.jda.api.Permission;
@@ -79,7 +78,7 @@ public class UnignoreCmd extends Command {
                 event.replySuccess("Automod is no longer ignoring role `"+roles.get(0).getName()+"`");
             else
                 event.replyError("Automod was not ignoring role `"+roles.get(0).getName()+"`"
-                        + "\n"+Constants.WARNING+" If this role is still listed when using `"+Constants.PREFIX+"ignore`:"
+                        + "\n"+event.getClient().getWarning()+" If this role is still listed when using `"+event.getClient().getPrefix()+"ignore`:"
                         + "\n`[can't interact]` - the role is above "+event.getSelfUser().getName()+"'s highest role; try moving the '"+event.getSelfUser().getName()+"' role higher"
                         + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator");
         }

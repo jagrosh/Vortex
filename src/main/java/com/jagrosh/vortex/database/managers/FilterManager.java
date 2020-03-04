@@ -20,6 +20,7 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Action;
+import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class FilterManager extends DataManager
     public final static SQLColumn<Integer> STRIKES = new IntegerColumn("STRIKES", false, 0);
     public final static SQLColumn<String> CONTENT = new StringColumn("CONTENT", false, "", Filter.MAX_CONTENT_LENGTH);
     
-    private final FixedCache<Long, List<Filter>> cache = new FixedCache<>(1000);
+    private final FixedCache<Long, List<Filter>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
     
     public FilterManager(DatabaseConnector connector)
     {

@@ -17,7 +17,6 @@ package com.jagrosh.vortex.commands.owner;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.database.managers.PremiumManager.PremiumInfo;
@@ -77,6 +76,6 @@ public class PremiumCmd extends Command
         PremiumInfo before = vortex.getDatabase().premium.getPremiumInfo(guild);
         vortex.getDatabase().premium.addPremium(guild, PremiumManager.Level.PRO, seconds, ChronoUnit.SECONDS);
         PremiumInfo after = vortex.getDatabase().premium.getPremiumInfo(guild);
-        event.replySuccess("Before: " + before + "\n" + Constants.SUCCESS + " After: " + after);
+        event.replySuccess("Before: " + before + "\n" + event.getClient().getSuccess() + " After: " + after);
     }
 }

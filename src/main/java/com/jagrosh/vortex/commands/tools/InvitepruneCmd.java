@@ -91,7 +91,7 @@ public class InvitepruneCmd extends Command
                 .setChoices(CONFIRM, CANCEL)
                 .setEventWaiter(vortex.getEventWaiter())
                 .setTimeout(1, TimeUnit.MINUTES)
-                .setText(Constants.WARNING+" "+message+"\n\n"+CONFIRM+" Continue\n"+CANCEL+" Cancel")
+                .setText(event.getClient().getWarning()+" "+message+"\n\n"+CONFIRM+" Continue\n"+CANCEL+" Cancel")
                 .setFinalAction(m -> m.delete().queue(s->{}, f->{}))
                 .setUsers(event.getAuthor())
                 .setAction(re ->

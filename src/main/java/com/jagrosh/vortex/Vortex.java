@@ -15,6 +15,8 @@
  */
 package com.jagrosh.vortex;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
@@ -32,7 +34,6 @@ import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.Game;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
@@ -45,8 +46,11 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
+import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
@@ -66,6 +70,7 @@ public class Vortex
     private final WebhookClient logwebhook;
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
+    private final CommandExceptionListener listener;
     
     public Vortex() throws Exception
     {
@@ -83,15 +88,16 @@ public class Vortex
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
         automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
+        listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.SHORT_WIKI))
+                        .setActivity(Activity.playing(Constants.Wiki.SHORT_WIKI))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
-                        .setListener(new CommandExceptionListener())
+                        .setListener(listener)
                         .setScheduleExecutor(threadpool)
                         .setShutdownAutomatically(false)
                         .addCommands(
@@ -107,6 +113,7 @@ public class Vortex
                             new KickCmd(this),
                             new BanCmd(this),
                             new SoftbanCmd(this),
+                            new SilentbanCmd(this),
                             new UnbanCmd(this),
                             new CleanCmd(this),
                             new VoicemoveCmd(this),
@@ -177,10 +184,10 @@ public class Vortex
                 .setToken(config.getString("bot-token"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
+                .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
+                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.ACTIVITY)) //TODO: dont disable GAME
                 .setSessionController(new BlockingSessionController())
                 .build();
         
@@ -246,6 +253,11 @@ public class Vortex
     public StrikeHandler getStrikeHandler()
     {
         return strikehandler;
+    }
+    
+    public CommandExceptionListener getListener()
+    {
+        return listener;
     }
     
     
