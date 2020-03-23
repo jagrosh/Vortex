@@ -140,3 +140,6 @@ steamreward.com
 steamspecial.com
 steamsummer.com
 whatsappx.com
+
+// Deceptive Unicode Links
+getlⅰbra.tech
