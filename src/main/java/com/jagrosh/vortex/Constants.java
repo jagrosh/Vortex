@@ -44,10 +44,11 @@ public class Constants
     // public final static String BOT_INVITE    = "https://discordapp.com/oauth2/authorize?client_id=169463754382114816&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     public final static String OWNER_ID      = "113156185389092864";
     public final static String DONATION_LINK = "https://patreon.com/jagrosh";
-    public final static String NEED_PRO      = WARNING + " Sorry, this feature requires Vortex Pro. Vortex Pro is not available yet.";
     
     public final static class Wiki
     {
+        public final static String PRIMARY_LINK = "https://jagrosh.com/vortex";
+        
         public final static String SHORT_WIKI     = "https://git.io/fxHam";
         public final static String SHORT_COMMANDS = "https://git.io/vAr0G";
         

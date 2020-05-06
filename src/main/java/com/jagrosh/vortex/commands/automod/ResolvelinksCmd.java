@@ -53,7 +53,7 @@ public class ResolvelinksCmd extends Command
                 event.replySuccess("Link Resolving has been turned `"+event.getArgs().toUpperCase()+"`");
             }
             else
-                event.reply(Constants.NEED_PRO);
+                event.reply(PremiumManager.Level.PRO.getRequirementMessage());
         }
         else
         {

@@ -47,6 +47,8 @@ import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.bot.sharding.ShardManager;
+import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.cache.CacheFlag;
@@ -71,27 +73,29 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
+    private final JDA altBot;
     
     public Vortex() throws Exception
     {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         Config config = ConfigFactory.load();
+        altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        threadpool = Executors.newScheduledThreadPool(50);
+        threadpool = Executors.newScheduledThreadPool(100);
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
-        uploader = new TextUploader(this, config.getLong("uploader.guild"), config.getLong("uploader.category"));
+        uploader = new TextUploader(altBot, config.getLong("uploader.guild"), config.getLong("uploader.category"));
         modlog = new ModLogger(this);
         basiclog = new BasicLogger(this, config);
         messages = new MessageCache();
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
-        automod = new AutoMod(this, config);
+        automod = new AutoMod(this, altBot, config);
         strikehandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.SHORT_WIKI))
+                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -269,6 +273,7 @@ public class Vortex
         {
             database.automod.setResolveUrls(gid, false);
             database.settings.setAvatarLogChannel(gid, null);
+            database.settings.setVoiceLogChannel(gid, null);
             database.filters.deleteAllFilters(gid);
         });
     }

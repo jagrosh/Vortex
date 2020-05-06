@@ -27,17 +27,23 @@ import org.slf4j.LoggerFactory;
  */
 public class InviteResolver
 {
+    private final JDA altBot;
     private final Logger log = LoggerFactory.getLogger(InviteResolver.class);
     private final FixedCache<String,Long> cached = new FixedCache<>(5000);
     
-    public long resolve(JDA jda, String code)
+    public InviteResolver(JDA altBot)
+    {
+        this.altBot = altBot;
+    }
+    
+    public long resolve(String code)
     {
         log.debug("Attempting to resolve " + code);
         if(cached.contains(code))
             return cached.get(code);
         try
         {
-            Invite i = Invite.resolve(jda, code).complete(false);
+            Invite i = Invite.resolve(altBot, code).complete(false);
             cached.put(code, i.getGuild().getIdLong());
             return i.getGuild().getIdLong();
         }

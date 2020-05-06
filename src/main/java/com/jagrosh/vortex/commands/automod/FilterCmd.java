@@ -81,7 +81,7 @@ public class FilterCmd extends Command
         {
             if(!vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
             {
-                event.reply(Constants.NEED_PRO);
+                event.reply(PremiumManager.Level.PRO.getRequirementMessage());
                 return;
             }
             

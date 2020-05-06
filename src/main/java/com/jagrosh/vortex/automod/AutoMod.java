@@ -37,6 +37,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
@@ -68,16 +69,17 @@ public class AutoMod
     
     private String[] refLinkList;
     private final URLResolver urlResolver;
-    private final InviteResolver inviteResolver = new InviteResolver();
+    private final InviteResolver inviteResolver;
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     private final Usage usage = new Usage();
     
-    public AutoMod(Vortex vortex, Config config)
+    public AutoMod(Vortex vortex, JDA altBot, Config config)
     {
         this.vortex = vortex;
-        urlResolver = config.getBoolean("url-resolver.active") ? new ActiveURLResolver(config) : new DummyURLResolver();
+        this.inviteResolver = new InviteResolver(altBot);
+        this.urlResolver = config.getBoolean("url-resolver.active") ? new ActiveURLResolver(config) : new DummyURLResolver();
         loadCopypastas();
         loadReferralDomains();
     }
@@ -432,7 +434,7 @@ public class AutoMod
             for(String inviteCode : invites)
             {
                 LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
-                long gid = inviteResolver.resolve(message.getJDA(), inviteCode);
+                long gid = inviteResolver.resolve(inviteCode);
                 if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
                     strikeTotal += settings.inviteStrikes;
@@ -491,7 +493,7 @@ public class AutoMod
                             {
                                 String code = resolved.replaceAll(INVITE_LINK, "$1");
                                 LOG.info("Delayed resolving invite in " + message.getGuild().getId() + ": " + code);
-                                long invite = inviteResolver.resolve(message.getJDA(), code);
+                                long invite = inviteResolver.resolve(code);
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
