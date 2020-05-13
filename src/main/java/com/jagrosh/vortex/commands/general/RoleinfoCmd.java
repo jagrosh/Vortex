@@ -63,7 +63,7 @@ public class RoleinfoCmd extends Command
             }
             else if(found.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfRoles(found, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(found, event.getArgs())));
                 return;
             }
             else

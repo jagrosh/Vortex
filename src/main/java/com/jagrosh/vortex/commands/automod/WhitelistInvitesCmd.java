@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.automod;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.utils.FormatUtil;
 import net.dv8tion.jda.core.Permission;
 
 import java.util.ArrayList;
@@ -74,8 +75,8 @@ public class WhitelistInvitesCmd extends Command
             return;
         }
         List<Long> currentWL = vortex.getDatabase().inviteWhitelist.readWhitelist(event.getGuild());
-        event.replySuccess("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
-                "`" + currentWL.stream().map(String::valueOf).collect(Collectors.joining("`, `")) + "`"));
+        event.replySuccess(FormatUtil.filterEveryone("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
+                "`" + currentWL.stream().map(String::valueOf).collect(Collectors.joining("`, `")) + "`")));
     }
 
     private void handleAdd(CommandEvent event, String[] args)

@@ -70,7 +70,7 @@ public class UserinfoCmd extends Command
             }
             else if(found.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfMember(found, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfMember(found, event.getArgs())));
                 return;
             }
             else

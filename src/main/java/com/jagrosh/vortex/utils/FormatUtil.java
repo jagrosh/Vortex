@@ -48,7 +48,8 @@ public class FormatUtil {
         return input.replace("\u202E","") // RTL override
                 .replace("@everyone","@\u0435veryone") // cyrillic e
                 .replace("@here","@h\u0435re") // cyrillic e
-                .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
+                .replace("discord.gg/", "dis\u0441ord.gg/") // cyrillic c
+                .replace("@", "\u0DB8"); // failsafe
     }
     
     public static String formatMessage(Message m)

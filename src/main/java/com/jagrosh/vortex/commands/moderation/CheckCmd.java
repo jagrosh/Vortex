@@ -78,7 +78,7 @@ public class CheckCmd extends ModCommand
         }
         catch(Exception ex)
         {
-            event.replyError("Could not find a user `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("Could not find a user `"+event.getArgs()+"`"));
         }
     }
     
@@ -104,6 +104,6 @@ public class CheckCmd extends ModCommand
                 + Action.TEMPMUTE.getEmoji() + " Mute Time Remaining: " + (minutesMuted <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesMuted * 60)) + "\n"
                 + Action.BAN.getEmoji() + " Banned: **" + (ban==null ? "No**" : "Yes** (`" + ban.getReason() + "`)") + "\n"
                 + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (minutesBanned <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesBanned * 60));
-        event.replySuccess(str);
+        event.replySuccess(FormatUtil.filterEveryone(str));
     }
 }
