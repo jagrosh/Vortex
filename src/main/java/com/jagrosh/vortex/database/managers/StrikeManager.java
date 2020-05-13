@@ -19,6 +19,8 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
+import java.util.HashMap;
+import java.util.Map;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 
@@ -66,34 +68,6 @@ public class StrikeManager extends DataManager
         });
     }
     
-    /*public int[] setStrikes(Member target, int strikes)
-    {
-        return setStrikes(target.getGuild(), target.getUser().getIdLong(), strikes);
-    }
-    
-    public int[] setStrikes(Guild guild, long targetId, int strikes)
-    {
-        return readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(targetId)), rs -> 
-        {
-            if(rs.next())
-            {
-                int current = STRIKES.getValue(rs);
-                STRIKES.updateValue(rs, strikes<0 ? 0 : strikes);
-                rs.updateRow();
-                return new int[]{current, strikes<0 ? 0 : strikes};
-            }
-            else
-            {
-                rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
-                USER_ID.updateValue(rs, targetId);
-                STRIKES.updateValue(rs, strikes<0 ? 0 : strikes);
-                rs.insertRow();
-                return new int[]{0, strikes<0 ? 0 : strikes};
-            }
-        });
-    }//*/
-    
     public int[] removeStrikes(Member target, int strikes)
     {
         return removeStrikes(target.getGuild(), target.getUser().getIdLong(), strikes);
@@ -116,6 +90,22 @@ public class StrikeManager extends DataManager
             if(rs.next())
                 return STRIKES.getValue(rs);
             return 0;
+        });
+    }
+    
+    public Map<Long,Integer> getAllStrikes(Guild guild)
+    {
+        return getAllStrikes(guild.getIdLong());
+    }
+    
+    public Map<Long,Integer> getAllStrikes(long guildId)
+    {
+        return read(selectAll(GUILD_ID.is(guildId)), rs -> 
+        {
+            HashMap<Long,Integer> map = new HashMap<>();
+            while(rs.next())
+                map.put(USER_ID.getValue(rs), STRIKES.getValue(rs));
+            return map;
         });
     }
 }

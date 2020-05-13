@@ -171,8 +171,13 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public void setVoiceLogChannel(Guild guild, TextChannel tc)
     {
-        invalidateCache(guild);
-        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, VOICELOG_ID), rs -> 
+        setVoiceLogChannel(guild.getIdLong(), tc);
+    }
+    
+    public void setVoiceLogChannel(long guildId, TextChannel tc)
+    {
+        invalidateCache(guildId);
+        readWrite(select(GUILD_ID.is(guildId), GUILD_ID, VOICELOG_ID), rs -> 
         {
             if(rs.next())
             {
@@ -182,7 +187,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             else
             {
                 rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
+                GUILD_ID.updateValue(rs, guildId);
                 VOICELOG_ID.updateValue(rs, tc==null ? 0L : tc.getIdLong());
                 rs.insertRow();
             }

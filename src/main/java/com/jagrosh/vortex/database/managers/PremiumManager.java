@@ -19,12 +19,14 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
+import com.jagrosh.vortex.Constants;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
@@ -37,13 +39,24 @@ public class PremiumManager extends DataManager
 {
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L, true);
     public static final SQLColumn<Instant> UNTIL = new InstantColumn("UNTIL", false, Instant.EPOCH);
-    public static final SQLColumn<Integer> LEVEL = new IntegerColumn("LEVEL", false, 1);
+    public static final SQLColumn<Integer> LEVEL = new IntegerColumn("LEVEL", false, 0);
     
     private final PremiumInfo NO_PREMIUM = new PremiumInfo();
     
     public PremiumManager(DatabaseConnector connector)
     {
         super(connector, "PREMIUM");
+    }
+    
+    public List<Long> getPremiumGuilds()
+    {
+        return read(selectAll(LEVEL.isGreaterThan(-1)), rs -> 
+        {
+            List<Long> list = new ArrayList<>();
+            while(rs.next())
+                list.add(GUILD_ID.getValue(rs));
+            return list;
+        });
     }
     
     public PremiumInfo getPremiumInfo(Guild guild)
@@ -132,7 +145,7 @@ public class PremiumManager extends DataManager
     public static enum Level
     {
         NONE("No Premium"),
-        BASIC("Vortex Basic"),
+        PLUS("Vortex Plus"),
         PRO("Vortex Pro"),
         ULTRA("Vortex Ultra");
         
@@ -146,6 +159,11 @@ public class PremiumManager extends DataManager
         public boolean isAtLeast(Level other)
         {
             return ordinal() >= other.ordinal();
+        }
+        
+        public String getRequirementMessage()
+        {
+            return Constants.WARNING + " Sorry, this feature requires " + name + ". " + name + " is not available yet.";
         }
     }
     
@@ -169,10 +187,10 @@ public class PremiumManager extends DataManager
         public String getFooterString()
         {
             if(level==Level.NONE)
-                return "This server does not have Vortex Pro";
+                return "This server does does not have Vortex Plus or Vortex Pro";
             if(until.getEpochSecond()==Instant.MAX.getEpochSecond())
-                return "This server has "+level.name+" permanently";
-            return "This server has "+level.name+" until";
+                return "This server has " + level.name + " permanently";
+            return "This server has " + level.name + " until";
         }
         
         public Instant getTimestamp()

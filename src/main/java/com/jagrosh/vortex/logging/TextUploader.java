@@ -15,9 +15,9 @@
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.Vortex;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Category;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
@@ -37,21 +37,21 @@ public class TextUploader
      * message logs. 
      */
     private final Logger LOG = LoggerFactory.getLogger("Upload");
-    private final Vortex vortex;
+    private final JDA altBot;
     private final long categoryId;
     private final long guildId;
     private int index = 0;
     
-    public TextUploader(Vortex vortex, long guildId, long categoryId)
+    public TextUploader(JDA altBot, long guildId, long categoryId)
     {
-        this.vortex = vortex;
+        this.altBot = altBot;
         this.guildId = guildId;
         this.categoryId = categoryId;
     }
     
     public void upload(String content, String filename, Result done)
     {
-        Guild guild = vortex.getShardManager().getGuildById(guildId);
+        Guild guild = altBot.getGuildById(guildId);
         if(guild==null)
             return;
         Category category = guild.getCategoryById(categoryId);

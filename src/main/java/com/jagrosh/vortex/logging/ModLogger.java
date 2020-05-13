@@ -77,9 +77,18 @@ public class ModLogger
             }
             if(!toUpdate.isEmpty())
             {
+                LOG.info("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
                 try
                 {
-                    toUpdate.forEach(gid -> update(vortex.getShardManager().getGuildById(gid), 40));
+                    long time, diff;
+                    for(long gid: toUpdate)
+                    {
+                        time = System.currentTimeMillis();
+                        update(vortex.getShardManager().getGuildById(gid), 40);
+                        diff = System.currentTimeMillis() - time;
+                        if(diff > 10000)
+                            LOG.warn("Took " + diff + "ms to update " + gid);
+                    }
                 } catch(Exception ex)
                 {
                     LOG.error("Exception thrown during modlog update loop: "+ex);

@@ -58,6 +58,6 @@ public class AvatarlogCmd extends LogCommand
                 event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
         }
         else
-            event.reply(Constants.NEED_PRO);
+            event.reply(PremiumManager.Level.PRO.getRequirementMessage());
     }
 }
