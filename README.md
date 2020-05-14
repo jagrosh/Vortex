@@ -4,6 +4,7 @@
  [![GitHub license](https://img.shields.io/github/license/jagrosh/Vortex.svg)](https://github.com/jagrosh/Vortex/blob/master/LICENSE)
 [![Patreon](https://img.shields.io/badge/Donate-Patreon-orange.svg)](https://www.patreon.com/jagrosh) 
 [![CodeFactor](https://www.codefactor.io/repository/github/jagrosh/vortex/badge)](https://www.codefactor.io/repository/github/jagrosh/vortex)
+[![SourceSpy Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/jagroshvortex/)
 <br>
 [![PrivacyPolicy](https://img.shields.io/badge/Privacy%20Policy--lightgrey.svg?style=social)](https://gist.github.com/jagrosh/f1df4441f94ca06274fa78db7cc3c526#privacy-policy)
 [![Support](https://discordapp.com/api/guilds/147698382092238848/widget.png?style=shield)](https://discord.gg/0p9LSGoRLu6Pet0k)
