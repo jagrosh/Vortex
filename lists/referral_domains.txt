@@ -83,6 +83,7 @@ zipansion.com
 // Referral Sites
 black-friday.ga
 boost.ink
+drd.sh
 easycommerce.cf
 featu.re
 free.gg
@@ -92,6 +93,7 @@ pointsprizes.com
 referralpay.co
 selly.gg
 shoppy.gg
+ubr.to 
 weeklyjob.online
 wn.nr
 
