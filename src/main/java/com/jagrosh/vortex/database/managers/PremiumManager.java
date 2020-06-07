@@ -158,7 +158,7 @@ public class PremiumManager extends DataManager
         
         public boolean isAtLeast(Level other)
         {
-            return ordinal() >= other.ordinal();
+            return true;
         }
         
         public String getRequirementMessage()
@@ -187,7 +187,7 @@ public class PremiumManager extends DataManager
         public String getFooterString()
         {
             if(level==Level.NONE)
-                return "This server does does not have Vortex Plus or Vortex Pro";
+                return "This server has Vortex Pro permanently";
             if(until.getEpochSecond()==Instant.MAX.getEpochSecond())
                 return "This server has " + level.name + " permanently";
             return "This server has " + level.name + " until";
