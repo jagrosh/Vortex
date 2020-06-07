@@ -280,6 +280,8 @@ public class Vortex
     
     public void leavePointlessGuilds()
     {
+        // Limit removed for testing, should be readded in the final version
+        if (true) return;
         shards.getGuilds().stream().filter(g -> 
         {
             if(!g.isAvailable())
