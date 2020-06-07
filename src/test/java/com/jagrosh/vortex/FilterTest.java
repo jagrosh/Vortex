@@ -63,5 +63,6 @@ public class FilterTest
         glob = new Glob("get");
         assertTrue(glob.test("get the food"));
         assertFalse(glob.test("getthe food"));
+        // Just adding this comment so my IDE can do pull requests
     }
 }
