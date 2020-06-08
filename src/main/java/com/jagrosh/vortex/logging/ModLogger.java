@@ -265,8 +265,8 @@ public class ModLogger
                 if(act!=null)
                 {
                     User mod = ale.getUser();
-                    if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()))
-                        continue; // restoring muted role shouldn't trigger a log entry
+                    if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && (AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()) || AutoMod.RESTORE_GRAVEL_ROLE_AUDIT.equals(ale.getReason())))
+                        continue; // restoring muted or gravel role (aka role persist) shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes = 0;
                     User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
