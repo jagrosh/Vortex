@@ -95,7 +95,7 @@ public class Vortex
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
+                        .setGame(Game.playing(Constants.GAME))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
