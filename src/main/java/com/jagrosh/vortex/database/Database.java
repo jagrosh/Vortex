@@ -31,6 +31,7 @@ public class Database extends DatabaseConnector
     public final StrikeManager strikes; // strike counts for members
     public final PunishmentManager actions; // strike punishment settings
     public final TempMuteManager tempmutes;
+    public final GravelManager gravels;
     public final TempBanManager tempbans;
     public final PremiumManager premium;
     public final InviteWhitelistManager inviteWhitelist;
@@ -47,6 +48,7 @@ public class Database extends DatabaseConnector
         strikes = new StrikeManager(this);
         actions = new PunishmentManager(this);
         tempmutes = new TempMuteManager(this);
+        gravels = new GravelManager(this);
         tempbans = new TempBanManager(this);
         premium = new PremiumManager(this);
         inviteWhitelist = new InviteWhitelistManager(this);
