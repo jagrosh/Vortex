@@ -123,6 +123,8 @@ public class Vortex
                             new VoicemoveCmd(this),
                             new VoicekickCmd(this),
                             new MuteCmd(this),
+                            new GravelCmd(this),
+                            new UngravelCmd(this),
                             new UnmuteCmd(this),
                             new RaidCmd(this),
                             new StrikeCmd(this),

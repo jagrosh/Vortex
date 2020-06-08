@@ -63,8 +63,9 @@ public class AutoMod
     
     private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
-    public  static final String RESTORE_MUTE_ROLE_AUDIT = "Restoring Muted Role";
-    
+    public  static final String RESTORE_MUTE_ROLE_AUDIT =   "Restoring Muted Role";
+    public  static final String RESTORE_GRAVEL_ROLE_AUDIT = "Restoring Gravel Role";
+
     private final Vortex vortex;
     
     private String[] refLinkList;
@@ -192,6 +193,15 @@ public class AutoMod
                     event.getGuild().getController()
                             .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
                             .reason(RESTORE_MUTE_ROLE_AUDIT).queue();
+                } catch(Exception ignore){}
+            }
+            if(vortex.getDatabase().gravels.isGraveled(event.getMember()))
+            {
+                try
+                {
+                    event.getGuild().getController()
+                            .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild()))
+                            .reason(RESTORE_GRAVEL_ROLE_AUDIT).queue();
                 } catch(Exception ignore){}
             }
             dehoist(event.getMember());
