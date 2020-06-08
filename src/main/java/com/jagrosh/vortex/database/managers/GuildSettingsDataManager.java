@@ -93,9 +93,11 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         TextChannel avylog = settings.getAvatarLogChannel(guild);
         Role modrole = settings.getModeratorRole(guild);
         Role muterole = settings.getMutedRole(guild);
+        Role gravelrole = settings.getGravelRole(guild);
         return new Field(SETTINGS_TITLE, "Prefix: `"+(settings.prefix==null ? Constants.PREFIX : settings.prefix)+"`"
                 + "\nMod Role: "+(modrole==null ? "None" : modrole.getAsMention())
                 + "\nMuted Role: "+(muterole==null ? "None" : muterole.getAsMention())
+                + "\nGravel Role: "+(gravelrole==null ? "None" : gravelrole.getAsMention())
                 + "\nMod Log: "+(modlog==null ? "None" : modlog.getAsMention())
                 + "\nMessage Log: "+(messagelog==null ? "None" : messagelog.getAsMention())
                 + "\nVoice Log: "+(voicelog==null ? "None" : voicelog.getAsMention())
@@ -335,7 +337,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public class GuildSettings implements GuildSettingsProvider
     {
-        private final long modRole, muteRole, modlog, serverlog, messagelog, voicelog, avatarlog;
+        private final long modRole, muteRole, gravelRole, modlog, serverlog, messagelog, voicelog, avatarlog;
         private final String prefix;
         private final ZoneId timezone;
         private final int raidMode;
@@ -345,6 +347,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.modRole = 0;
             this.modlog = 0;
             this.muteRole = 0;
+            this.gravelRole = 0;
             this.serverlog = 0;
             this.messagelog = 0;
             this.voicelog = 0;
@@ -358,6 +361,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         {
             this.modRole = MOD_ROLE_ID.getValue(rs);
             this.muteRole = 0;
+            this.gravelRole = 0;
             this.modlog = MODLOG_ID.getValue(rs);
             this.serverlog = SERVERLOG_ID.getValue(rs);
             this.messagelog = MESSAGELOG_ID.getValue(rs);
@@ -391,6 +395,14 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             if(rid!=null)
                 return rid;
             return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
+        }
+
+        public Role getGravelRole(Guild guild)
+        {
+            Role rid = guild.getRoleById(gravelRole);
+            if(rid!=null)
+                return rid;
+            return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Gravel")).findFirst().orElse(null);
         }
         
         public TextChannel getModLogChannel(Guild guild)
