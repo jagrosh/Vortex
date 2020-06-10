@@ -16,6 +16,8 @@
 package com.jagrosh.vortex;
 
 import java.time.OffsetDateTime;
+
+import com.typesafe.config.Config;
 import net.dv8tion.jda.core.Permission;
 
 /**
@@ -25,8 +27,7 @@ import net.dv8tion.jda.core.Permission;
 public class Constants
 {
     public final static OffsetDateTime STARTUP = OffsetDateTime.now();
-    public final static String PREFIX          = "?" //Issue 29 Delete
-    //Issue 29 Add  public final static String PREFIX          = config.getString("Prefix");
+    public final static String PREFIX          = "?";
     public final static String SUCCESS         = "<:vSuccess:390202497827864597>";
     public final static String WARNING         = "<:vWarning:390208158699618306>";
     public final static String ERROR           = "<:vError:390229421228949504>";
@@ -43,13 +44,9 @@ public class Constants
     public final static String SERVER_INVITE = "https://discord.gg/0p9LSGoRLu6Pet0k";
     //public final static String BOT_INVITE  = "https://discordapp.com/oauth2/authorize?client_id=240254129333731328&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     // public final static String BOT_INVITE    = "https://discordapp.com/oauth2/authorize?client_id=169463754382114816&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
-    public final static String OWNER_ID      = "250735862734782464"; //Issue 29 Delete //enter owner ID here
-  //Issue 29 Add  public final static String OWNER_ID      = (config.getString("OWNER_ID"));
+    public final static String OWNER_ID = Vortex.config.getString("owner-id");
     public final static String DONATION_LINK = "https://patreon.com/jagrosh";
-    public final static String GAME = "game"; //Issue 29
-  //Issue 29 Add  public final static String GAME = (config.getString("Game"));
-
-
+    
     public final static class Wiki
     {
         public final static String PRIMARY_LINK = "https://jagrosh.com/vortex";
