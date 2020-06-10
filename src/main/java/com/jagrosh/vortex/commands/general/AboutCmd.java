@@ -19,6 +19,8 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.JDAUtilitiesInfo;
 import com.jagrosh.vortex.Constants;
+import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.awt.Color;
 import net.dv8tion.jda.bot.sharding.ShardManager;
@@ -33,24 +35,30 @@ import net.dv8tion.jda.core.Permission;
  */
 public class AboutCmd extends Command
 {
-    public AboutCmd()
+    private final Vortex vortex;
+
+    public AboutCmd(Vortex vortex)
     {
         this.name = "about";
         this.help = "shows info about the bot";
         this.guildOnly = false;
-        this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+        this.vortex = vortex;
     }
 
     @Override
     protected void execute(CommandEvent event)
     {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE))
+            return;
+
         ShardManager sm = event.getJDA().asBot().getShardManager();
         event.reply(new MessageBuilder()
                 .setContent(Constants.VORTEX_EMOJI + " **All about Vortex** " + Constants.VORTEX_EMOJI)
                 .setEmbed(new EmbedBuilder()
                         .setColor(event.getGuild()==null ? Color.GRAY : event.getSelfMember().getColor())
-                        .setDescription("Hello, I am **Vortex**#8540, a bot designed to keep your server safe and make moderating fast and easy!\n"
-                                + "I was written in Java by **jagrosh**#4824 using [JDA](" + JDAInfo.GITHUB + ") and [JDA-Utilities](" + JDAUtilitiesInfo.GITHUB + ")\n"
+                        .setDescription("Hello, I am Vortex, a bot designed to keep your server safe and make moderating fast and easy!\n"
+                                + "I was written in Java by **jagrosh**#4824 using [JDA](" + JDAInfo.GITHUB + ") and [JDA-Utilities](" + JDAUtilitiesInfo.GITHUB + "),\n"
+                                + "And I was customised by <@477372275230900224> for this server with the help of <@384774787823828995>, <@407632536177475586>, and <@250735862734782464>"
                                 + "Type `" + event.getClient().getPrefix() + event.getClient().getHelpWord() + "` for help and information.\n\n"
                                 + FormatUtil.helpLinks(event))
                         .addField("Stats", sm.getShardsTotal()+ " Shards\n" + sm.getGuildCache().size() + " Servers", true)

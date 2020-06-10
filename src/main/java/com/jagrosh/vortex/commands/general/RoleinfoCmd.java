@@ -19,7 +19,9 @@ import java.time.format.DateTimeFormatter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
+import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -36,20 +38,24 @@ public class RoleinfoCmd extends Command
 {
     private final static String LINESTART = "\u25AB"; // ▫
     private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
+    private final Vortex vortex;
     
-    public RoleinfoCmd()
+    public RoleinfoCmd(Vortex vortex)
     {
         this.name = "roleinfo";
         this.aliases = new String[]{"rinfo","rankinfo"};
         this.help = "shows info about a role";
         this.arguments = "<role>";
         this.guildOnly = true;
-        this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+        this.vortex = vortex;
     }
     
     @Override
     protected void execute(CommandEvent event) 
     {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE))
+            return;
+
         Role role;
         if(event.getArgs().isEmpty())
             throw new CommandErrorException("Please provide the name of a role!");
