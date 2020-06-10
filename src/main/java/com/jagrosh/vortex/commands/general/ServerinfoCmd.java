@@ -17,6 +17,8 @@ package com.jagrosh.vortex.commands.general;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -34,19 +36,23 @@ public class ServerinfoCmd extends Command
     private final static String LINESTART = "\u25AB"; // ▫
     private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
     private final static String NO_REGION = "\u2754"; // ❔
+    private final Vortex vortex;
     
-    public ServerinfoCmd()
+    public ServerinfoCmd(Vortex vortex)
     {
         this.name = "serverinfo";
-        this.aliases = new String[]{"server","guildinfo"};
+        this.aliases = new String[]{"server","guildinfo","serverinfo"};
         this.help = "shows server info";
-        this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
         this.guildOnly = true;
+        this.vortex = vortex;
     }
     
     @Override
     protected void execute(CommandEvent event) 
     {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE))
+            return;
+
         Guild guild = event.getGuild();
         long onlineCount = guild.getMembers().stream().filter((u) -> (u.getOnlineStatus()!=OnlineStatus.OFFLINE)).count();
         long botCount = guild.getMembers().stream().filter(m -> m.getUser().isBot()).count();
