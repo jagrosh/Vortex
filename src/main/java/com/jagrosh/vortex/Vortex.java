@@ -112,11 +112,10 @@ public class Vortex
                         .setShutdownAutomatically(false)
                         .addCommands(
                             // General
-                            new AboutCmd(),
-                            new InviteCmd(),
-                            new PingCommand(),
-                            new RoleinfoCmd(),
-                            new ServerinfoCmd(),
+                            new AboutCmd(this),
+                            new PingCmd(this),
+                            new RoleinfoCmd(this),
+                            new ServerinfoCmd(this),
                             new UserinfoCmd(),
 
                             // Moderation
