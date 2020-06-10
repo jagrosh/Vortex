@@ -28,10 +28,10 @@ public class Constants
 {
     public final static OffsetDateTime STARTUP = OffsetDateTime.now();
     public final static String PREFIX          = "?";
-    public final static String SUCCESS         = "<:vSuccess:390202497827864597>";
-    public final static String WARNING         = "<:vWarning:390208158699618306>";
-    public final static String ERROR           = "<:vError:390229421228949504>";
-    public final static String LOADING         = "<a:typing:393848431413559296>";
+    public final static String SUCCESS         = ":white_check_mark:";
+    public final static String WARNING         = ":warning:";
+    public final static String ERROR           = ":x:";
+    public final static String LOADING         = ":alarm_clock:";
     public final static String HELP_REACTION   = SUCCESS.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
     public final static String ERROR_REACTION  = ERROR.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
     public final static String VORTEX_EMOJI    = "<:Vortex:386971287282515970>";
