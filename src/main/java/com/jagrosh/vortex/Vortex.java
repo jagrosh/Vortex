@@ -176,7 +176,7 @@ public class Vortex
                             new InvitepruneCmd(this),
                             new LookupCmd(this),
                             new TagCmd(this),
-                            new ListTagsCmd(this),
+                            new TagsCmd(this),
 
                             // Owner
                             new EvalCmd(this),
