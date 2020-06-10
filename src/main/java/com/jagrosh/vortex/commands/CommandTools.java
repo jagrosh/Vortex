@@ -5,7 +5,8 @@ import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Role;
 
-public class CommandTools {
+public class CommandTools
+{
     private CommandTools(){}
 
     /**
@@ -18,7 +19,8 @@ public class CommandTools {
      * @param perms Optional perms that someone can also have
      * @return Returns true if the person has perms to use a general command, false if not
      */
-    public static boolean hasGeneralCommandPerms(Vortex vortex, CommandEvent event, Permission... perms) {
+    public static boolean hasGeneralCommandPerms(Vortex vortex, CommandEvent event, Permission... perms)
+    {
         Role rtcRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getRtcRole(event.getGuild());
         Role modRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
 
