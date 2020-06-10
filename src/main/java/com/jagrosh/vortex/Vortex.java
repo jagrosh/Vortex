@@ -61,6 +61,7 @@ import net.dv8tion.jda.webhook.WebhookClientBuilder;
  */
 public class Vortex
 {
+    public static final Config config;
     private final EventWaiter waiter;
     private final ScheduledExecutorService threadpool;
     private final Database database;
@@ -74,11 +75,16 @@ public class Vortex
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
     private final JDA altBot;
-    
+
+
+    static {
+        System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
+        config = ConfigFactory.load();
+    }
+
+
     public Vortex() throws Exception
     {
-        System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
-        Config config = ConfigFactory.load();
         altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
@@ -314,8 +320,8 @@ public class Vortex
                     + "<https://discord.bots.gg>.", true, () -> g.leave().queue());
         });
     }
-    
-    
+
+
     /**
      * @param args the command line arguments
      * @throws java.lang.Exception
