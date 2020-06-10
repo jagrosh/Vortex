@@ -74,17 +74,16 @@ public class Vortex
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
     private final JDA altBot;
-
+    
     public Vortex() throws Exception
     {
-        //static so Constants can access config
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         Config config = ConfigFactory.load();
         altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
-        database = new Database(config.getString("database.host"),
-                                       config.getString("database.username"),
+        database = new Database(config.getString("database.host"), 
+                                       config.getString("database.username"), 
                                        config.getString("database.password"));
         uploader = new TextUploader(altBot, config.getLong("uploader.guild"), config.getLong("uploader.category"));
         modlog = new ModLogger(this);
@@ -95,11 +94,9 @@ public class Vortex
         strikehandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
-                        .setPrefix(Constants.PREFIX) //Issue 29 Delete
-                      //Issue 29 Add .setPrefix(config.getString("Prefix"))
-                        .setGame(Game.playing(Constants.GAME)) //Issue 29 Delete
+                        .setPrefix(Constants.PREFIX)
+                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
                         .setOwnerId(Constants.OWNER_ID)
-                      //Issue 29 Add  .setOwnerId(config.getString("OWNER_ID"))
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
@@ -126,12 +123,15 @@ public class Vortex
                             new VoicemoveCmd(this),
                             new VoicekickCmd(this),
                             new MuteCmd(this),
+                            new GravelCmd(this),
+                            new UngravelCmd(this),
                             new UnmuteCmd(this),
                             new RaidCmd(this),
                             new StrikeCmd(this),
                             new PardonCmd(this),
                             new CheckCmd(this),
                             new ReasonCmd(this),
+
 
                             // Settings
                             new SetupCmd(this),
@@ -145,6 +145,8 @@ public class Vortex
                             new ModroleCmd(this),
                             new PrefixCmd(this),
                             new SettingsCmd(this),
+                            new AddTagCmd(this),
+                            new DelTagCmd(this),
 
                             // Automoderation
                             new AntiinviteCmd(this),
@@ -160,13 +162,15 @@ public class Vortex
                             new AutoraidmodeCmd(this),
                             new IgnoreCmd(this),
                             new UnignoreCmd(this),
-
+                            
                             // Tools
                             new AnnounceCmd(),
                             new AuditCmd(),
                             new DehoistCmd(),
                             new InvitepruneCmd(this),
                             new LookupCmd(this),
+                            new TagCmd(this),
+                            new ListTagsCmd(this),
 
                             // Owner
                             new EvalCmd(this),
@@ -175,7 +179,7 @@ public class Vortex
                             new ReloadCmd(this)
                             //new TransferCmd(this)
                         )
-                        .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m ->
+                        .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m -> 
                         {
                             if(event.isFromType(ChannelType.TEXT))
                                 try
@@ -191,84 +195,84 @@ public class Vortex
                 .setToken(config.getString("bot-token"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing(config.getString("Game")))
+                .setGame(Game.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
                 .setSessionController(new BlockingSessionController())
                 .setCompressionEnabled(false)
                 .build();
-
+        
         modlog.start();
-
+        
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
         threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
-
-
+    
+    
     // Getters
     public EventWaiter getEventWaiter()
     {
         return waiter;
     }
-
+    
     public Database getDatabase()
     {
         return database;
     }
-
+    
     public ScheduledExecutorService getThreadpool()
     {
         return threadpool;
     }
-
+    
     public TextUploader getTextUploader()
     {
         return uploader;
     }
-
+    
     public ShardManager getShardManager()
     {
         return shards;
     }
-
+    
     public ModLogger getModLogger()
     {
         return modlog;
     }
-
+    
     public BasicLogger getBasicLogger()
     {
         return basiclog;
     }
-
+    
     public MessageCache getMessageCache()
     {
         return messages;
     }
-
+    
     public WebhookClient getLogWebhook()
     {
         return logwebhook;
     }
-
+    
     public AutoMod getAutoMod()
     {
         return automod;
     }
-
+    
     public StrikeHandler getStrikeHandler()
     {
         return strikehandler;
     }
-
+    
     public CommandExceptionListener getListener()
     {
         return listener;
     }
-
-
+    
+    
     // Global methods
     public void cleanPremium()
     {
@@ -280,12 +284,12 @@ public class Vortex
             database.filters.deleteAllFilters(gid);
         });
     }
-
+    
     public void leavePointlessGuilds()
     {
         // Limit removed for testing, should be readded in the final version
         if (true) return;
-        shards.getGuilds().stream().filter(g ->
+        shards.getGuilds().stream().filter(g -> 
         {
             if(!g.isAvailable())
                 return false;
@@ -301,17 +305,17 @@ public class Vortex
                 return true;
             }
             return false;
-        }).forEach(g ->
+        }).forEach(g -> 
         {
-            OtherUtil.safeDM(g.getOwner()==null ? null : g.getOwner().getUser(), Constants.ERROR + " Sorry, your server **"
+            OtherUtil.safeDM(g.getOwner()==null ? null : g.getOwner().getUser(), Constants.ERROR + " Sorry, your server **" 
                     + g.getName() + "** does not meet the minimum requirements for using Vortex. You can find the requirements "
                     + "here: <" + Constants.Wiki.START + ">. \n\n" + Constants.WARNING + "You may want to consider using a "
                     + "different bot that is designed for servers like yours. You can find a public list of bots here: "
                     + "<https://discord.bots.gg>.", true, () -> g.leave().queue());
         });
     }
-
-
+    
+    
     /**
      * @param args the command line arguments
      * @throws java.lang.Exception

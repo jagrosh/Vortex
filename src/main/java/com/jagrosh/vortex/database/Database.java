@@ -16,6 +16,7 @@
 package com.jagrosh.vortex.database;
 
 import com.jagrosh.easysql.DatabaseConnector;
+import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.database.managers.*;
 
 /**
@@ -36,6 +37,7 @@ public class Database extends DatabaseConnector
     public final PremiumManager premium;
     public final InviteWhitelistManager inviteWhitelist;
     public final FilterManager filters;
+    public final TagManager tags;
     
     public Database(String host, String user, String pass) throws Exception
     {
@@ -53,7 +55,15 @@ public class Database extends DatabaseConnector
         premium = new PremiumManager(this);
         inviteWhitelist = new InviteWhitelistManager(this);
         filters = new FilterManager(this);
+        tags = new TagManager(this);
         
         init();
+    }
+
+    public static String sanitise(String param) {
+        param = param.replaceAll("'", "''");
+        param = param.replaceAll("\"", "\"\"");
+        param = param.replaceAll("\\\\", "\\\\");
+        return param;
     }
 }

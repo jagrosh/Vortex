@@ -48,7 +48,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
     public final static SQLColumn<Long> MOD_ROLE_ID = new LongColumn("MOD_ROLE_ID",false,0L);
-    
+
     public final static SQLColumn<Long> MODLOG_ID = new LongColumn("MODLOG_ID",false,0L);
     public final static SQLColumn<Long> SERVERLOG_ID = new LongColumn("SERVERLOG_ID",false,0L);
     public final static SQLColumn<Long> MESSAGELOG_ID = new LongColumn("MESSAGELOG_ID",false,0L);
@@ -337,13 +337,14 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public class GuildSettings implements GuildSettingsProvider
     {
-        private final long modRole, muteRole, gravelRole, modlog, serverlog, messagelog, voicelog, avatarlog;
+        private final long rtcRole, modRole, muteRole, gravelRole, modlog, serverlog, messagelog, voicelog, avatarlog;
         private final String prefix;
         private final ZoneId timezone;
         private final int raidMode;
         
         private GuildSettings()
         {
+            this.rtcRole = 0;
             this.modRole = 0;
             this.modlog = 0;
             this.muteRole = 0;
@@ -359,6 +360,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         
         private GuildSettings(ResultSet rs) throws SQLException
         {
+            this.rtcRole = 0;
             this.modRole = MOD_ROLE_ID.getValue(rs);
             this.muteRole = 0;
             this.gravelRole = 0;
@@ -403,6 +405,14 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             if(rid!=null)
                 return rid;
             return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Gravel")).findFirst().orElse(null);
+        }
+
+        public Role getRtcRole(Guild guild)
+        {
+            Role rid = guild.getRoleById(rtcRole);
+            if(rid!=null)
+                return rid;
+            return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Regular Toy Chatters")).findFirst().orElse(null);
         }
         
         public TextChannel getModLogChannel(Guild guild)
