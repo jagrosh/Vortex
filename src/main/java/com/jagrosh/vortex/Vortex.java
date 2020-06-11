@@ -211,7 +211,6 @@ public class Vortex
         modlog.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
-        threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
         threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
     
@@ -276,50 +275,10 @@ public class Vortex
     {
         return listener;
     }
-    
-    
-    // Global methods
-    public void cleanPremium()
-    {
-        database.premium.cleanPremiumList().forEach((gid) ->
-        {
-            database.automod.setResolveUrls(gid, false);
-            database.settings.setAvatarLogChannel(gid, null);
-            database.settings.setVoiceLogChannel(gid, null);
-            database.filters.deleteAllFilters(gid);
-        });
-    }
-    
-    public void leavePointlessGuilds()
-    {
-        // Limit removed for testing, should be readded in the final version
-        if (true) return;
-        shards.getGuilds().stream().filter(g -> 
-        {
-            if(!g.isAvailable())
-                return false;
-            if(Constants.OWNER_ID.equals(g.getOwnerId()))
-                return false;
-            int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.5))
-            {
-                if(database.settings.hasSettings(g))
-                    return false;
-                if(database.automod.hasSettings(g))
-                    return false;
-                return true;
-            }
-            return false;
-        }).forEach(g -> 
-        {
-            OtherUtil.safeDM(g.getOwner()==null ? null : g.getOwner().getUser(), Constants.ERROR + " Sorry, your server **" 
-                    + g.getName() + "** does not meet the minimum requirements for using Vortex. You can find the requirements "
-                    + "here: <" + Constants.Wiki.START + ">. \n\n" + Constants.WARNING + "You may want to consider using a "
-                    + "different bot that is designed for servers like yours. You can find a public list of bots here: "
-                    + "<https://discord.bots.gg>.", true, () -> g.leave().queue());
-        });
-    }
 
+    // Global methods
+    @Deprecated
+    public void cleanPremium() {}
 
     /**
      * @param args the command line arguments
