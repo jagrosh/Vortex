@@ -19,6 +19,8 @@ import java.time.format.DateTimeFormatter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,20 +43,24 @@ public class UserinfoCmd extends Command
     private final static String BOT_EMOJI = "<:botTag:230105988211015680>";
     private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
     private final static String LINESTART = "\u25AB"; // ▫
+    private final Vortex vortex;
     
-    public UserinfoCmd()
+    public UserinfoCmd(Vortex vortex)
     {
         this.name = "userinfo";
-        this.aliases = new String[]{"user","uinfo","memberinfo"};
+        this.aliases = new String[]{"user","uinfo","memberinfo","whois","whothis","newphonewhothis"};
         this.help = "shows info on a member";
         this.arguments = "[user]";
         this.guildOnly = true;
-        this.botPermissions = new Permission[]{Permission.MESSAGE_EMBED_LINKS};
+        this.vortex = vortex;
     }
     
     @Override
     protected void execute(CommandEvent event) 
     {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE))
+            return;
+
         Member member;
         if(event.getArgs().isEmpty())
         {
