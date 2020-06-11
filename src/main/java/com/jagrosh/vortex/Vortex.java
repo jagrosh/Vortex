@@ -116,7 +116,7 @@ public class Vortex
                             new PingCmd(this),
                             new RoleinfoCmd(this),
                             new ServerinfoCmd(this),
-                            new UserinfoCmd(),
+                            new UserinfoCmd(this),
 
                             // Moderation
                             new KickCmd(this),
