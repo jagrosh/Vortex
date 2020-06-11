@@ -74,7 +74,6 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
-    private final JDA altBot;
 
 
     static {
@@ -85,7 +84,7 @@ public class Vortex
 
     public Vortex() throws Exception
     {
-        altBot = new JDABuilder(config.getString("alt-token")).build();
+        JDA altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
         database = new Database(config.getString("database.host"), 
