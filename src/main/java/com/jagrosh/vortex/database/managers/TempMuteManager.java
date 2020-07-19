@@ -63,7 +63,7 @@ public class TempMuteManager extends DataManager
             return arr;
         });
         JSONObject json = new JSONObject();
-        list.forEach(p -> json.put(Long.toString(p.getKey()), p.getValue().toEpochMilli()));
+        list.forEach(p -> json.put(Long.toString(p.getKey()), p.getValue().getEpochSecond()));
         return json;
     }
     
