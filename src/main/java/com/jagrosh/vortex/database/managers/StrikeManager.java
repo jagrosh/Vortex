@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  *
@@ -107,5 +109,12 @@ public class StrikeManager extends DataManager
                 map.put(USER_ID.getValue(rs), STRIKES.getValue(rs));
             return map;
         });
+    }
+    
+    public JSONObject getAllStrikesJson(Guild guild)
+    {
+        JSONObject obj = new JSONObject();
+        getAllStrikes(guild).entrySet().forEach(e -> obj.put(Long.toString(e.getKey()), e.getValue()));
+        return obj;
     }
 }

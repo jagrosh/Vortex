@@ -162,6 +162,7 @@ public class Vortex
                             new AnnounceCmd(),
                             new AuditCmd(),
                             new DehoistCmd(),
+                            new ExportCmd(this),
                             new InvitepruneCmd(this),
                             new LookupCmd(this),
 

@@ -20,13 +20,17 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
+import com.jagrosh.vortex.utils.Pair;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
+import org.json.JSONObject;
 
 /**
  *
@@ -47,6 +51,20 @@ public class TempMuteManager extends DataManager
     protected String primaryKey()
     {
         return GUILD_ID+", "+USER_ID;
+    }
+    
+    public JSONObject getAllMutesJson(Guild guild)
+    {
+        List<Pair<Long,Instant>> list = read(selectAll(GUILD_ID.is(guild.getId())), rs -> 
+        {
+            List<Pair<Long,Instant>> arr = new ArrayList<>();
+            while(rs.next())
+                arr.add(new Pair<>(USER_ID.getValue(rs), FINISH.getValue(rs)));
+            return arr;
+        });
+        JSONObject json = new JSONObject();
+        list.forEach(p -> json.put(Long.toString(p.getKey()), p.getValue().toEpochMilli()));
+        return json;
     }
     
     public boolean isMuted(Member member)

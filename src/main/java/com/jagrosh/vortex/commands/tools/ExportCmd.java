@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.vortex.commands.owner;
+package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.database.Database;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Guild;
 import org.json.JSONObject;
 
 /**
@@ -33,27 +35,30 @@ public class ExportCmd extends Command
     {
         this.vortex = vortex;
         this.name = "export";
-        this.arguments = "<serverid>";
         this.help = "exports all server data as json";
         this.category = new Category("Tools");
-        this.userPermissions = new Permission[]{Permission.MESSAGE_ATTACH_FILES};
-        this.ownerCommand = true;
+        this.botPermissions = new Permission[]{Permission.MESSAGE_ATTACH_FILES};
+        this.userPermissions = new Permission[]{Permission.ADMINISTRATOR};
+        this.cooldown = 60*30;
+        this.cooldownScope = CooldownScope.GUILD;
+        this.guildOnly = true;
     }
 
     @Override
     protected void execute(CommandEvent event)
     {
-        long gid;
-        try
-        {
-            gid = Long.parseLong(event.getArgs());
-        }
-        catch(NumberFormatException ex)
-        {
-            event.reactError();
-            return;
-        }
-        JSONObject obj = new JSONObject();
-        
+        Guild g = event.getGuild();
+        Database db = vortex.getDatabase();
+        JSONObject obj = new JSONObject()
+                .put("automod", db.automod.getSettingsJson(g))
+                .put("settings", db.settings.getSettingsJson(g))
+                .put("ignores", db.ignores.getIgnoresJson(g))
+                .put("strikes", db.strikes.getAllStrikesJson(g))
+                .put("punishments", db.actions.getAllPunishmentsJson(g))
+                .put("tempmutes", db.tempmutes.getAllMutesJson(g))
+                .put("tempbans", db.tempbans.getAllBansJson(g))
+                .put("inviteWhitelist", db.inviteWhitelist.getWhitelistJson(g))
+                .put("filters", db.filters.getFiltersJson(g));
+        event.getChannel().sendFile(obj.toString(1).getBytes(), "vortex_data_" + g.getId() + ".json").queue();
     }
 }

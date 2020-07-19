@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  *
@@ -88,6 +90,14 @@ public class FilterManager extends DataManager
         filters.forEach(f -> sb.append("\n**").append(f.name).append("** (`").append(f.strikes).append(" ")
                 .append(Action.STRIKE.getEmoji()).append("`): ").append(f.printContentEscaped()));
         return new Field(SETTINGS_TITLE, sb.toString().trim(), true);
+    }
+    
+    public JSONObject getFiltersJson(Guild guild)
+    {
+        List<Filter> filters = getFilters(guild);
+        JSONObject obj = new JSONObject();
+        filters.forEach(f -> obj.put(f.name, new JSONObject().put("strikes",f.strikes).put("content", f.printContent())));
+        return obj;
     }
     
     public boolean addFilter(Guild guild, Filter filter)

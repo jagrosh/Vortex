@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -170,6 +171,14 @@ public class PunishmentManager extends DataManager
                 .append(FormatUtil.capitalize(p.action.name())).append("** ").append(p.action.getEmoji())
                 .append(p.time>0 ? " "+FormatUtil.secondsToTimeCompact(p.time*60) : ""));
         return new Field(STRIKES_TITLE, sb.toString().trim(), true);
+    }
+    
+    public JSONObject getAllPunishmentsJson(Guild guild)
+    {
+        JSONObject obj = new JSONObject();
+        getAllPunishments(guild).forEach(p -> obj.put(Integer.toString(p.numStrikes), 
+                new JSONObject().put("action", p.action.toString()).put("time", p.time)));
+        return obj;
     }
     
     public class Punishment
