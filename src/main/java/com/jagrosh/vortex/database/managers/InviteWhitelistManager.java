@@ -137,7 +137,7 @@ public class InviteWhitelistManager extends DataManager
     {
         List<Long> list = readWhitelist(guild);
         JSONArray arr = new JSONArray();
-        list.forEach(id -> list.add(id));
+        list.forEach(id -> arr.put(id));
         return arr;
     }
 

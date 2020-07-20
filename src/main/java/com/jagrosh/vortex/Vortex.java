@@ -287,8 +287,10 @@ public class Vortex
                 return false;
             if(Constants.OWNER_ID.equals(g.getOwnerId()))
                 return false;
-            int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.5))
+            int botcount = (int) g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
+            int totalcount = (int) g.getMemberCache().size();
+            int humancount = totalcount - botcount;
+            if(humancount < 30 || botcount > humancount)
             {
                 if(database.settings.hasSettings(g))
                     return false;

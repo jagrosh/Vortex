@@ -58,7 +58,8 @@ public class ExportCmd extends Command
                 .put("tempmutes", db.tempmutes.getAllMutesJson(g))
                 .put("tempbans", db.tempbans.getAllBansJson(g))
                 .put("inviteWhitelist", db.inviteWhitelist.getWhitelistJson(g))
-                .put("filters", db.filters.getFiltersJson(g));
+                .put("filters", db.filters.getFiltersJson(g))
+                .put("premium", db.premium.getPremiumInfoJson(g));
         event.getChannel().sendFile(obj.toString(1).getBytes(), "vortex_data_" + g.getId() + ".json").queue();
     }
 }
