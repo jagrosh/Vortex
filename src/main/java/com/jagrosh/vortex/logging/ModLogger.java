@@ -77,7 +77,7 @@ public class ModLogger
             }
             if(!toUpdate.isEmpty())
             {
-                LOG.info("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
+                LOG.debug("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
                 try
                 {
                     long time, diff;

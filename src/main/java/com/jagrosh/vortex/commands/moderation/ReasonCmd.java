@@ -38,7 +38,6 @@ public class ReasonCmd extends ModCommand
     @Override
     protected void execute(CommandEvent event)
     {
-        
         int caseNum;
         String[] parts = event.getArgs().split("\\s+", 2);
         String str;

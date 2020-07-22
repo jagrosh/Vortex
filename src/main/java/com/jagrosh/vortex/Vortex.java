@@ -44,13 +44,16 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -162,6 +165,7 @@ public class Vortex
                             new AnnounceCmd(),
                             new AuditCmd(),
                             new DehoistCmd(),
+                            new ExportCmd(this),
                             new InvitepruneCmd(this),
                             new LookupCmd(this),
 
@@ -183,6 +187,7 @@ public class Vortex
                         .setDiscordBotsKey(config.getString("listing.discord-bots"))
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
+        MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
         shards = new DefaultShardManagerBuilder()
                 .setShardsTotal(config.getInt("shards-total"))
                 .setToken(config.getString("bot-token"))
@@ -193,6 +198,7 @@ public class Vortex
                 .setRequestTimeoutRetry(true)
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.ACTIVITY)) //TODO: dont disable GAME
                 .setSessionController(new BlockingSessionController())
+                
                 .build();
         
         modlog.start();
@@ -285,8 +291,10 @@ public class Vortex
                 return false;
             if(Constants.OWNER_ID.equals(g.getOwnerId()))
                 return false;
-            int botcount = (int)g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
-            if(g.getMemberCache().size()-botcount<15 || (botcount>20 && ((double)botcount/g.getMemberCache().size())>0.5))
+            int botcount = (int) g.getMemberCache().stream().filter(m -> m.getUser().isBot()).count();
+            int totalcount = (int) g.getMemberCache().size();
+            int humancount = totalcount - botcount;
+            if(humancount < 30 || botcount > humancount)
             {
                 if(database.settings.hasSettings(g))
                     return false;

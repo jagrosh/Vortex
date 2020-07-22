@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -110,6 +111,26 @@ public class AutomodManager extends DataManager
                         ? "Disabled" 
                         : "`"+settings.dehoistChar+"` and above")
                 /*+ "\u200B"*/, true);
+    }
+    
+    public JSONObject getSettingsJson(Guild guild)
+    {
+        AutomodSettings settings = getSettings(guild);
+        return new JSONObject()
+                .put("copypastaStrikes", settings.copypastaStrikes)
+                .put("dehoistChar", ""+settings.dehoistChar)
+                .put("dupeDeleteThresh", settings.dupeDeleteThresh)
+                .put("dupeStrikeThresh", settings.dupeStrikeThresh)
+                .put("dupeStrikes", settings.dupeStrikes)
+                .put("everyoneStrikes", settings.everyoneStrikes)
+                .put("inviteStrikes", settings.inviteStrikes)
+                .put("maxLines", settings.maxLines)
+                .put("maxMentions", settings.maxMentions)
+                .put("maxRoleMentions", settings.maxRoleMentions)
+                .put("raidmodeNumber", settings.raidmodeNumber)
+                .put("raidmodeTime", settings.raidmodeTime)
+                .put("refStrikes", settings.refStrikes)
+                .put("resolveUrls", settings.resolveUrls);
     }
     
     public boolean hasSettings(Guild guild)

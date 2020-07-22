@@ -20,6 +20,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
+import com.jagrosh.vortex.utils.FormatUtil;
 
 /**
  *
@@ -60,7 +61,7 @@ public class MaxlinesCmd extends Command
                 maxlines = 0;
             else
             {
-                event.replyError("`"+event.getArgs()+"` is not a valid integer!");
+                event.replyError(FormatUtil.filterEveryone("`"+event.getArgs()+"` is not a valid integer!"));
                 return;
             }
         }

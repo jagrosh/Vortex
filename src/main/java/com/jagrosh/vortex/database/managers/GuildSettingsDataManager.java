@@ -34,6 +34,7 @@ import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
+import org.json.JSONObject;
 
 /**
  *
@@ -101,6 +102,22 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nAvatar Log: "+(avylog==null ? "None" : avylog.getAsMention())
                 + "\nServer Log: "+(serverlog==null ? "None" : serverlog.getAsMention())
                 + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
+    }
+    
+    public JSONObject getSettingsJson(Guild guild)
+    {
+        GuildSettings settings = getSettings(guild);
+        return new JSONObject()
+                .put("avatarlog", settings.avatarlog)
+                .put("messagelog", settings.messagelog)
+                .put("modRole", settings.modRole)
+                .put("modlog", settings.modlog)
+                .put("muteRole", settings.muteRole)
+                .put("prefix", settings.prefix)
+                .put("raidMode", settings.raidMode)
+                .put("serverlog", settings.serverlog)
+                .put("timezone", settings.timezone)
+                .put("voicelog", settings.voicelog);
     }
     
     public boolean hasSettings(Guild guild)

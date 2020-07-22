@@ -87,7 +87,7 @@ public class ArgsUtil
                 args = args.substring(mat.group().length()).trim();
                 if(found)
                     continue;
-                unresolved.add(mat.group());
+                unresolved.add(FormatUtil.filterEveryone(mat.group()));
                 found = true;
                 continue;
             }

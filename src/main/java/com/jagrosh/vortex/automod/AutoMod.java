@@ -52,7 +52,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoMod
 {
-    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|app\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
+    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|(?:app)?\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
             Pattern.CASE_INSENSITIVE);
     
     private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
@@ -204,11 +204,11 @@ public class AutoMod
     private boolean shouldPerformAutomod(Member member, TextChannel channel)
     {
         // ignore users not in the guild
-        if(member==null || member.getGuild()==null)
+        if(member==null)
             return false;
         
         // ignore broken guilds
-        if(member.getGuild().getSelfMember()==null || member.getGuild().getOwner()==null)
+        if(member.getGuild().getOwner()==null)
             return false;
         
         // ignore bots
@@ -273,11 +273,9 @@ public class AutoMod
             return;
 
         // check the channel for channel-specific settings
-        boolean preventSpam = message.getTextChannel().getTopic()==null 
-                || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
-        boolean preventInvites = (message.getTextChannel().getTopic()==null 
-                || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
-                && settings.inviteStrikes > 0;
+        String topic = message.getTextChannel().getTopic();
+        boolean preventSpam = topic==null || !topic.toLowerCase().contains("{spam}");
+        boolean preventInvites = (topic==null || !topic.toLowerCase().contains("{invites}")) && settings.inviteStrikes > 0;
 
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());

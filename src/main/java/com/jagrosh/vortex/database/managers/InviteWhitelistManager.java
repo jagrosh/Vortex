@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.json.JSONArray;
 
 public class InviteWhitelistManager extends DataManager
 {
@@ -130,6 +131,14 @@ public class InviteWhitelistManager extends DataManager
         });
         cache.put(guild.getIdLong(), whitelist);
         return whitelist;
+    }
+    
+    public JSONArray getWhitelistJson(Guild guild)
+    {
+        List<Long> list = readWhitelist(guild);
+        JSONArray arr = new JSONArray();
+        list.forEach(id -> arr.put(id));
+        return arr;
     }
 
     private void invalidateCache(Guild guild)

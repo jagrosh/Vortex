@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
+import org.json.JSONObject;
 
 /**
  *
@@ -70,6 +71,14 @@ public class PremiumManager extends DataManager
             }
             return NO_PREMIUM;
         });
+    }
+    
+    public JSONObject getPremiumInfoJson(Guild guild)
+    {
+        PremiumInfo info = getPremiumInfo(guild);
+        return new JSONObject()
+                .put("level", info.level.name())
+                .put("until", info.until == null ? 0 : info.until.getEpochSecond());
     }
     
     public void addPremiumForever(Guild guild, Level level)
