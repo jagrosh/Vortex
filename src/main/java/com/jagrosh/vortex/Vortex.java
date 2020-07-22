@@ -194,7 +194,6 @@ public class Vortex
                 .setRequestTimeoutRetry(true)
                 .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
                 .setSessionController(new BlockingSessionController())
-                .setCompressionEnabled(false)
                 .build();
         
         modlog.start();
