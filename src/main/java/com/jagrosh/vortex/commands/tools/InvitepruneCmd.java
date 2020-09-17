@@ -48,7 +48,7 @@ public class InvitepruneCmd extends Command
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.guildOnly = true;
-        this.cooldown = 10;
+        this.cooldown = 60*5; // 5 minute cooldown for safety
     }
     
     @Override
