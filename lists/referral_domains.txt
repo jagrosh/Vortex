@@ -125,6 +125,7 @@ fortnitevb.com
 free-gg.com
 free-steam-code.com
 giveawaybot.pw
+libra-sale.io
 myetherermwallet.com
 oprewards.com
 rbxfree.com
@@ -140,3 +141,6 @@ steamreward.com
 steamspecial.com
 steamsummer.com
 whatsappx.com
+
+// Deceptive Unicode Links
+getlⅰbra.tech
