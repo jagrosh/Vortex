@@ -141,6 +141,11 @@ steamreward.com
 steamspecial.com
 steamsummer.com
 whatsappx.com
+linkairdrop.io
+omg-airdrop.io
+zifbit.com
+diubit.com
+ethway.io
 
 // Deceptive Unicode Links
 getlⅰbra.tech
