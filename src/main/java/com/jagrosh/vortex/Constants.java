@@ -16,7 +16,9 @@
 package com.jagrosh.vortex;
 
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 /**
  *
@@ -39,6 +41,9 @@ public class Constants
                                         Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
                                         Permission.MESSAGE_MANAGE, Permission.VOICE_CONNECT, Permission.VOICE_MOVE_OTHERS, Permission.VOICE_DEAF_OTHERS, 
                                         Permission.VOICE_MUTE_OTHERS, Permission.NICKNAME_CHANGE, Permission.NICKNAME_MANAGE, Permission.VIEW_AUDIT_LOGS};
+    public final static EnumSet<GatewayIntent> INTENTS = EnumSet.of(GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_BANS, GatewayIntent.GUILD_INVITES, 
+                                        GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, 
+                                        GatewayIntent.GUILD_PRESENCES, GatewayIntent.GUILD_VOICE_STATES);
     public final static String SERVER_INVITE = "https://discord.gg/0p9LSGoRLu6Pet0k";
     //public final static String BOT_INVITE  = "https://discordapp.com/oauth2/authorize?client_id=240254129333731328&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     // public final static String BOT_INVITE    = "https://discordapp.com/oauth2/authorize?client_id=169463754382114816&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);

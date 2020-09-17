@@ -188,17 +188,14 @@ public class Vortex
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
         MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
-        shards = new DefaultShardManagerBuilder()
+        shards = DefaultShardManagerBuilder.createDefault(config.getString("bot-token"), Constants.INTENTS)
                 .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.ACTIVITY)) //TODO: dont disable GAME
-                .setSessionController(new BlockingSessionController())
-                
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY)
                 .build();
         
         modlog.start();
