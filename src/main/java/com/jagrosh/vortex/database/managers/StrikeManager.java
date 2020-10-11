@@ -117,4 +117,13 @@ public class StrikeManager extends DataManager
         getAllStrikes(guild).entrySet().forEach(e -> obj.put(Long.toString(e.getKey()), e.getValue()));
         return obj;
     }
+
+    public void resetAllStrikes(Guild guild)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            while(rs.next())
+                rs.deleteRow();
+        });
+    }
 }

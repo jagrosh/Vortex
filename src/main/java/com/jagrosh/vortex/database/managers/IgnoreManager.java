@@ -152,6 +152,15 @@ public class IgnoreManager extends DataManager
             return false;
         });
     }
+
+    public void unignoreAll(Guild guild)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            while(rs.next())
+                rs.deleteRow();
+        });
+    }
     
     private void invalidateCache(Guild guild)
     {

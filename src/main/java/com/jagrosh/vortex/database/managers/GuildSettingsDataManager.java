@@ -296,6 +296,15 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             }
         });
     }
+
+    public void reset(Guild guild)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+                rs.deleteRow();
+        });
+    }
     
     public void enableRaidMode(Guild guild)
     {
