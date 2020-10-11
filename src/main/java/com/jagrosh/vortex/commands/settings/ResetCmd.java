@@ -20,9 +20,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -73,7 +73,7 @@ public class ResetCmd extends Command
                     }
                 });
 
-        Callable<Void> callable;
+        ThrowableConsumer<Guild> consumer;
 
         switch (event.getArgs().toLowerCase())
         {
@@ -85,11 +85,7 @@ public class ResetCmd extends Command
                                 "Filters aren't affected by this reset.\n\n" +
                                 "Are you sure you want to reset all Automod settings?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().automod.reset(event.getGuild());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().automod.reset(guild);
                 break;
 
 
@@ -99,11 +95,7 @@ public class ResetCmd extends Command
                                 "You are about to remove all filters.\n" +
                                 "Are you sure you want to remove all Filters?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().filters.deleteAllFilters(event.getGuild().getIdLong());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().filters.deleteAllFilters(guild.getIdLong());
                 break;
 
 
@@ -115,11 +107,7 @@ public class ResetCmd extends Command
                                 "Punishments, Automod, Ignored roles/channels & Filters aren't affected by this reset.\n" +
                                 "Are you sure you want to reset all Server Settings?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().settings.reset(event.getGuild());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().settings.reset(guild);
                 break;
 
 
@@ -130,11 +118,7 @@ public class ResetCmd extends Command
                                 "This will result in AutoMod no longer ignoring any channels & roles added to the ignore list.\n" +
                                 "Are you sure you want to reset all ignored channels & roles?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().ignores.unignoreAll(event.getGuild());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().ignores.unignoreAll(guild);
                 break;
 
 
@@ -145,11 +129,7 @@ public class ResetCmd extends Command
                                 "This will result in all punishments being removed & as such, strikes no longer mute, kick or ban members.\n" +
                                 "Are you sure you want to reset all punishments?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().actions.removeAllActions(event.getGuild());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().actions.removeAllActions(guild);
                 break;
 
             case "strikes":
@@ -160,11 +140,7 @@ public class ResetCmd extends Command
                                 "No bans or mutes will be lifted.\n" +
                                 "Are you sure you want to reset all strikes?"
                 );
-                callable = () ->
-                {
-                    vortex.getDatabase().strikes.resetAllStrikes(event.getGuild());
-                    return null;
-                };
+                consumer = (guild) -> vortex.getDatabase().strikes.resetAllStrikes(guild);
                 break;
 
             case "all":
@@ -175,15 +151,14 @@ public class ResetCmd extends Command
                                 "No bans or mutes will be lifted.\n" +
                                 "Are you sure you want to reset all settings & strikes?"
                 );
-                callable = () ->
+                consumer = (guild) ->
                 {
-                    vortex.getDatabase().automod.reset(event.getGuild());
-                    vortex.getDatabase().filters.deleteAllFilters(event.getGuild().getIdLong());
-                    vortex.getDatabase().settings.reset(event.getGuild());
-                    vortex.getDatabase().ignores.unignoreAll(event.getGuild());
-                    vortex.getDatabase().actions.removeAllActions(event.getGuild());
-                    vortex.getDatabase().strikes.resetAllStrikes(event.getGuild());
-                    return null;
+                    vortex.getDatabase().automod.reset(guild);
+                    vortex.getDatabase().filters.deleteAllFilters(guild.getIdLong());
+                    vortex.getDatabase().settings.reset(guild);
+                    vortex.getDatabase().ignores.unignoreAll(guild);
+                    vortex.getDatabase().actions.removeAllActions(guild);
+                    vortex.getDatabase().strikes.resetAllStrikes(guild);
                 };
                 break;
 
@@ -199,7 +174,7 @@ public class ResetCmd extends Command
                     {
                         try
                         {
-                            callable.call();
+                            consumer.call(event.getGuild());
                             event.replySuccess("Reset successful");
                         }
                         catch (Exception e)
@@ -210,5 +185,10 @@ public class ResetCmd extends Command
                 })
                 .build()
                 .display(event.getTextChannel());
+    }
+
+    private interface ThrowableConsumer<T>
+    {
+        void call(T t) throws Exception;
     }
 }
