@@ -45,6 +45,7 @@ public class ResetCmd extends Command
         this.category = new Category("Settings");
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+        this.cooldown = 60;
     }
 
     @Override
