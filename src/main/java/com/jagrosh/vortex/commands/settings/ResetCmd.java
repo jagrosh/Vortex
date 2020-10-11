@@ -74,83 +74,71 @@ public class ResetCmd extends Command
                 });
 
         ThrowableConsumer<Guild> consumer;
+        String description;
 
         switch (event.getArgs().toLowerCase())
         {
             case "automod":
-                menuBuilder.setDescription(
-                        "**Reset Automod**\n" +
-                                "You are about to reset Automod.\n" +
-                                "This will result in all Automod settings to be disabled.\n" +
-                                "Filters aren't affected by this reset.\n\n" +
-                                "Are you sure you want to reset all Automod settings?"
-                );
+                description = "**Reset Automod**\n" +
+                        "You are about to reset Automod.\n" +
+                        "This will result in all Automod settings to be disabled.\n" +
+                        "Filters aren't affected by this reset.\n\n" +
+                        "Are you sure you want to reset all Automod settings?";
+
                 consumer = (guild) -> vortex.getDatabase().automod.reset(guild);
                 break;
 
 
             case "filters":
-                menuBuilder.setDescription(
-                        "**Reset Filters**\n" +
-                                "You are about to remove all filters.\n" +
-                                "Are you sure you want to remove all Filters?"
-                );
+                description = "**Reset Filters**\n" +
+                        "You are about to remove all filters.\n" +
+                        "Are you sure you want to remove all Filters?";
                 consumer = (guild) -> vortex.getDatabase().filters.deleteAllFilters(guild.getIdLong());
                 break;
 
 
             case "settings":
-                menuBuilder.setDescription(
-                        "**Reset Settings**\n" +
-                                "You are about to reset all Server Settings.\n" +
-                                "This will result in raid mode being disabled & Server Settings like mod role & logs to be reset.\n" +
-                                "Punishments, Automod, Ignored roles/channels & Filters aren't affected by this reset.\n" +
-                                "Are you sure you want to reset all Server Settings?"
-                );
+                description = "**Reset Settings**\n" +
+                        "You are about to reset all Server Settings.\n" +
+                        "This will result in raid mode being disabled & Server Settings like mod role & logs to be reset.\n" +
+                        "Punishments, Automod, Ignored roles/channels & Filters aren't affected by this reset.\n" +
+                        "Are you sure you want to reset all Server Settings?";
                 consumer = (guild) -> vortex.getDatabase().settings.reset(guild);
                 break;
 
 
             case "ignores":
-                menuBuilder.setDescription(
-                        "**Reset Ignores**\n" +
-                                "You are about to reset ignored channels & roles.\n" +
-                                "This will result in AutoMod no longer ignoring any channels & roles added to the ignore list.\n" +
-                                "Are you sure you want to reset all ignored channels & roles?"
-                );
+                description = "**Reset Ignores**\n" +
+                        "You are about to reset ignored channels & roles.\n" +
+                        "This will result in AutoMod no longer ignoring any channels & roles added to the ignore list.\n" +
+                        "Are you sure you want to reset all ignored channels & roles?";
                 consumer = (guild) -> vortex.getDatabase().ignores.unignoreAll(guild);
                 break;
 
 
             case "punishments":
-                menuBuilder.setDescription(
-                        "**Reset Punishments**\n" +
-                                "You are about to reset all punishments.\n" +
-                                "This will result in all punishments being removed & as such, strikes no longer mute, kick or ban members.\n" +
-                                "Are you sure you want to reset all punishments?"
-                );
+                description = "**Reset Punishments**\n" +
+                        "You are about to reset all punishments.\n" +
+                        "This will result in all punishments being removed & as such, strikes no longer mute, kick or ban members.\n" +
+                        "Are you sure you want to reset all punishments?";
                 consumer = (guild) -> vortex.getDatabase().actions.removeAllActions(guild);
                 break;
 
             case "strikes":
-                menuBuilder.setDescription(
-                        "**Reset Strikes**\n" +
-                                "You are about to reset **__all__** strikes.\n" +
-                                "This will result in all strikes being pardoned from all members.\n" +
-                                "No bans or mutes will be lifted.\n" +
-                                "Are you sure you want to reset all strikes?"
-                );
+                description = "**Reset Strikes**\n" +
+                        "You are about to reset **__all__** strikes.\n" +
+                        "This will result in all strikes being pardoned from all members.\n" +
+                        "No bans or mutes will be lifted.\n" +
+                        "Are you sure you want to reset all strikes?";
                 consumer = (guild) -> vortex.getDatabase().strikes.resetAllStrikes(guild);
                 break;
 
             case "all":
-                menuBuilder.setDescription(
-                        "**Reset All**\n" +
-                                "You are about to reset **__all__** settings & strikes.\n" +
-                                "This will result in Automod, settings, filters, punishments & strikes to be reset.\n" +
-                                "No bans or mutes will be lifted.\n" +
-                                "Are you sure you want to reset all settings & strikes?"
-                );
+                description = "**Reset All**\n" +
+                        "You are about to reset **__all__** settings & strikes.\n" +
+                        "This will result in Automod, settings, filters, punishments & strikes to be reset.\n" +
+                        "No bans or mutes will be lifted.\n" +
+                        "Are you sure you want to reset all settings & strikes?";
                 consumer = (guild) ->
                 {
                     vortex.getDatabase().automod.reset(guild);
@@ -168,6 +156,7 @@ public class ResetCmd extends Command
         }
 
         menuBuilder
+                .setDescription(description)
                 .setAction(reactionEmote ->
                 {
                     if (reactionEmote.getName().equals(CONFIRM_RESET_EMOJI))
