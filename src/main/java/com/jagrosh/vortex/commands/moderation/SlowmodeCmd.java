@@ -28,7 +28,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class SlowmodeCmd extends ModCommand
 {
-    final static int MAX_SLOWMODE = 21600;
+    private final static int MAX_SLOWMODE = 21600;
 
     public SlowmodeCmd(Vortex vortex)
     {
