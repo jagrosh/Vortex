@@ -25,9 +25,8 @@ import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
-import org.json.JSONArray;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import org.json.JSONObject;
 
 /**

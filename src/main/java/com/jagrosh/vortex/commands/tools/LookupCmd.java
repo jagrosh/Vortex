@@ -22,16 +22,16 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Invite;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.utils.MiscUtil;
-import net.dv8tion.jda.core.utils.WidgetUtil;
-import net.dv8tion.jda.core.utils.WidgetUtil.Widget;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Invite;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.utils.TimeUtil;
+import net.dv8tion.jda.api.utils.WidgetUtil;
+import net.dv8tion.jda.api.utils.WidgetUtil.Widget;
 
 /**
  *
@@ -127,7 +127,7 @@ public class LookupCmd extends Command
         String str = LINESTART + "Discord ID: **" + u.getId() + "**";
         if(u.getAvatarId() != null && u.getAvatarId().startsWith("a_"))
             str+= " <:nitro:314068430611415041>";
-        str += "\n" + LINESTART + "Account Creation: **" + MiscUtil.getDateTimeString(u.getCreationTime()) + "**";
+        str += "\n" + LINESTART + "Account Creation: **" + TimeUtil.getDateTimeString(u.getTimeCreated()) + "**";
         eb.setDescription(str);
         event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
         return true;
@@ -147,13 +147,17 @@ public class LookupCmd extends Command
             return;
         }
         catch(Exception ignore) {}
-        if(widget != null && widget.isAvailable() && widget.getInviteCode() != null)
+        if(widget != null && widget.isAvailable())
         {
-            try
+            String invCode = widget.getInviteCode();
+            if(invCode != null)
             {
-                invite = Invite.resolve(event.getJDA(), widget.getInviteCode(), true).complete(false);
+                try
+                {
+                    invite = Invite.resolve(event.getJDA(), invCode, true).complete(false);
+                }
+                catch(Exception ignore) {}
             }
-            catch(Exception ignore) {}
         }
         event.reply(constructMessage(invite, widget));
     }
@@ -174,11 +178,15 @@ public class LookupCmd extends Command
         catch(Exception ignore) {}
         if(invite != null)
         {
-            try
+            Invite.Guild g = invite.getGuild();
+            if(g != null)
             {
-                widget = WidgetUtil.getWidget(invite.getGuild().getIdLong());
+                try
+                {
+                    widget = WidgetUtil.getWidget(g.getIdLong());
+                }
+                catch(Exception ignore) {}
             }
-            catch(Exception ignore) {}
         }
         event.reply(constructMessage(invite, widget));
     }
@@ -200,25 +208,36 @@ public class LookupCmd extends Command
         }
         else
         {
-            gid = invite.getGuild().getIdLong();
-            gname = invite.getGuild().getName();
-            users = invite.getGuild().getOnlineCount();
+            Invite.Guild g = invite.getGuild();
+            if(g == null)
+            {
+                gid = 0L;
+                gname = "Unknown Guild";
+                users = 0;
+            }
+            else
+            {
+                gid = g.getIdLong();
+                gname = g.getName();
+                users = g.getOnlineCount();
+            }
         }
         
         String text = GUILD_EMOJI + " Information about **" + gname + "**:";
         EmbedBuilder eb = new EmbedBuilder();
         eb.appendDescription(LINESTART + "ID: **" + gid + "**"
-                + "\n" + LINESTART + "Creation: **" + MiscUtil.getCreationTime(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**"
+                + "\n" + LINESTART + "Creation: **" + TimeUtil.getTimeCreated(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**"
                 + "\n" + LINESTART + "Users: " + (users == -1 ? "N/A" : "**" + users + "** online")
                 + (widget != null && widget.isAvailable() ? "\n" + LINESTART + "Channels: **" + widget.getVoiceChannels().size() + "** voice" : ""));
         if(invite != null)
         {
-            eb.setThumbnail(invite.getGuild().getIconUrl());
-            eb.setImage(invite.getGuild().getSplashId() == null ? null : invite.getGuild().getSplashUrl() + "?size=1024");
+            Invite.Guild g = invite.getGuild();
+            eb.setThumbnail(g.getIconUrl());
+            eb.setImage(g.getSplashId() == null ? null : g.getSplashUrl() + "?size=1024");
             eb.addField("Invite Info", LINESTART + "Invite: **" + invite.getCode() + "**"
                     + "\n" + LINESTART + "Channel: **" + (invite.getChannel().getType() == ChannelType.TEXT ? "#" : "") + invite.getChannel().getName() + "** (ID:" +invite.getChannel().getId() + ")"
                     + "\n" + LINESTART + "Inviter: " + (invite.getInviter() == null ? "N/A" : FormatUtil.formatFullUser(invite.getInviter()))
-                    + (invite.getGuild().getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
+                    + (g.getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
         }
         return new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build();
     }

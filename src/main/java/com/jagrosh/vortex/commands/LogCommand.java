@@ -21,8 +21,8 @@ import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *
