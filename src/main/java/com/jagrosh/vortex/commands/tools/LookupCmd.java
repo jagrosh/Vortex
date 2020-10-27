@@ -232,12 +232,12 @@ public class LookupCmd extends Command
         if(invite != null)
         {
             Invite.Guild g = invite.getGuild();
-            eb.setThumbnail(invite.getGuild().getIconUrl());
-            eb.setImage(invite.getGuild().getSplashId() == null ? null : invite.getGuild().getSplashUrl() + "?size=1024");
+            eb.setThumbnail(g.getIconUrl());
+            eb.setImage(g.getSplashId() == null ? null : g.getSplashUrl() + "?size=1024");
             eb.addField("Invite Info", LINESTART + "Invite: **" + invite.getCode() + "**"
                     + "\n" + LINESTART + "Channel: **" + (invite.getChannel().getType() == ChannelType.TEXT ? "#" : "") + invite.getChannel().getName() + "** (ID:" +invite.getChannel().getId() + ")"
                     + "\n" + LINESTART + "Inviter: " + (invite.getInviter() == null ? "N/A" : FormatUtil.formatFullUser(invite.getInviter()))
-                    + (invite.getGuild().getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
+                    + (g.getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
         }
         return new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build();
     }
