@@ -16,8 +16,8 @@
 package com.jagrosh.vortex.automod;
 
 import com.jagrosh.vortex.utils.FixedCache;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Invite;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Invite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

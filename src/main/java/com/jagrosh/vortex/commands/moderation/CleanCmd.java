@@ -25,13 +25,13 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorExceptio
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.commands.ModCommand;
 import java.util.LinkedList;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageHistory;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
 import com.jagrosh.vortex.utils.LogUtil;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.EmbedType;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.EmbedType;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *
@@ -144,12 +144,12 @@ public class CleanCmd extends ModCommand
             int val = val2;
             List<Message> msgs = new LinkedList<>();
             MessageHistory mh = event.getChannel().getHistory();
-            OffsetDateTime earliest = event.getMessage().getCreationTime().minusHours(335);
+            OffsetDateTime earliest = event.getMessage().getTimeCreated().minusHours(335);
             while(val>100)
             {
                 msgs.addAll(mh.retrievePast(100).complete());
                 val-=100;
-                if(msgs.get(msgs.size()-1).getCreationTime().isBefore(earliest))
+                if(msgs.get(msgs.size()-1).getTimeCreated().isBefore(earliest))
                 {
                     val=0;
                     break;
@@ -163,7 +163,7 @@ public class CleanCmd extends ModCommand
             List<Message> del = new LinkedList<>();
             for(Message msg : msgs)
             {
-                if(msg.getCreationTime().isBefore(earliest))
+                if(msg.getTimeCreated().isBefore(earliest))
                 {
                     week2 = true;
                     break;
@@ -235,7 +235,7 @@ public class CleanCmd extends ModCommand
                 params = "all";
             vortex.getTextUploader().upload(LogUtil.logMessagesBackwards("Cleaned Messages", del), "CleanedMessages", (view, download) -> 
             {
-                vortex.getModLogger().postCleanCase(event.getMember(), event.getMessage().getCreationTime(), del.size(),
+                vortex.getModLogger().postCleanCase(event.getMember(), event.getMessage().getTimeCreated(), del.size(),
                         event.getTextChannel(), params, null, new EmbedBuilder().setColor(event.getSelfMember().getColor())
                                 .appendDescription("[`"+VIEW+" View`]("+view+")  |  [`"+DOWNLOAD+" Download`]("+download+")").build());
             });

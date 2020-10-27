@@ -20,7 +20,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.LogCommand;
 import com.jagrosh.vortex.database.managers.PremiumManager;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *

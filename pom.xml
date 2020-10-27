@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jagrosh</groupId>
     <artifactId>Vortex</artifactId>
-    <version>2.3</version>
+    <version>2.4</version>
     <packaging>jar</packaging>
     
     <properties>
@@ -24,18 +24,23 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>3.8.3_464</version>
+            <version>4.2.0_212</version>
         </dependency>
         <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>jda-utilities</artifactId>
-            <version>2.1.5</version>
+            <version>3.0.4</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>EasySQL</artifactId>
             <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>discord-webhooks</artifactId>
+            <version>0.1.8</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -50,7 +55,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -21,7 +21,7 @@ import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -100,7 +100,7 @@ public class PardonCmd extends ModCommand
             else
             {
                 strikes = fnumstrikes<strikes ? fnumstrikes : strikes;
-                vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getCreationTime(), id, strikes, args.reason);
+                vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getTimeCreated(), id, strikes, args.reason);
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully pardoned `").append(strikes).append("` strikes from ").append(user);
             }
         });

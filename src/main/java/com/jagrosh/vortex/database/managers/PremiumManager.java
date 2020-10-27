@@ -29,7 +29,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 
 /**

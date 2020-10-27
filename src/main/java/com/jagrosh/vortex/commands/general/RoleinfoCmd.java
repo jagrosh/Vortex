@@ -22,11 +22,11 @@ import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -75,7 +75,7 @@ public class RoleinfoCmd extends Command
         String title = ROLE_EMOJI + " Information about **"+role.getName()+"**:";
         List<Member> list = role.isPublicRole() ? event.getGuild().getMembers() : event.getGuild().getMembersWithRoles(role);
         StringBuilder desr = new StringBuilder(LINESTART+"ID: **"+role.getId()+"**\n"
-                + LINESTART+"Creation: **"+role.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                + LINESTART+"Creation: **"+role.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 + LINESTART+"Position: **"+role.getPosition()+"**\n"
                 + LINESTART+"Color: **#"+(role.getColor()==null ? "000000" : Integer.toHexString(role.getColor().getRGB()).toUpperCase().substring(2))+"**\n"
                 + LINESTART+"Mentionable: **"+role.isMentionable()+"**\n"

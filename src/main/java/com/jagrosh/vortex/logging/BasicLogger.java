@@ -27,19 +27,19 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateAvatarEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateDiscriminatorEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateNameEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 /**
  *
@@ -94,9 +94,8 @@ public class BasicLogger
         try
         {
             usage.increment(tc.getGuild().getIdLong());
-            tc.sendFile(file, filename, new MessageBuilder()
-                .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
-                .build()).queue();
+            tc.sendMessage(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
+                    .addFile(file, filename).queue();
         }
         catch(PermissionException ignore) {}
     }
@@ -125,7 +124,7 @@ public class BasicLogger
             edit.addField("To:", newm.length()>1024 ? newm.substring(0,1016)+" (...)" : newm, false);
         else
             edit.appendDescription("\n**To:** "+newm);
-        log(newMessage.getEditedTime()==null ? newMessage.getCreationTime() : newMessage.getEditedTime(), tc, EDIT, 
+        log(newMessage.getTimeEdited()==null ? newMessage.getTimeCreated(): newMessage.getTimeEdited(), tc, EDIT, 
                 FormatUtil.formatFullUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
     }
     
@@ -239,19 +238,19 @@ public class BasicLogger
         if(tc==null)
             return;
         OffsetDateTime now = OffsetDateTime.now();
-        long seconds = event.getUser().getCreationTime().until(now, ChronoUnit.SECONDS);
+        long seconds = event.getUser().getTimeCreated().until(now, ChronoUnit.SECONDS);
         log(now, tc, JOIN, FormatUtil.formatFullUser(event.getUser())+" joined the server. "
                 +(seconds<16*60 ? NEW : "")
-                +"\nCreation: "+event.getUser().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)", null);
+                +"\nCreation: "+event.getUser().getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)", null);
     }
     
-    public void logGuildLeave(GuildMemberLeaveEvent event)
+    public void logGuildLeave(GuildMemberRemoveEvent event)
     {
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getServerLogChannel(event.getGuild());
         if(tc==null)
             return;
         OffsetDateTime now = OffsetDateTime.now();
-        long seconds = event.getMember().getJoinDate().until(now, ChronoUnit.SECONDS);
+        long seconds = event.getMember().getTimeJoined().until(now, ChronoUnit.SECONDS);
         StringBuilder rlist;
         if(event.getMember().getRoles().isEmpty())
             rlist = new StringBuilder();
@@ -263,7 +262,7 @@ public class BasicLogger
             rlist.append("`");
         }
         log(now, tc, LEAVE, FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server. "
-                +"\nJoined: "+event.getMember().getJoinDate().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
+                +"\nJoined: "+event.getMember().getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
                 +rlist.toString(), null);
     }
     

@@ -23,16 +23,16 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningExcept
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.audit.ActionType;
-import net.dv8tion.jda.core.audit.AuditLogChange;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.requests.restaction.pagination.AuditLogPaginationAction;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.ActionType;
+import net.dv8tion.jda.api.audit.AuditLogChange;
+import net.dv8tion.jda.api.entities.Emote;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.requests.restaction.pagination.AuditLogPaginationAction;
 
 /**
  *
@@ -66,7 +66,7 @@ public class AuditCmd extends Command
     protected void execute(CommandEvent event)
     {
         String[] parts = event.getArgs().split("\\s+", 2);
-        AuditLogPaginationAction action = event.getGuild().getAuditLogs().cache(false).limit(10); 
+        AuditLogPaginationAction action = event.getGuild().retrieveAuditLogs().cache(false).limit(10); 
         switch(parts[0].toLowerCase())
         {
             case "all":
@@ -169,7 +169,7 @@ public class AuditCmd extends Command
                 });
                 if(ale.getReason()!=null)
                     sb.append("\n").append(LINESTART).append("Reason: ").append(ale.getReason());
-                sb.append("\n").append(LINESTART).append("Time: **").append(ale.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
+                sb.append("\n").append(LINESTART).append("Time: **").append(ale.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
                 String str = sb.length()>1024 ? sb.substring(0,1020)+" ..." : sb.toString();
                 eb.addField(actionToEmote(ale.getType())+" "+fixCase(ale.getType().name()), str, true);
             });

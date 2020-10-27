@@ -29,12 +29,11 @@ import java.time.ZoneId;
 import java.time.zone.ZoneRulesException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import org.json.JSONObject;
 
 /**

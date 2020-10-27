@@ -15,6 +15,8 @@
  */
 package com.jagrosh.vortex;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
@@ -31,29 +33,28 @@ import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
+import net.dv8tion.jda.api.OnlineStatus;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
-import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.EnumSet;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
  *
@@ -95,7 +96,7 @@ public class Vortex
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
+                        .setActivity(Activity.playing(Constants.Wiki.PRIMARY_LINK))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -109,8 +110,8 @@ public class Vortex
                             new AboutCmd(),
                             new InviteCmd(),
                             new PingCommand(),
-                            new RoleinfoCmd(),
-                            new ServerinfoCmd(),
+                            new RoleinfoCommand(),
+                            new ServerinfoCommand(),
                             new UserinfoCmd(),
 
                             // Moderation
@@ -185,16 +186,15 @@ public class Vortex
                         .setDiscordBotsKey(config.getString("listing.discord-bots"))
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
-        shards = new DefaultShardManagerBuilder()
+        MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
+        shards = DefaultShardManagerBuilder.createDefault(config.getString("bot-token"), Constants.INTENTS)
                 .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
+                .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
-                .setSessionController(new BlockingSessionController())
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY)
                 .build();
         
         modlog.start();

@@ -24,8 +24,8 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import org.json.JSONObject;
 
 /**

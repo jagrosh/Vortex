@@ -19,7 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -104,7 +104,7 @@ public class BanCmd extends ModCommand
             long uid = ids.get(i);
             String id = Long.toString(uid);
             boolean last = i+1 == ids.size();
-            event.getGuild().getController().ban(id, daysToDelete, reason).queue(success -> 
+            event.getGuild().ban(id, daysToDelete, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
                 if(minutes>0)

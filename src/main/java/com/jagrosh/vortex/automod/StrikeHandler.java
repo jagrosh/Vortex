@@ -27,11 +27,11 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -88,7 +88,7 @@ public class StrikeHandler
             if(punishments.stream().anyMatch(p -> p.action==Action.BAN) && canBan)
             {
                 OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), isMember, 
-                        () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue());
+                        () -> moderator.getGuild().ban(target, 7, notimeaudit).queue());
                 vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong());
                 return;
             }
@@ -107,7 +107,7 @@ public class StrikeHandler
             {
                 int finalBanDuration = banDuration;
                 OtherUtil.safeDM(target, dmmsg + punishTime(Action.TEMPBAN, moderator.getGuild(), banDuration), isMember, 
-                        () -> moderator.getGuild().getController().ban(target, 7, LogUtil.auditStrikeReasonFormat(moderator, finalBanDuration, counts[0], counts[1], reason)).queue());
+                        () -> moderator.getGuild().ban(target, 7, LogUtil.auditStrikeReasonFormat(moderator, finalBanDuration, counts[0], counts[1], reason)).queue());
                 vortex.getDatabase().tempbans.setBan(moderator.getGuild(), target.getIdLong(), now.plus(banDuration, ChronoUnit.MINUTES));
                 if(muteDuration>0)
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
@@ -116,8 +116,8 @@ public class StrikeHandler
             if(punishments.stream().anyMatch(p -> p.action==Action.SOFTBAN) && canBan)
             {
                 OtherUtil.safeDM(target, dmmsg + punish(Action.SOFTBAN, moderator.getGuild()), isMember, 
-                        () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue(
-                                s -> moderator.getGuild().getController().unban(target).reason(notimeaudit).queueAfter(4, TimeUnit.SECONDS)));
+                        () -> moderator.getGuild().ban(target, 7, notimeaudit).queue(
+                                s -> moderator.getGuild().unban(target).reason(notimeaudit).queueAfter(4, TimeUnit.SECONDS)));
                 if(muteDuration>0)
                     vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 return;
@@ -128,7 +128,7 @@ public class StrikeHandler
                 if(moderator.getGuild().isMember(target))
                 {
                     OtherUtil.safeDM(target, dmmsg + punish(Action.KICK, moderator.getGuild()), isMember, 
-                        () -> moderator.getGuild().getController().kick(target.getId(), notimeaudit).queue());
+                        () -> moderator.getGuild().kick(target.getId(), notimeaudit).queue());
                 }
                 else
                 {
@@ -158,7 +158,7 @@ public class StrikeHandler
                 }
                 else
                 {
-                    moderator.getGuild().getController().addSingleRoleToMember(mem, muted)
+                    moderator.getGuild().addRoleToMember(mem, muted)
                         .reason(muteDuration==Integer.MAX_VALUE ? notimeaudit : LogUtil.auditStrikeReasonFormat(moderator, muteDuration, counts[0], counts[1], reason))
                         .queue();
                 }

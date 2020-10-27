@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import javax.imageio.ImageIO;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *

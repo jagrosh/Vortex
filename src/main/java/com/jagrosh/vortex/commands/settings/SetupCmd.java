@@ -22,11 +22,11 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 
 /**
  *
@@ -187,7 +187,7 @@ public class SetupCmd extends Command
                 Role mutedRole;
                 if(role==null)
                 {
-                    mutedRole = event.getGuild().getController().createRole().setName("Muted").setPermissions().setColor(1).complete();
+                    mutedRole = event.getGuild().createRole().setName("Muted").setPermissions().setColor(1).complete();
                 }
                 else
                 {
@@ -197,7 +197,7 @@ public class SetupCmd extends Command
                 sb.append(event.getClient().getSuccess()).append(" Role initialized!\n");
                 m.editMessage(sb + Constants.LOADING+" Making Category overrides...").complete();
                 PermissionOverride po;
-                for(net.dv8tion.jda.core.entities.Category cat: event.getGuild().getCategories())
+                for(net.dv8tion.jda.api.entities.Category cat: event.getGuild().getCategories())
                 {
                     po = cat.getPermissionOverride(mutedRole);
                     if(po==null)

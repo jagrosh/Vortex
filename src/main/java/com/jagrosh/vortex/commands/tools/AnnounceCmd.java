@@ -23,9 +23,9 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorExceptio
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *

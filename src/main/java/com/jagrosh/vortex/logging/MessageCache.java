@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
  *
@@ -69,7 +69,7 @@ public class MessageCache
             username = message.getAuthor().getName();
             discriminator = message.getAuthor().getDiscriminator();
             channel = message.getChannel().getIdLong();
-            guild = message.getGuild()==null ? 0L : message.getGuild().getIdLong();
+            guild = message.isFromGuild() ? message.getGuild().getIdLong() : 0L;
             attachments = message.getAttachments();
         }
         
