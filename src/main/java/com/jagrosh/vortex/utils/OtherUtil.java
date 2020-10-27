@@ -90,12 +90,17 @@ public class OtherUtil
             for(int j=0; j<vals.length; j+=2)
             {
                 int num = Integer.parseInt(vals[j]);
-                if(vals[j+1].toLowerCase().startsWith("m"))
-                    num*=60;
-                else if(vals[j+1].toLowerCase().startsWith("h"))
-                    num*=60*60;
-                else if(vals[j+1].toLowerCase().startsWith("d"))
-                    num*=60*60*24;
+
+                if(vals.length > j+1)
+                {
+                    if(vals[j+1].toLowerCase().startsWith("m"))
+                        num*=60;
+                    else if(vals[j+1].toLowerCase().startsWith("h"))
+                        num*=60*60;
+                    else if(vals[j+1].toLowerCase().startsWith("d"))
+                        num*=60*60*24;
+                }
+
                 timeinseconds+=num;
             }
         }
