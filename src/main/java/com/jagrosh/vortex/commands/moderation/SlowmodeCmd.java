@@ -111,18 +111,14 @@ public class SlowmodeCmd extends ModCommand
         event.getTextChannel().getManager()
                 .setSlowmode(slowmodeTime)
                 .reason("Enabled by "+event.getAuthor().getAsTag()+" ("+event.getAuthor().getId()+")")
-                .queue();
-
-        if(slowmodeDuration > 0)
-        {
-            vortex.getEventWaiter().waitForEvent(
-                    TextChannelUpdateSlowmodeEvent.class,
-                    c -> c.getChannel().getId().equals(event.getTextChannel().getId()),
-                    ev -> vortex.getDatabase().tempslowmodes.setSlowmode(event.getTextChannel(), Instant.now().plus(slowmodeDuration, ChronoUnit.SECONDS)),
-                    10, TimeUnit.SECONDS,
-                    () -> vortex.getDatabase().tempslowmodes.setSlowmode(event.getTextChannel(), Instant.now().plus(slowmodeDuration, ChronoUnit.SECONDS)));
-        }
-
+                .queue(s ->
+                {
+                    if(slowmodeDuration <= 0) return;
+                    vortex.getThreadpool().schedule(
+                            () -> vortex.getDatabase().tempslowmodes.setSlowmode(event.getTextChannel(), Instant.now().plus(slowmodeDuration, ChronoUnit.SECONDS)),
+                            10, TimeUnit.SECONDS
+                    );
+                });
 
         event.replySuccess("Enabled slowmode with 1 message every " + FormatUtil.secondsToTimeCompact(slowmodeTime) +
                 (slowmodeDuration > 0 ? " for "+FormatUtil.secondsToTimeCompact(slowmodeDuration) : "")+".");

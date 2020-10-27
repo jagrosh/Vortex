@@ -210,7 +210,6 @@ public class Listener implements EventListener
         else if (event instanceof TextChannelUpdateSlowmodeEvent)
         {
             vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
-            vortex.getEventWaiter().onEvent(event);
         }
         else if (event instanceof ReadyEvent)
         {
