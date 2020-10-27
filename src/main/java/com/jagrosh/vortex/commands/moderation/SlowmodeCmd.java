@@ -21,7 +21,11 @@ import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.events.channel.text.update.TextChannelUpdateSlowmodeEvent;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Michaili K (mysteriouscursor+git@protonmail.com)
@@ -34,7 +38,7 @@ public class SlowmodeCmd extends ModCommand
     {
         super(vortex, Permission.MANAGE_CHANNEL);
         this.name = "slowmode";
-        this.arguments = "[time or OFF]";
+        this.arguments = "[time or OFF] | [time to disable slowmode]";
         this.help = "enables or disables slowmode";
         this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
         this.guildOnly = true;
@@ -43,67 +47,84 @@ public class SlowmodeCmd extends ModCommand
     @Override
     protected void execute(CommandEvent event)
     {
-        String args = event.getArgs();
-        TextChannel channel = event.getTextChannel();
-        int time;
 
-        // Event args is empty
-        if (args.isEmpty())
+        if(event.getArgs().isEmpty())
         {
-            if (channel.getSlowmode() > 0)
-                time = 0;
-            else
-                time = 5;
-        }
+            int slowmodeDuration = vortex.getDatabase().tempslowmodes.timeUntilDisableSlowmode(event.getTextChannel());
+            int slowmodeTime = event.getTextChannel().getSlowmode();
 
-        // Event args isn't empty
-        else
-        {
-            // Because parseTime returns 0 if the input is invalid, we'll just check if the argument is not "0",
-            // then parse it & check again if it's 0. If it's 0, then it's likely invalid.
-            if (args.equalsIgnoreCase("off") || args.equals("0"))
-                time = 0;
-            else
+            if(slowmodeTime <= 0)
             {
-                // Because parseTime will return 0 when you don't give a time unit (for example, if you give "10" as
-                // argument, you expect for slowmode to be set to 10 seconds), we first try to simply parse the argument
-                // and if that fails, use parseTime
-                try
-                {
-                    time = Integer.parseInt(args);
-                }
-                catch (Exception e)
-                {
-                    time = OtherUtil.parseTime(event.getArgs());
-                    if (time <= 0)
-                    {
-                        event.replyError("Invalid time");
-                        return;
-                    }
-                }
-
+                event.reply("Slowmode is disabled.");
+                return;
             }
+
+            if(slowmodeDuration <= 0)
+                event.reply("Slowmode is enabled with 1 message every "+FormatUtil.secondsToTimeCompact(slowmodeTime)+".");
+            else
+                event.reply("Slowmode is enabled with 1 message every "+FormatUtil.secondsToTimeCompact(slowmodeTime) +
+                        " for "+FormatUtil.secondsToTimeCompact(slowmodeDuration)+".");
+            return;
         }
 
-        if (time > MAX_SLOWMODE)
+        String args = event.getArgs();
+
+        if(args.equals("0") || args.toLowerCase().equals("off"))
+        {
+            vortex.getDatabase().tempslowmodes.clearSlowmode(event.getTextChannel());
+            event.getTextChannel().getManager().setSlowmode(0).queue();
+            event.replySuccess("Disabled slowmode!");
+            return;
+        }
+
+        String[] split = args.split("\\|",2);
+
+        int slowmodeTime = OtherUtil.parseTime(split[0]);
+        if(slowmodeTime == -1)
+        {
+            event.replyError("Invalid slowmode time!");
+            return;
+        }
+        if(slowmodeTime > MAX_SLOWMODE)
         {
             event.replyError("You can only enable slowmode for up to 6 hours!");
             return;
         }
-        if (time < 0)
+        if(slowmodeTime < -1)
         {
             event.replyError("Slowmode cannot use negative time!");
             return;
         }
 
-        int finalTime = time;
-        channel.getManager().setSlowmode(time).queue(
-                success -> event.replySuccess(
-                        finalTime > 0
-                                ? "Enabled slowmode for " + FormatUtil.secondsToTimeCompact(finalTime) + "!"
-                                : "Disabled slowmode!"),
+        int slowmodeDuration = split.length == 1 ? 0 : OtherUtil.parseTime(split[1]);
+        if(slowmodeDuration == -1)
+        {
+            event.replyError("Invalid slowmode duration time!");
+            return;
+        }
+        if(slowmodeDuration < -1)
+        {
+            event.replyError("Slowmode duration cannot use negative time!");
+            return;
+        }
 
-                failure -> event.replyError("Couldn't " + (finalTime > 0 ? "enable" : "disable") + " slowmode!")
-        );
+        event.getTextChannel().getManager()
+                .setSlowmode(slowmodeTime)
+                .reason("Enabled by "+event.getAuthor().getAsTag()+" ("+event.getAuthor().getId()+")")
+                .queue();
+
+        if(slowmodeDuration > 0)
+        {
+            vortex.getEventWaiter().waitForEvent(
+                    TextChannelUpdateSlowmodeEvent.class,
+                    c -> c.getChannel().getId().equals(event.getTextChannel().getId()),
+                    ev -> vortex.getDatabase().tempslowmodes.setSlowmode(event.getTextChannel(), Instant.now().plus(slowmodeDuration, ChronoUnit.SECONDS)),
+                    10, TimeUnit.SECONDS,
+                    () -> vortex.getDatabase().tempslowmodes.setSlowmode(event.getTextChannel(), Instant.now().plus(slowmodeDuration, ChronoUnit.SECONDS)));
+        }
+
+
+        event.replySuccess("Enabled slowmode with 1 message every " + FormatUtil.secondsToTimeCompact(slowmodeTime) +
+                (slowmodeDuration > 0 ? " for "+FormatUtil.secondsToTimeCompact(slowmodeDuration) : "")+".");
     }
 }
