@@ -32,7 +32,7 @@ public class SlowmodeCmd extends ModCommand
 
     public SlowmodeCmd(Vortex vortex)
     {
-        super(vortex, Permission.MESSAGE_MANAGE);
+        super(vortex, Permission.MANAGE_CHANNEL);
         this.name = "slowmode";
         this.arguments = "[time or OFF]";
         this.help = "enables or disables slowmode";
