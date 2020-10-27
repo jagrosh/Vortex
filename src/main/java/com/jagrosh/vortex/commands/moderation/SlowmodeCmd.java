@@ -69,7 +69,7 @@ public class SlowmodeCmd extends ModCommand
 
         String args = event.getArgs();
 
-        if(args.equals("0") || args.toLowerCase().equals("off"))
+        if(args.equals("0") || args.equalsIgnoreCase("off"))
         {
             vortex.getDatabase().tempslowmodes.clearSlowmode(event.getTextChannel());
             event.getTextChannel().getManager().setSlowmode(0).queue();
