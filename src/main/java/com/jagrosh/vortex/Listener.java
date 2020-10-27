@@ -117,9 +117,9 @@ public class Listener implements EventListener
             // Perform automod on the newly-joined member
             vortex.getAutoMod().memberJoin(gevent);
         }
-        else if (event instanceof GuildMemberLeaveEvent)
+        else if (event instanceof GuildMemberRemoveEvent)
         {
-            GuildMemberLeaveEvent gmle = (GuildMemberLeaveEvent)event;
+            GuildMemberRemoveEvent gmle = (GuildMemberRemoveEvent)event;
             
             // Log the member leaving
             vortex.getBasicLogger().logGuildLeave(gmle);
