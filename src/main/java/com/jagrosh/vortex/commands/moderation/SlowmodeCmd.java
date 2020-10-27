@@ -75,7 +75,7 @@ public class SlowmodeCmd extends ModCommand
                 catch (Exception e)
                 {
                     time = OtherUtil.parseTime(event.getArgs());
-                    if (time == 0)
+                    if (time <= 0)
                     {
                         event.replyError("Invalid time");
                         return;

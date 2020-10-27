@@ -53,7 +53,7 @@ public class PremiumCmd extends Command
             return;
         }
         int seconds = OtherUtil.parseTime(parts[1]);
-        if(seconds == 0)
+        if(seconds <= 0)
         {
             event.replyError("Invalid time");
             return;

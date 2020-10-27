@@ -106,7 +106,7 @@ public class OtherUtil
         }
         catch(Exception ex)
         {
-            return 0;
+            return -1;
         }
         return timeinseconds;
     }
