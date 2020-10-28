@@ -82,6 +82,8 @@ public class UserinfoCmd extends Command
         String title = (user.isBot() ? BOT_EMOJI : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + user.getId() + "** ");
         user.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
+        if(user.getAvatarId() != null && user.getAvatarId().startsWith("a_"))
+            str.append("<:nitro:314068430611415041>");
         if(member.getNickname()!=null)
             str.append("\n" + LINESTART + "Nickname: **").append(member.getNickname()).append("**");
         String roles="";
@@ -100,7 +102,7 @@ public class UserinfoCmd extends Command
         List<Member> joins = new ArrayList<>(event.getGuild().getMembers());
         Collections.sort(joins, (Member a, Member b) -> a.getTimeJoined().compareTo(b.getTimeJoined()));
         int index = joins.indexOf(member);
-        str.append("\n" + LINESTART + "Guild Join Date: **").append(member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("** `(#").append(index).append(1).append(")`");
+        str.append("\n" + LINESTART + "Guild Join Date: **").append(member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("** `(#").append(index+1).append(")`");
         index-=3;
         if(index<0)
             index=0;

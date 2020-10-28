@@ -127,6 +127,8 @@ public class LookupCmd extends Command
         eb.setThumbnail(u.getEffectiveAvatarUrl());
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + u.getId() + "** ");
         u.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
+        if(u.getAvatarId() != null && u.getAvatarId().startsWith("a_"))
+            str.append("<:nitro:314068430611415041>");
         str.append("\n" + LINESTART + "Account Creation: **").append(TimeUtil.getDateTimeString(u.getTimeCreated())).append("**");
         eb.setDescription(str.toString());
         event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
