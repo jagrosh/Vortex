@@ -60,7 +60,7 @@ public class IgnoreCmd extends Command
                     builder.append("\n").append(r.getAsMention()).append(" [elevated perms]");
             });
             channels.forEach(c -> builder.append("\n").append(c.getAsMention()));
-            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2048) + "..." : builder.toString());
+            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2045) + "..." : builder.toString());
             event.reply(ebuilder.build());
             return;
         }

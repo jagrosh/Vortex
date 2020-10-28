@@ -250,20 +250,25 @@ public class BasicLogger
         if(tc==null)
             return;
         OffsetDateTime now = OffsetDateTime.now();
-        long seconds = event.getMember().getTimeJoined().until(now, ChronoUnit.SECONDS);
-        StringBuilder rlist;
-        if(event.getMember().getRoles().isEmpty())
-            rlist = new StringBuilder();
-        else
+        String msg = FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server.";
+        Member member = event.getMember();
+        if(member != null)
         {
-            rlist= new StringBuilder("\nRoles: `"+event.getMember().getRoles().get(0).getName());
-            for(int i=1; i<event.getMember().getRoles().size(); i++)
-                rlist.append("`, `").append(event.getMember().getRoles().get(i).getName());
-            rlist.append("`");
+            long seconds = member.getTimeJoined().until(now, ChronoUnit.SECONDS);
+            StringBuilder rlist;
+            if(member.getRoles().isEmpty())
+                rlist = new StringBuilder();
+            else
+            {
+                rlist= new StringBuilder("\nRoles: `"+member.getRoles().get(0).getName());
+                for(int i=1; i<member.getRoles().size(); i++)
+                    rlist.append("`, `").append(member.getRoles().get(i).getName());
+                rlist.append("`");
+            }
+            msg += "\nJoined: " + member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME) 
+                    + " (" + FormatUtil.secondsToTimeCompact(seconds) + " ago)" + rlist.toString();
         }
-        log(now, tc, LEAVE, FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server. "
-                +"\nJoined: "+event.getMember().getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
-                +rlist.toString(), null);
+        log(now, tc, LEAVE, msg, null);
     }
     
     
