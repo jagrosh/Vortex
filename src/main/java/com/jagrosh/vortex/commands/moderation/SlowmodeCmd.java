@@ -19,9 +19,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.events.channel.text.update.TextChannelUpdateSlowmodeEvent;
+import net.dv8tion.jda.api.Permission;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -41,7 +41,6 @@ public class SlowmodeCmd extends ModCommand
         this.arguments = "[time or OFF] | [time to disable slowmode]";
         this.help = "enables or disables slowmode";
         this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
-        this.guildOnly = true;
     }
 
     @Override
@@ -72,7 +71,10 @@ public class SlowmodeCmd extends ModCommand
         if(args.equals("0") || args.equalsIgnoreCase("off"))
         {
             vortex.getDatabase().tempslowmodes.clearSlowmode(event.getTextChannel());
-            event.getTextChannel().getManager().setSlowmode(0).queue();
+            event.getTextChannel().getManager()
+                    .setSlowmode(0)
+                    .reason(LogUtil.auditReasonFormat(event.getMember(), "Disabled slowmode"))
+                    .queue();
             event.replySuccess("Disabled slowmode!");
             return;
         }
@@ -110,7 +112,10 @@ public class SlowmodeCmd extends ModCommand
 
         event.getTextChannel().getManager()
                 .setSlowmode(slowmodeTime)
-                .reason("Enabled by "+event.getAuthor().getAsTag()+" ("+event.getAuthor().getId()+")")
+                .reason(slowmodeDuration > 0
+                        ? LogUtil.auditReasonFormat(event.getMember(), slowmodeDuration/60, "Enabled slowmode")
+                        : LogUtil.auditReasonFormat(event.getMember(), "Enabled slowmode")
+                )
                 .queue(s ->
                 {
                     if(slowmodeDuration <= 0) return;
