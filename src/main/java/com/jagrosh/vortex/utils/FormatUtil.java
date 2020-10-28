@@ -30,9 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.*;
 
 /**
  *
@@ -254,7 +252,7 @@ public class FormatUtil {
     public static Message formatHelp(CommandEvent event, Vortex vortex)
     {
         EmbedBuilder builder = new EmbedBuilder()
-            .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
+            .setColor(!event.isFromType(ChannelType.TEXT) ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
         
         List<Command> commandsInCategory;
         String content;
