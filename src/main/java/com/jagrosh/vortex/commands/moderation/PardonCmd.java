@@ -35,7 +35,6 @@ public class PardonCmd extends ModCommand
         this.name = "pardon";
         this.arguments = "[numstrikes] <@users> <reason>";
         this.help = "removes strikes from users";
-        this.guildOnly = true;
     }
 
     @Override

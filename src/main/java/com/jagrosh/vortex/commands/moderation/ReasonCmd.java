@@ -32,7 +32,6 @@ public class ReasonCmd extends ModCommand
         this.name = "reason";
         this.help = "updates a modlog reason";
         this.arguments = "[case] <reason>";
-        this.guildOnly = true;
     }
 
     @Override

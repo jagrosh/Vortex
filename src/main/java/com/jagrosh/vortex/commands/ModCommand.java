@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Role;
 
 /**
@@ -32,9 +33,10 @@ public abstract class ModCommand extends Command
     public ModCommand(Vortex vortex, Permission... altPerms)
     {
         this.vortex = vortex;
+        this.guildOnly = true;
         this.category = new Category("Moderation", event -> 
         {
-            if(event.getGuild()==null)
+            if(event.getChannelType() != ChannelType.TEXT)
             {
                 event.replyError("This command is not available in Direct Messages!");
                 return false;

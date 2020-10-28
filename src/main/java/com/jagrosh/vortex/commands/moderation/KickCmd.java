@@ -40,7 +40,6 @@ public class KickCmd extends ModCommand
         this.arguments = "<@users> [reason]";
         this.help = "kicks users";
         this.botPermissions = new Permission[]{Permission.KICK_MEMBERS};
-        this.guildOnly = true;
     }
 
     @Override

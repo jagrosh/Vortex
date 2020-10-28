@@ -45,8 +45,6 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -54,6 +52,7 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
@@ -74,24 +73,22 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
-    private final JDA altBot;
     
     public Vortex() throws Exception
     {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         Config config = ConfigFactory.load();
-        altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
-        uploader = new TextUploader(altBot, config.getLong("uploader.guild"), config.getLong("uploader.category"));
+        uploader = new TextUploader(config.getStringList("upload-webhooks"));
         modlog = new ModLogger(this);
         basiclog = new BasicLogger(this, config);
         messages = new MessageCache();
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
-        automod = new AutoMod(this, altBot, config);
+        automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
@@ -186,21 +183,22 @@ public class Vortex
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
         MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
-        shards = DefaultShardManagerBuilder.createDefault(config.getString("bot-token"), Constants.INTENTS)
+        shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), Constants.INTENTS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
                 .setShardsTotal(config.getInt("shards-total"))
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY)
                 .build();
         
         modlog.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
-        threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
     
     
@@ -282,7 +280,7 @@ public class Vortex
     {
         shards.getGuilds().stream().filter(g -> 
         {
-            if(!g.isAvailable())
+            if(!g.isLoaded())
                 return false;
             if(Constants.OWNER_ID.equals(g.getOwnerId()))
                 return false;

@@ -39,7 +39,6 @@ public class VoicemoveCmd extends ModCommand
         this.aliases = new String[]{"magnet"};
         this.help = "mass-moves voice channel users";
         this.arguments = "[channel]";
-        this.guildOnly = true;
     }
     
     @Override

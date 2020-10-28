@@ -40,7 +40,6 @@ public class UnbanCmd extends ModCommand
         this.arguments = "<@users> [reason]";
         this.help = "unbans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
-        this.guildOnly = true;
     }
 
     @Override

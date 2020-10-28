@@ -42,7 +42,6 @@ public class VoicekickCmd extends ModCommand
         this.arguments = "<@users> [reason]";
         this.help = "removes users from voice channels";
         this.botPermissions = new Permission[]{Permission.MANAGE_CHANNEL};
-        this.guildOnly = true;
     }
 
     @Override

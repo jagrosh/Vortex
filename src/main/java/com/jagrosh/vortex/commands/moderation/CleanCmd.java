@@ -71,7 +71,6 @@ public class CleanCmd extends ModCommand
         this.arguments = "<parameters>";
         this.help = "cleans messages matching filters";
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
-        this.guildOnly = true;
         this.cooldown = 10;
         this.cooldownScope = CooldownScope.CHANNEL;
     }

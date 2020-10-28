@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
@@ -48,7 +49,7 @@ public class AboutCmd extends Command
         event.reply(new MessageBuilder()
                 .setContent(Constants.VORTEX_EMOJI + " **All about Vortex** " + Constants.VORTEX_EMOJI)
                 .setEmbed(new EmbedBuilder()
-                        .setColor(event.getGuild()==null ? Color.GRAY : event.getSelfMember().getColor())
+                        .setColor(!event.isFromType(ChannelType.TEXT) ? Color.GRAY : event.getSelfMember().getColor())
                         .setDescription("Hello, I am **Vortex**#8540, a bot designed to keep your server safe and make moderating fast and easy!\n"
                                 + "I was written in Java by **jagrosh**#4824 using [JDA](" + JDAInfo.GITHUB + ") and [JDA-Utilities](" + JDAUtilitiesInfo.GITHUB + ")\n"
                                 + "Type `" + event.getClient().getPrefix() + event.getClient().getHelpWord() + "` for help and information.\n\n"

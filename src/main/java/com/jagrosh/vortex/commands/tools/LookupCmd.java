@@ -21,6 +21,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.format.DateTimeFormatter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.MessageBuilder;
@@ -89,7 +90,7 @@ public class LookupCmd extends Command
             // require Vortex Plus for looking up guilds
             if(!vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PLUS))
             {
-                event.reply(PremiumManager.Level.PLUS.getRequirementMessage());
+                event.reply("No users found. Searching for guilds is not available here.\n" + PremiumManager.Level.PLUS.getRequirementMessage());
                 return;
             }
             
@@ -124,11 +125,10 @@ public class LookupCmd extends Command
         String text = (u.isBot() ? BOT_EMOJI : USER_EMOJI) + " Information about **" + u.getName() + "**#" + u.getDiscriminator() + ":";
         EmbedBuilder eb = new EmbedBuilder();
         eb.setThumbnail(u.getEffectiveAvatarUrl());
-        String str = LINESTART + "Discord ID: **" + u.getId() + "**";
-        if(u.getAvatarId() != null && u.getAvatarId().startsWith("a_"))
-            str+= " <:nitro:314068430611415041>";
-        str += "\n" + LINESTART + "Account Creation: **" + TimeUtil.getDateTimeString(u.getTimeCreated()) + "**";
-        eb.setDescription(str);
+        StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + u.getId() + "** ");
+        u.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
+        str.append("\n" + LINESTART + "Account Creation: **").append(TimeUtil.getDateTimeString(u.getTimeCreated())).append("**");
+        eb.setDescription(str.toString());
         event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
         return true;
     }

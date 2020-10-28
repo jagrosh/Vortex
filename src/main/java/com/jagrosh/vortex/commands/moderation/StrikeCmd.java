@@ -40,7 +40,6 @@ public class StrikeCmd extends ModCommand
         this.name = "strike";
         this.arguments = "[number] <@users> <reason>";
         this.help = "applies strikes to users";
-        this.guildOnly = true;
     }
 
     @Override

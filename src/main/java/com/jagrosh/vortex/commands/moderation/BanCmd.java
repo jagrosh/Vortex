@@ -46,7 +46,6 @@ public class BanCmd extends ModCommand
         this.arguments = "<@users> [time] [reason]";
         this.help = "bans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
-        this.guildOnly = true;
     }
 
     @Override

@@ -22,8 +22,10 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.utils.FormatUtil;
+import java.util.EnumSet;
 import java.util.List;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.TextChannel;
 
@@ -82,9 +84,7 @@ public class AnnounceCmd extends Command
         if(parts2.length<2 || parts2[1].isEmpty())
             throw new CommandErrorException(FORMAT);
         
-        String message = role.getAsMention()+": "+parts2[1];
-        if(!event.getMember().hasPermission(tc, Permission.MESSAGE_MENTION_EVERYONE))
-            message = FormatUtil.filterEveryone(message);
+        String message = role.getAsMention()+": " + FormatUtil.filterEveryone(parts2[1]);
         if(message.length() > 2000)
             message = message.substring(0, 2000);
         String fmessage = message;
@@ -93,7 +93,7 @@ public class AnnounceCmd extends Command
             String reason = "Announcement by "+event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator();
             role.getManager().setMentionable(true).reason(reason).queue(s -> 
             {
-                tc.sendMessage(fmessage).queue(m -> 
+                tc.sendMessage(fmessage).allowedMentions(EnumSet.of(Message.MentionType.ROLE)).queue(m -> 
                 {
                     event.replySuccess("Announcement for `"+role.getName()+"` sent to "+tc.getAsMention()+"!");
                     role.getManager().setMentionable(false).reason(reason).queue(s2->{}, f2->{});

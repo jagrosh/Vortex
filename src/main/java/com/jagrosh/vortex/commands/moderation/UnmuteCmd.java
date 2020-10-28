@@ -40,7 +40,6 @@ public class UnmuteCmd extends ModCommand
         this.arguments = "<@users> [reason]";
         this.help = "removes muted role from users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
-        this.guildOnly = true;
     }
 
     @Override

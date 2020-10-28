@@ -40,7 +40,6 @@ public class CheckCmd extends ModCommand
         this.name = "check";
         this.arguments = "<user>";
         this.help = "checks a user";
-        this.guildOnly = true;
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
     }
     

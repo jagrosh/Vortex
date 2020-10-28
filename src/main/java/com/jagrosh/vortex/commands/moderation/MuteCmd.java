@@ -43,7 +43,6 @@ public class MuteCmd extends ModCommand
         this.arguments = "<@users> [time] [reason]";
         this.help = "applies muted role to users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
-        this.guildOnly = true;
     }
 
     @Override

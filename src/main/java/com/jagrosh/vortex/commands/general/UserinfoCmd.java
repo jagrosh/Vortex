@@ -20,6 +20,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -79,34 +80,35 @@ public class UserinfoCmd extends Command
         }
         User user = member.getUser();
         String title = (user.isBot() ? BOT_EMOJI : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
-        String str = LINESTART+"Discord ID: **"+user.getId()+"**"+(user.getAvatarId()!=null && user.getAvatarId().startsWith("a_")?" <:nitro:314068430611415041>":"");
+        StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + user.getId() + "** ");
+        user.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
         if(member.getNickname()!=null)
-            str+="\n"+LINESTART+"Nickname: **"+member.getNickname()+"**";
+            str.append("\n" + LINESTART + "Nickname: **").append(member.getNickname()).append("**");
         String roles="";
         roles = member.getRoles().stream().map((rol) -> "`, `"+rol.getName()).reduce(roles, String::concat);
         if(roles.isEmpty())
             roles="None";
         else
             roles=roles.substring(3)+"`";
-        str+="\n"+LINESTART+"Roles: "+roles;
-        str+="\n"+LINESTART+"Status: "+statusToEmote(member.getOnlineStatus(), member.getActivities())+"**"+member.getOnlineStatus().name()+"**";
-        Activity game = member.getActivities().isEmpty() ? null : member.getActivities().get(0);
-        if(game!=null)
-            str+=" ("+formatGame(game)+")";
-        str+="\n"+LINESTART+"Account Creation: **"+user.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**";
+        str.append("\n" + LINESTART + "Roles: ").append(roles);
+        //str.append("\n" + LINESTART + "Status: ").append(statusToEmote(member.getOnlineStatus(), member.getActivities())).append("**").append(member.getOnlineStatus().name()).append("**");
+        //Activity game = member.getActivities().isEmpty() ? null : member.getActivities().get(0);
+        //if(game!=null)
+        //    str.append(" (").append(formatGame(game)).append(")");
+        str.append("\n" + LINESTART + "Account Creation: **").append(user.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**");
         
         List<Member> joins = new ArrayList<>(event.getGuild().getMembers());
         Collections.sort(joins, (Member a, Member b) -> a.getTimeJoined().compareTo(b.getTimeJoined()));
         int index = joins.indexOf(member);
-        str+="\n"+LINESTART+"Guild Join Date: **"+member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME) + "** `(#"+(index+1)+")`";
+        str.append("\n" + LINESTART + "Guild Join Date: **").append(member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("** `(#").append(index).append(1).append(")`");
         index-=3;
         if(index<0)
             index=0;
-        str+="\n"+LINESTART+"Join Order: ";
+        str.append("\n"+LINESTART+"Join Order: ");
         if(joins.get(index).equals(member))
-            str+="[**"+joins.get(index).getUser().getName()+"**]()";
+            str.append("[**").append(joins.get(index).getUser().getName()).append("**]()");
         else
-            str+=joins.get(index).getUser().getName();
+            str.append(joins.get(index).getUser().getName());
         for(int i=index+1;i<index+7;i++)
         {
             if(i>=joins.size())
@@ -115,13 +117,13 @@ public class UserinfoCmd extends Command
             String uname = m.getUser().getName();
             if(m.equals(member))
                 uname="[**"+uname+"**]()";
-            str+=" > "+uname;
+            str.append(" > ").append(uname);
         }
         
         event.reply(new MessageBuilder()
                 .append(FormatUtil.filterEveryone(title))
                 .setEmbed(new EmbedBuilder()
-                        .setDescription(str)
+                        .setDescription(str.toString())
                         .setThumbnail(user.getEffectiveAvatarUrl())
                         .setColor(member.getColor()).build())
                 .build());
