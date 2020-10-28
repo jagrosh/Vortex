@@ -112,10 +112,7 @@ public class SlowmodeCmd extends ModCommand
 
         event.getTextChannel().getManager()
                 .setSlowmode(slowmodeTime)
-                .reason(slowmodeDuration > 0
-                        ? LogUtil.auditReasonFormat(event.getMember(), slowmodeDuration/60, "Enabled slowmode")
-                        : LogUtil.auditReasonFormat(event.getMember(), "Enabled slowmode")
-                )
+                .reason(LogUtil.auditReasonFormat(event.getMember(), slowmodeDuration/60, "Enabled slowmode"))
                 .queue(s ->
                 {
                     if(slowmodeDuration <= 0) return;
