@@ -40,6 +40,8 @@ import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.utils.MultiBotManager.MultiBotManagerBuilder;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -50,7 +52,6 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
-import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
@@ -65,7 +66,7 @@ public class Vortex
     private final ScheduledExecutorService threadpool;
     private final Database database;
     private final TextUploader uploader;
-    private final ShardManager shards;
+    private final MultiBotManager shards;
     private final ModLogger modlog;
     private final BasicLogger basiclog;
     private final MessageCache messages;
@@ -183,7 +184,17 @@ public class Vortex
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
         MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
-        shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), Constants.INTENTS)
+        shards = new MultiBotManager.MultiBotManagerBuilder()
+                .addBot(config.getString("pro-token"), Constants.INTENTS)
+                .addBot(config.getString("bot-token"), Constants.INTENTS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
+                .addEventListeners(new Listener(this), client, waiter)
+                .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                .setActivity(Activity.playing("loading..."))
+                .build();
+        /*shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), Constants.INTENTS)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
                 .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
@@ -193,7 +204,7 @@ public class Vortex
                 .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .build();
+                .build();*/
         
         modlog.start();
         
@@ -223,7 +234,7 @@ public class Vortex
         return uploader;
     }
     
-    public ShardManager getShardManager()
+    public MultiBotManager getShardManager()
     {
         return shards;
     }
@@ -278,7 +289,7 @@ public class Vortex
     
     public void leavePointlessGuilds()
     {
-        shards.getGuilds().stream().filter(g -> 
+        shards.getShardManagers().stream().flatMap(s -> s.getGuilds().stream()).filter(g -> 
         {
             if(!g.isLoaded())
                 return false;

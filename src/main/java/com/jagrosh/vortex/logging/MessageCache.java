@@ -16,6 +16,7 @@
 package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.utils.FixedCache;
+import com.jagrosh.vortex.utils.MultiBotManager;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +84,11 @@ public class MessageCache
             return attachments;
         }
         
+        public User getAuthor(MultiBotManager botManager)
+        {
+            return botManager.getUserById(author);
+        }
+        
         public User getAuthor(ShardManager shardManager)
         {
             return shardManager.getUserById(author);
@@ -103,6 +109,16 @@ public class MessageCache
             return author;
         }
         
+        public TextChannel getTextChannel(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            Guild g = botManager.getGuildById(guild);
+            if (g == null)
+                return null;
+            return g.getTextChannelById(channel);
+        }
+        
         public TextChannel getTextChannel(ShardManager shardManager)
         {
             if (guild == 0L)
@@ -121,6 +137,13 @@ public class MessageCache
         public TextChannel getTextChannel(Guild guild)
         {
             return guild.getTextChannelById(channel);
+        }
+        
+        public Guild getGuild(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            return botManager.getGuildById(guild);
         }
         
         public Guild getGuild(ShardManager shardManager)

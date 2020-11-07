@@ -20,9 +20,11 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -121,14 +123,17 @@ public class LogUtil
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;
         for(int i=0; i<messages.size(); i++)
-        {
-            m = messages.get(i);
-            sb.append("\r\n\r\n[")
-                .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+            appendMessage(sb, messages.get(i));
+        return sb.toString().trim();
+    }
+    
+    public static String logCachedMessagesForwards(String title, List<CachedMessage> messages, MultiBotManager botManager)
+    {
+        TextChannel deltc = messages.get(0).getTextChannel(botManager);
+        Guild delg = deltc.getGuild();
+        StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
+        for(int i=0; i<messages.size(); i++)
+            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(botManager));
         return sb.toString().trim();
     }
     
@@ -137,21 +142,8 @@ public class LogUtil
         TextChannel deltc = messages.get(0).getTextChannel(shardManager);
         Guild delg = deltc.getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
-        CachedMessage m;
         for(int i=0; i<messages.size(); i++)
-        {
-            m = messages.get(i);
-            User author = m.getAuthor(shardManager);
-            sb.append("\r\n\r\n[")
-                .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ");
-            if(author==null)
-                sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
-            else
-                sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
-            sb.append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(shardManager));
         return sb.toString().trim();
     }
     
@@ -162,15 +154,30 @@ public class LogUtil
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;
         for(int i=messages.size()-1; i>=0; i--)
-        {
-            m = messages.get(i);
-            sb.append("\r\n\r\n[")
-                .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+            appendMessage(sb, messages.get(i));
         return sb.toString().trim();
+    }
+    
+    private static void appendMessage(StringBuilder sb, Message m)
+    {
+        sb.append("\r\n\r\n[")
+            .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+            .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
+            .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
+        m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
+    }
+    
+    private static void appendMessage(StringBuilder sb, CachedMessage m, User author)
+    {
+        sb.append("\r\n\r\n[")
+            .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+            .append("] ");
+        if(author==null)
+            sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
+        else
+            sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
+        sb.append(") : ").append(m.getContentRaw());
+        m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
     }
     
     // Audit logging formats
