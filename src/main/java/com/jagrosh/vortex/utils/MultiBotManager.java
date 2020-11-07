@@ -38,16 +38,14 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
  */
 public class MultiBotManager
 {
-    private final MultiBotEventManager mbem;
     private final List<ShardManager> bots;
     
     protected MultiBotManager(List<DefaultShardManagerBuilder> builders) throws LoginException, IllegalArgumentException
     {
-        this.mbem = new MultiBotEventManager();
         this.bots = new ArrayList<>();
         for(DefaultShardManagerBuilder b: builders)
         {
-            b.setEventManagerProvider(i -> mbem);
+            b.setEventManagerProvider(i -> new MultiBotEventManager());
             b.setBulkDeleteSplittingEnabled(false);
             b.setRequestTimeoutRetry(true);
             bots.add(b.build());

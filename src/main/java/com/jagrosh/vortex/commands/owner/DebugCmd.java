@@ -22,10 +22,8 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.temporal.ChronoUnit;
-import java.util.stream.Stream;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
  *
@@ -52,12 +50,12 @@ public class DebugCmd extends Command
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
         StringBuilder sb = new StringBuilder("**"+event.getSelfUser().getName()+"** statistics:"
                 + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
-                + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb");
+                + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb\n");
         vortex.getShardManager().getShardManagers().forEach(bot -> 
         //Stream.of(vortex.getShardManager()).forEach(bot -> 
         {
             User self = bot.getShards().get(0).getSelfUser();
-            sb.append("\n\n__**").append(self.getName()).append("** (").append(self.getId()).append(")__")
+            sb.append("\n__**").append(self.getName()).append("** (").append(self.getId()).append(")__")
                     .append("\nGuilds: **").append(bot.getGuildCache().size()).append("**")
                     .append("\nAverage Ping: **").append(bot.getAverageGatewayPing()).append("**ms")
                     .append("\nShard Total: **").append(bot.getShardsTotal()).append("**")

@@ -15,9 +15,10 @@
  */
 package com.jagrosh.vortex.utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.GenericEvent;
-import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
@@ -33,17 +34,43 @@ public abstract class ConditionalEventManager extends InterfacedEventManager
     public void handle(GenericEvent ge)
     {
         // check if this guild is already loaded by some other shard
-        if(ge instanceof GenericGuildEvent)
+        long selfId;
+        try
         {
-            long selfId = ge.getJDA().getSelfUser().getIdLong();
-            long gid = ((GenericGuildEvent) ge).getGuild().getIdLong();
-            
+            selfId = ge.getJDA().getSelfUser().getIdLong();
+        }
+        catch ( IllegalStateException ex) // selfid not ready yet
+        {
+            return;
+        }
+        Guild guild;
+        try
+        {
+            guild = (Guild) ge.getClass().getMethod("getGuild").invoke(ge);
+        }
+        catch (NoSuchMethodException | InvocationTargetException ex) // no getGuild method or not in guild
+        {
+            guild = null;
+        }
+        catch (IllegalAccessException ex) // something actually went wrong
+        {
+            guild = null;
+            ex.printStackTrace();
+        }
+        long guildId = guild == null ? 0 : guild.getIdLong();
+        
+        if(guildId != 0)
+        {
             for(ShardManager bot: getOrderedShardManagers())
             {
                 if(bot.getShards().get(0).getSelfUser().getIdLong() == selfId)
+                {
                     break;
-                if(bot.getGuildById(gid) != null)
+                }
+                if(bot.getGuildById(guildId) != null)
+                {
                     return;
+                }
             }
         }
         
