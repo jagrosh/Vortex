@@ -112,7 +112,7 @@ public class ArgsUtil
                 found = true;
             }
         }
-        int time = 0;
+        int time = -1;
         if(allowTime)
         {
             String timeString = args.replaceAll(TIME_REGEX, "$1");

@@ -128,6 +128,7 @@ public class Vortex
                             new PardonCmd(this),
                             new CheckCmd(this),
                             new ReasonCmd(this),
+                            new SlowmodeCmd(this),
 
                             // Settings
                             new SetupCmd(this),

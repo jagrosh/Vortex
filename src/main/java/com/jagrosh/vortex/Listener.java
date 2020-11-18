@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdateSlowmodeEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
@@ -207,6 +208,10 @@ public class Listener implements EventListener
             if(!gevent.getMember().getUser().isBot()) // ignore bots
                 vortex.getBasicLogger().logVoiceLeave(gevent);
         }
+        else if (event instanceof TextChannelUpdateSlowmodeEvent)
+        {
+            vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
+        }
         else if (event instanceof ReadyEvent)
         {
             // Log the shard that has finished loading
@@ -217,6 +222,7 @@ public class Listener implements EventListener
                     +event.getJDA().getGuildCache().size()+"` Users: `"+event.getJDA().getUserCache().size()+"`");
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempbans.checkUnbans(event.getJDA()), 0, 2, TimeUnit.MINUTES);
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempmutes.checkUnmutes(event.getJDA(), vortex.getDatabase().settings), 0, 45, TimeUnit.SECONDS);
+            vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempslowmodes.checkSlowmode(event.getJDA()), 0, 45, TimeUnit.SECONDS);
         }
     }
 }
