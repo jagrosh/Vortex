@@ -16,14 +16,15 @@
 package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.utils.FixedCache;
+import com.jagrosh.vortex.utils.MultiBotManager;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
  *
@@ -69,7 +70,7 @@ public class MessageCache
             username = message.getAuthor().getName();
             discriminator = message.getAuthor().getDiscriminator();
             channel = message.getChannel().getIdLong();
-            guild = message.getGuild()==null ? 0L : message.getGuild().getIdLong();
+            guild = message.isFromGuild() ? message.getGuild().getIdLong() : 0L;
             attachments = message.getAttachments();
         }
         
@@ -81,6 +82,11 @@ public class MessageCache
         public List<Attachment> getAttachments()
         {
             return attachments;
+        }
+        
+        public User getAuthor(MultiBotManager botManager)
+        {
+            return botManager.getUserById(author);
         }
         
         public User getAuthor(ShardManager shardManager)
@@ -103,6 +109,16 @@ public class MessageCache
             return author;
         }
         
+        public TextChannel getTextChannel(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            Guild g = botManager.getGuildById(guild);
+            if (g == null)
+                return null;
+            return g.getTextChannelById(channel);
+        }
+        
         public TextChannel getTextChannel(ShardManager shardManager)
         {
             if (guild == 0L)
@@ -121,6 +137,13 @@ public class MessageCache
         public TextChannel getTextChannel(Guild guild)
         {
             return guild.getTextChannelById(channel);
+        }
+        
+        public Guild getGuild(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            return botManager.getGuildById(guild);
         }
         
         public Guild getGuild(ShardManager shardManager)

@@ -18,7 +18,7 @@ package com.jagrosh.vortex.commands.moderation;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -32,7 +32,6 @@ public class ReasonCmd extends ModCommand
         this.name = "reason";
         this.help = "updates a modlog reason";
         this.arguments = "[case] <reason>";
-        this.guildOnly = true;
     }
 
     @Override

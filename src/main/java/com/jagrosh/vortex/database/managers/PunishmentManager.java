@@ -28,8 +28,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import org.json.JSONObject;
 
 /**

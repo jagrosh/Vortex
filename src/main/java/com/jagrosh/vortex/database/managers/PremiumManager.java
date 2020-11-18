@@ -29,7 +29,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 
 /**
@@ -172,7 +172,7 @@ public class PremiumManager extends DataManager
         
         public String getRequirementMessage()
         {
-            return Constants.WARNING + " Sorry, this feature requires " + name + ". " + name + " is not available yet.";
+            return Constants.WARNING + " Sorry, this feature requires Vortex Pro. Vortex Pro is not available yet.";
         }
     }
     
@@ -196,7 +196,7 @@ public class PremiumManager extends DataManager
         public String getFooterString()
         {
             if(level==Level.NONE)
-                return "This server does does not have Vortex Plus or Vortex Pro";
+                return "This server does does not have Vortex Pro";
             if(until.getEpochSecond()==Instant.MAX.getEpochSecond())
                 return "This server has " + level.name + " permanently";
             return "This server has " + level.name + " until";

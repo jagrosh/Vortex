@@ -25,11 +25,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import org.json.JSONObject;
 
 /**
@@ -158,7 +158,7 @@ public class TempMuteManager extends DataManager
                 }
                 Member m = g.getMemberById(USER_ID.getValue(rs));
                 if(m!=null && m.getRoles().contains(mRole))
-                    g.getController().removeSingleRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
+                    g.removeRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
                 rs.deleteRow();
             }
         });

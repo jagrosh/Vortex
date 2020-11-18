@@ -33,13 +33,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.audit.AuditLogChange;
-import net.dv8tion.jda.core.audit.AuditLogEntry;
-import net.dv8tion.jda.core.audit.AuditLogKey;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.AuditLogChange;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogKey;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -223,7 +223,7 @@ public class ModLogger
         Role mRole = gs.getMutedRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;
@@ -294,7 +294,7 @@ public class ModLogger
                     if(act==Action.UNBAN) // check for softban
                     {
                         Message banMsg = banLogCache.get(banCacheKey);
-                        if(banMsg!=null && banMsg.getCreationTime().plusMinutes(2).isAfter(ale.getCreationTime()))
+                        if(banMsg!=null && banMsg.getTimeCreated().plusMinutes(2).isAfter(ale.getTimeCreated()))
                         {
                             // This is a softban, because the user was banned by the same mod within the past 2 minutes
                             // We need to edit the existing modlog entry instead of making a new one
@@ -310,8 +310,8 @@ public class ModLogger
                         vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong());
                     }
                     String msg = FormatUtil.filterEveryone(minutes > 0 ? 
-                            LogUtil.modlogTimeFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
-                            LogUtil.modlogUserFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, target, reason));
+                            LogUtil.modlogTimeFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
+                            LogUtil.modlogUserFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, target, reason));
                     if(act==Action.BAN)
                         banLogCache.put(banCacheKey, modlog.sendMessage(msg).complete());
                     else

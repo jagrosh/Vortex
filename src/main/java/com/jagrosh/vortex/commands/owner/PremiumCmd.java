@@ -22,7 +22,7 @@ import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.database.managers.PremiumManager.PremiumInfo;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 
 /**
  *

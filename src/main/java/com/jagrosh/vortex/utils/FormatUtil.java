@@ -18,9 +18,9 @@ package com.jagrosh.vortex.utils;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
@@ -28,11 +28,9 @@ import java.awt.Color;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.*;
 
 /**
  *
@@ -254,7 +252,7 @@ public class FormatUtil {
     public static Message formatHelp(CommandEvent event, Vortex vortex)
     {
         EmbedBuilder builder = new EmbedBuilder()
-            .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
+            .setColor(!event.isFromType(ChannelType.TEXT) ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
         
         List<Command> commandsInCategory;
         String content;

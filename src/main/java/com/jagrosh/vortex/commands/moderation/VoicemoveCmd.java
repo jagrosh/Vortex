@@ -21,9 +21,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import com.jagrosh.vortex.utils.FormatUtil;
 
 /**
@@ -39,7 +39,6 @@ public class VoicemoveCmd extends ModCommand
         this.aliases = new String[]{"magnet"};
         this.help = "mass-moves voice channel users";
         this.arguments = "[channel]";
-        this.guildOnly = true;
     }
     
     @Override
@@ -99,7 +98,7 @@ public class VoicemoveCmd extends ModCommand
                     e.getGuild().equals(event.getGuild()) && e.getMember().equals(event.getGuild().getSelfMember()), 
                 (GuildVoiceMoveEvent e) -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
-                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().getController().moveVoiceMember(m, e.getChannelJoined()).queue());
+                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().moveVoiceMember(m, e.getChannelJoined()).queue());
                 }, 1, TimeUnit.MINUTES, () -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
                     event.replyWarning("You waited too long, "+event.getMember().getAsMention());

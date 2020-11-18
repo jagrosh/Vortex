@@ -15,6 +15,8 @@
  */
 package com.jagrosh.vortex;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
@@ -31,29 +33,28 @@ import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
+import net.dv8tion.jda.api.OnlineStatus;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
-import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.utils.MultiBotManager.MultiBotManagerBuilder;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.EnumSet;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
  *
@@ -65,7 +66,7 @@ public class Vortex
     private final ScheduledExecutorService threadpool;
     private final Database database;
     private final TextUploader uploader;
-    private final ShardManager shards;
+    private final MultiBotManager shards;
     private final ModLogger modlog;
     private final BasicLogger basiclog;
     private final MessageCache messages;
@@ -73,29 +74,27 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
-    private final JDA altBot;
     
     public Vortex() throws Exception
     {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         Config config = ConfigFactory.load();
-        altBot = new JDABuilder(config.getString("alt-token")).build();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
-        uploader = new TextUploader(altBot, config.getLong("uploader.guild"), config.getLong("uploader.category"));
+        uploader = new TextUploader(config.getStringList("upload-webhooks"));
         modlog = new ModLogger(this);
         basiclog = new BasicLogger(this, config);
         messages = new MessageCache();
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
-        automod = new AutoMod(this, altBot, config);
+        automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
+                        .setActivity(Activity.playing(Constants.Wiki.PRIMARY_LINK))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -109,8 +108,8 @@ public class Vortex
                             new AboutCmd(),
                             new InviteCmd(),
                             new PingCommand(),
-                            new RoleinfoCmd(),
-                            new ServerinfoCmd(),
+                            new RoleinfoCommand(),
+                            new ServerinfoCommand(),
                             new UserinfoCmd(),
 
                             // Moderation
@@ -185,23 +184,33 @@ public class Vortex
                         .setDiscordBotsKey(config.getString("listing.discord-bots"))
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
-        shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
+        MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
+        shards = new MultiBotManager.MultiBotManagerBuilder()
+                .addBot(config.getString("pro-token"), Constants.INTENTS)
+                .addBot(config.getString("bot-token"), Constants.INTENTS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
+                .setActivity(Activity.playing("loading..."))
+                .build();
+        /*shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), Constants.INTENTS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
+                .setShardsTotal(config.getInt("shards-total"))
+                .addEventListeners(new Listener(this), client, waiter)
+                .setStatus(OnlineStatus.DO_NOT_DISTURB)
+                .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
-                .setSessionController(new BlockingSessionController())
-                .build();
+                .build();*/
         
         modlog.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
-        threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
     }
     
     
@@ -226,7 +235,7 @@ public class Vortex
         return uploader;
     }
     
-    public ShardManager getShardManager()
+    public MultiBotManager getShardManager()
     {
         return shards;
     }
@@ -281,9 +290,9 @@ public class Vortex
     
     public void leavePointlessGuilds()
     {
-        shards.getGuilds().stream().filter(g -> 
+        shards.getShardManagers().stream().flatMap(s -> s.getGuilds().stream()).filter(g -> 
         {
-            if(!g.isAvailable())
+            if(!g.isLoaded())
                 return false;
             if(Constants.OWNER_ID.equals(g.getOwnerId()))
                 return false;
