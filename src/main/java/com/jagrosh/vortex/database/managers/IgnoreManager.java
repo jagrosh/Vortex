@@ -155,6 +155,7 @@ public class IgnoreManager extends DataManager
 
     public void unignoreAll(Guild guild)
     {
+        invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             while(rs.next())
