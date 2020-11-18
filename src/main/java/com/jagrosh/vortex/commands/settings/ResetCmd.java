@@ -19,9 +19,9 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Vortex;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 import java.util.concurrent.TimeUnit;
 
