@@ -298,6 +298,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
 
     public void reset(Guild guild)
     {
+        invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             if(rs.next())
