@@ -196,7 +196,7 @@ public class PremiumManager extends DataManager
         public String getFooterString()
         {
             if(level==Level.NONE)
-                return "This server does does not have Vortex Pro";
+                return "This server does not have Vortex Pro";
             if(until.getEpochSecond()==Instant.MAX.getEpochSecond())
                 return "This server has " + level.name + " permanently";
             return "This server has " + level.name + " until";
