@@ -44,7 +44,7 @@ public class ResetCmd extends Command
         this.arguments = "<automod|filters|settings|ignores|punishments|strikes|all>";
         this.category = new Category("Settings");
         this.guildOnly = true;
-        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+        this.userPermissions = new Permission[]{Permission.ADMINISTRATOR};
         this.cooldown = 60;
     }
 
