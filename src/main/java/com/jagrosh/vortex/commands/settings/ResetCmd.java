@@ -81,11 +81,14 @@ public class ResetCmd extends Command
             case "automod":
                 description = "**Reset Automod**\n" +
                         "You are about to reset Automod.\n" +
-                        "This will result in all Automod settings to be disabled.\n" +
+                        "This will result in all Automod settings to be disabled/reset.\n" +
                         "Filters aren't affected by this reset.\n\n" +
                         "Are you sure you want to reset all Automod settings?";
 
-                consumer = (guild) -> vortex.getDatabase().automod.reset(guild);
+                consumer = (guild) -> {
+                    vortex.getDatabase().automod.reset(guild);
+                    vortex.getDatabase().inviteWhitelist.removeAll(guild);
+                };
                 break;
 
 
@@ -142,6 +145,7 @@ public class ResetCmd extends Command
                 consumer = (guild) ->
                 {
                     vortex.getDatabase().automod.reset(guild);
+                    vortex.getDatabase().inviteWhitelist.removeAll(guild);
                     vortex.getDatabase().filters.deleteAllFilters(guild.getIdLong());
                     vortex.getDatabase().settings.reset(guild);
                     vortex.getDatabase().ignores.unignoreAll(guild);
