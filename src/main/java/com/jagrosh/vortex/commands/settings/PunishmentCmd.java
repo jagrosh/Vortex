@@ -92,7 +92,18 @@ public class PunishmentCmd extends Command
             case "temp-mute":
             case "mute":
             {
-                int minutes = parts.length>2 ? OtherUtil.parseTime(parts[2])/60 : 0;
+                int minutes = 0;
+                if(parts.length > 2)
+                {
+                    int parseResult = OtherUtil.parseTime(parts[2]);
+                    if(parseResult == -1)
+                    {
+                        event.replyError("Invalid time!");
+                        return;
+                    }
+                    minutes = parseResult/60;
+                }
+
                 if(minutes<0)
                 {
                     event.replyError("Temp-Mute time cannot be negative!");
@@ -120,7 +131,18 @@ public class PunishmentCmd extends Command
             case "temp-ban":
             case "ban":
             {
-                int minutes = parts.length>2 ? OtherUtil.parseTime(parts[2])/60 : 0;
+                int minutes = 0;
+                if(parts.length > 2)
+                {
+                    int parseResult = OtherUtil.parseTime(parts[2]);
+                    if(parseResult == -1)
+                    {
+                        event.replyError("Invalid time!");
+                        return;
+                    }
+                    minutes = parseResult/60;
+                }
+
                 if(minutes<0)
                 {
                     event.replyError("Temp-Ban time cannot be negative!");

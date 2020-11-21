@@ -57,6 +57,7 @@ public class ExportCmd extends Command
                 .put("punishments", db.actions.getAllPunishmentsJson(g))
                 .put("tempmutes", db.tempmutes.getAllMutesJson(g))
                 .put("tempbans", db.tempbans.getAllBansJson(g))
+                .put("tempslowmodes", db.tempslowmodes.getAllSlowmodesJson(g))
                 .put("inviteWhitelist", db.inviteWhitelist.getWhitelistJson(g))
                 .put("filters", db.filters.getFiltersJson(g))
                 .put("premium", db.premium.getPremiumInfoJson(g));

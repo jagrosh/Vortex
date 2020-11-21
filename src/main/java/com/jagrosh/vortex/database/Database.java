@@ -32,6 +32,7 @@ public class Database extends DatabaseConnector
     public final PunishmentManager actions; // strike punishment settings
     public final TempMuteManager tempmutes;
     public final TempBanManager tempbans;
+    public final TempSlowmodeManager tempslowmodes;
     public final PremiumManager premium;
     public final InviteWhitelistManager inviteWhitelist;
     public final FilterManager filters;
@@ -48,6 +49,7 @@ public class Database extends DatabaseConnector
         actions = new PunishmentManager(this);
         tempmutes = new TempMuteManager(this);
         tempbans = new TempBanManager(this);
+        tempslowmodes = new TempSlowmodeManager(this);
         premium = new PremiumManager(this);
         inviteWhitelist = new InviteWhitelistManager(this);
         filters = new FilterManager(this);

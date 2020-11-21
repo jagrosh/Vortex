@@ -72,9 +72,9 @@ public class MuteCmd extends ModCommand
             return;
         }
         int minutes;
-        if(args.time < 0)
+        if(args.time < -1)
             throw new CommandErrorException("Timed mutes cannot be negative time!");
-        else if(args.time == 0)
+        else if(args.time == -1)
             minutes = 0;
         else if(args.time > 60)
             minutes = (int)Math.round(args.time/60.0);
