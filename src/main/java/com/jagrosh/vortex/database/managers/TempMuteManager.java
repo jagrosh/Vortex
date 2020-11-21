@@ -148,7 +148,7 @@ public class TempMuteManager extends DataManager
             while(rs.next())
             {
                 Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
-                if(g==null || !g.isAvailable() || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
+                if(g==null || g.getMemberCache().isEmpty() || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
                     continue;
                 Role mRole = data.getSettings(g).getMutedRole(g);
                 if(mRole==null || !g.getSelfMember().canInteract(mRole))

@@ -41,7 +41,6 @@ import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.MultiBotManager;
-import com.jagrosh.vortex.utils.MultiBotManager.MultiBotManagerBuilder;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -52,7 +51,6 @@ import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
-import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
@@ -79,8 +77,8 @@ public class Vortex
     {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         Config config = ConfigFactory.load();
-        waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        threadpool = Executors.newScheduledThreadPool(100);
+        waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
+        threadpool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "vortex"));
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
@@ -289,6 +287,7 @@ public class Vortex
     
     public void leavePointlessGuilds()
     {
+        //shards.getGuilds().stream().filter(g ->
         shards.getShardManagers().stream().flatMap(s -> s.getGuilds().stream()).filter(g -> 
         {
             if(!g.isLoaded())

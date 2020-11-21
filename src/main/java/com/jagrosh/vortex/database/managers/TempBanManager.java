@@ -117,7 +117,7 @@ public class TempBanManager extends DataManager
             while(rs.next())
             {
                 Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
-                if(g==null || !g.isAvailable() || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                if(g==null || g.getMemberCache().isEmpty() || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
                     continue;
                 g.unban(Long.toString(USER_ID.getValue(rs))).reason("Temporary Ban Completed").queue(s->{}, f->{});
                 rs.deleteRow();
