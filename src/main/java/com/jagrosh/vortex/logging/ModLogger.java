@@ -77,7 +77,7 @@ public class ModLogger
             }
             if(!toUpdate.isEmpty())
             {
-                LOG.debug("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
+                LOG.debug("Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
                 try
                 {
                     long time, diff;
@@ -109,6 +109,16 @@ public class ModLogger
                 needsUpdate.add(guild.getIdLong());
             }
         }, 2, TimeUnit.SECONDS);
+    }
+    
+    public Set<Long> getPending()
+    {
+        Set<Long> toUpdate;
+        synchronized(needsUpdate)
+        {
+            toUpdate = new HashSet<>(needsUpdate);
+        }
+        return toUpdate;
     }
     
     public int updateCase(Guild guild, int num, String reason)
