@@ -195,29 +195,25 @@ public class LookupCmd extends Command
     
     private Message constructMessage(Invite invite, Widget widget)
     {
-        String gname;
-        long gid;
-        int users;
+        String gname = "Unknown Guild";
+        long gid = 0L;
+        int users = -1;
         if(invite == null)
         {
             if(widget == null)
                 return new MessageBuilder().append(Constants.ERROR + " No users, guilds, or invites found.").build();
-            else if (!widget.isAvailable())
-                return new MessageBuilder().append(Constants.SUCCESS + " Guild with ID `" + widget.getId() + "` found; no further information found.").build();
+
             gid = widget.getIdLong();
-            gname = widget.getName();
-            users = widget.getMembers().size();
+            if(widget.isAvailable())
+            {
+                gname = widget.getName();
+                users = widget.getMembers().size();
+            }
         }
         else
         {
             Invite.Guild g = invite.getGuild();
-            if(g == null)
-            {
-                gid = 0L;
-                gname = "Unknown Guild";
-                users = 0;
-            }
-            else
+            if(g != null)
             {
                 gid = g.getIdLong();
                 gname = g.getName();
@@ -227,8 +223,8 @@ public class LookupCmd extends Command
         
         String text = GUILD_EMOJI + " Information about **" + gname + "**:";
         EmbedBuilder eb = new EmbedBuilder();
-        eb.appendDescription(LINESTART + "ID: **" + gid + "**"
-                + "\n" + LINESTART + "Creation: **" + TimeUtil.getTimeCreated(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**"
+        eb.appendDescription(LINESTART + "ID: " + (gid == 0 ? "N/A" : "**"+gid+"**")
+                + "\n" + LINESTART + "Creation: " + (gid == 0 ? "N/A" : "**"+TimeUtil.getTimeCreated(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**")
                 + "\n" + LINESTART + "Users: " + (users == -1 ? "N/A" : "**" + users + "** online")
                 + (widget != null && widget.isAvailable() ? "\n" + LINESTART + "Channels: **" + widget.getVoiceChannels().size() + "** voice" : ""));
         if(invite != null)
