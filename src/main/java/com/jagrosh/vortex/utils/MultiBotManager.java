@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
@@ -55,6 +56,11 @@ public class MultiBotManager
     public List<ShardManager> getShardManagers()
     {
         return bots;
+    }
+    
+    public List<Long> getBotIds()
+    {
+        return bots.stream().map(bot -> bot.getShards().get(0).getSelfUser().getIdLong()).collect(Collectors.toList());
     }
     
     public RestAction<User> retrieveUserById(long id)

@@ -365,9 +365,9 @@ public class ModLogger
         }
     }
     
-    private static int getCaseNumber(Message m)
+    private int getCaseNumber(Message m)
     {
-        if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
+        if(!vortex.getShardManager().getBotIds().contains(m.getAuthor().getIdLong()))
             return -1;
         if(!m.getContentRaw().startsWith("`["))
             return -1;

@@ -193,22 +193,14 @@ public class Vortex
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.playing("loading..."))
                 .build();
-        /*shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), Constants.INTENTS)
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
-                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
-                .setShardsTotal(config.getInt("shards-total"))
-                .addEventListeners(new Listener(this), client, waiter)
-                .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setActivity(Activity.playing("loading..."))
-                .setBulkDeleteSplittingEnabled(false)
-                .setRequestTimeoutRetry(true)
-                .build();*/
         
         modlog.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(() -> database.tempbans.checkUnbans(shards), 0, 2, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(() -> database.tempmutes.checkUnmutes(shards, database.settings), 0, 45, TimeUnit.SECONDS);
+        threadpool.scheduleWithFixedDelay(() -> database.tempslowmodes.checkSlowmode(shards), 0, 45, TimeUnit.SECONDS);
     }
     
     
