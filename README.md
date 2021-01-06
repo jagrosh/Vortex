@@ -6,7 +6,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/jagrosh/vortex/badge)](https://www.codefactor.io/repository/github/jagrosh/vortex)
 <br>
 [![PrivacyPolicy](https://img.shields.io/badge/Privacy%20Policy--lightgrey.svg?style=social)](https://gist.github.com/jagrosh/f1df4441f94ca06274fa78db7cc3c526#privacy-policy)
-[![Support](https://discordapp.com/api/guilds/147698382092238848/widget.png?style=shield)](https://discord.gg/0p9LSGoRLu6Pet0k)
+[![DevServer](https://discordapp.com/api/guilds/147698382092238848/widget.png?style=shield)](https://discord.gg/0p9LSGoRLu6Pet0k)
 
 
 ## Discord Moderation Bot
@@ -21,8 +21,7 @@ Vortex is a bot designed to keep your server safe and your staff team organized.
 🛡 [Auto-Moderation](https://github.com/jagrosh/Vortex/wiki/Auto-Moderation)  
 🌟 [Vortex Pro](https://github.com/jagrosh/Vortex/wiki/Vortex-Pro)  
 📜 [Full Command Reference](https://github.com/jagrosh/Vortex/wiki/Commands)  
-⚠ [Troubleshooting](https://github.com/jagrosh/Vortex/wiki/Troubleshooting)  
-📥 [Support Server](https://discord.gg/0p9LSGoRLu6Pet0k)
+⚠ [Troubleshooting](https://github.com/jagrosh/Vortex/wiki/Troubleshooting) 
 
 
 ## How do I report a bug or suggest a feature?
