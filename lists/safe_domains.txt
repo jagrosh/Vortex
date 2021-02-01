@@ -38,7 +38,7 @@ instagram.com
 twimg.com
 tenor.co
 tenor.com
-        
+
 // Development
 github.com
 githubusercontent.com
@@ -49,7 +49,7 @@ npmjs.com
 stackoverflow.com
 codeacademy.com
 unicode.org
-        
+
 // Social Media
 twitter.com
 reddit.com
@@ -80,6 +80,7 @@ honeyhunterworld.com
 gamespot.com
 kiranico.com
 gbatemp.net
+skinport.com
 
 // Misc
 google.com
