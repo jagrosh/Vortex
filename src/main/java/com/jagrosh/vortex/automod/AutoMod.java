@@ -27,17 +27,12 @@ import com.jagrosh.vortex.utils.Usage;
 import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
@@ -59,7 +54,7 @@ public class AutoMod
     private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
     private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
-    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
+    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.com\\/invite|\\.gg)\\/(\\S+)";
     
     private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
@@ -554,13 +549,22 @@ public class AutoMod
         return false;
     }
     
+    private final static List<String> ZEROWIDTH = Arrays.asList("\u00AD", "\u034F", "\u17B4", "\u17B5", "\u180B", "\u180C", "\u180D", 
+        "\u180E", "\u200B", "\u200C", "\u200D", "\u200E", "\u202A", "\u202C", "\u202D", "\u2060", "\u2061", "\u2062", 
+        "\u2063", "\u2064", "\u2065", "\u2066", "\u2067", "\u2068", "\u2069", "\u206A", "\u206B", "\u206C", "\u206D", 
+        "\u206E", "\u206F", "\uFE00", "\uFE01", "\uFE02", "\uFE03", "\uFE04", "\uFE05", "\uFE06", "\uFE07", "\uFE08", 
+        "\uFE09", "\uFE0A", "\uFE0B", "\uFE0C", "\uFE0D", "\uFE0E", "\uFE0F", "\uFEFF", "\uFFF0", "\uFFF1", "\uFFF2", 
+        "\uFFF3", "\uFFF4", "\uFFF5", "\uFFF6", "\uFFF7", "\uFFF8");
+    
     private static String condensedContent(Message m)
     {
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(at -> sb.append("\n").append(at.getFileName()));
         try
         {
-            return sb.toString().trim().replaceAll(CONDENSER, "$1");
+            StringBuilder sb2 = new StringBuilder();
+            sb.chars().filter(c -> !ZEROWIDTH.contains(Character.toString((char)c))).forEach(c -> sb2.append((char)c));
+            return sb2.toString().trim().replaceAll(CONDENSER, "$1");
         }
         catch(Exception ex)
         {

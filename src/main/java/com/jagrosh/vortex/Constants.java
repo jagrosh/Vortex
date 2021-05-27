@@ -62,5 +62,6 @@ public class Constants
         public final static String RAID_MODE    = WIKI_BASE + "/Raid-Mode";
         public final static String COMMANDS     = WIKI_BASE + "/Commands";
         public final static String AUTOMOD      = WIKI_BASE + "/Auto-Moderation";
+        public final static String VORTEX_PRO   = WIKI_BASE + "/Vortex-Pro";
     }
 }

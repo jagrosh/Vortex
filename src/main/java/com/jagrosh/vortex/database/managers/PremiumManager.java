@@ -154,9 +154,9 @@ public class PremiumManager extends DataManager
     public static enum Level
     {
         NONE("No Premium"),
-        PLUS("Vortex Plus"),
+        PLUS("Vortex Pro Lite"),
         PRO("Vortex Pro"),
-        ULTRA("Vortex Ultra");
+        ULTRA("Vortex Experimental");
         
         public final String name;
         
@@ -172,7 +172,7 @@ public class PremiumManager extends DataManager
         
         public String getRequirementMessage()
         {
-            return Constants.WARNING + " Sorry, this feature requires Vortex Pro. Vortex Pro is not available yet.";
+            return Constants.WARNING + " Sorry, this feature requires " + name + ". See <" + Constants.Wiki.VORTEX_PRO + "> for more information.";
         }
     }
     

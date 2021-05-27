@@ -54,7 +54,8 @@ public class StrikeHandler
     public void pardonStrikes(Member moderator, OffsetDateTime nowo, long targetId, int number, String reason)
     {
         int[] counts = vortex.getDatabase().strikes.removeStrikes(moderator.getGuild(), targetId, number);
-        User user = vortex.getShardManager().getUserById(targetId);
+        Member member = moderator.getGuild().getMemberById(targetId);
+        User user = member == null ? vortex.getShardManager().getUserById(targetId) : member.getUser();
         if(user==null)
         {
             moderator.getJDA().retrieveUserById(targetId).queue(u -> vortex.getModLogger().postPardonCase(moderator, nowo, number, counts[0], counts[1], u, reason));

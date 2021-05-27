@@ -104,7 +104,7 @@ public class LookupCmd extends Command
     
     private String extractCode(String args)
     {
-        return args.substring(args.indexOf("/")+1);
+        return args.substring(args.lastIndexOf("/")+1);
     }
     
     private boolean lookupUser(long userId, CommandEvent event)

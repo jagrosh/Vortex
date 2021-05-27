@@ -48,7 +48,7 @@ public class SetupCmd extends Command
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
-        this.children = new Command[]{new MuteSetupCmd(), new AutomodSetupCmd()};
+        this.children = new Command[]{new MuteSetupCmd()/*, new AutomodSetupCmd()*/};
     }
     
     @Override

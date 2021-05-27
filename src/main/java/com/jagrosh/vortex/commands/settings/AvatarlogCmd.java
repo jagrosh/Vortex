@@ -49,7 +49,7 @@ public class AvatarlogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
+        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.ULTRA))
         {
             vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
             if(tc==null)
@@ -58,6 +58,6 @@ public class AvatarlogCmd extends LogCommand
                 event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
         }
         else
-            event.reply(PremiumManager.Level.PRO.getRequirementMessage());
+            event.reply(PremiumManager.Level.ULTRA.getRequirementMessage());
     }
 }

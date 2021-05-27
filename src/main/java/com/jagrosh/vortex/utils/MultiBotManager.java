@@ -53,6 +53,11 @@ public class MultiBotManager
         }
     }
     
+    public int size()
+    {
+        return bots.size();
+    }
+    
     public List<ShardManager> getShardManagers()
     {
         return bots;

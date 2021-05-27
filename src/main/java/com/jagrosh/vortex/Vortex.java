@@ -48,6 +48,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
@@ -188,7 +189,7 @@ public class Vortex
                 .addBot(config.getString("bot-token"), Constants.INTENTS)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
-                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, CacheFlag.ONLINE_STATUS)
                 .addEventListeners(new Listener(this), client, waiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
                 .setActivity(Activity.playing("loading..."))
@@ -275,6 +276,12 @@ public class Vortex
             database.settings.setAvatarLogChannel(gid, null);
             database.settings.setVoiceLogChannel(gid, null);
             database.filters.deleteAllFilters(gid);
+            for(int i = 0; i < shards.size() - 1; i++)
+            {
+                Guild g = shards.getShardManagers().get(i).getGuildById(gid);
+                if (g != null)
+                    g.leave().queue();
+            }
         });
     }
     

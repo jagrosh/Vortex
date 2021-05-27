@@ -42,7 +42,7 @@ public class BanCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "ban";
-        this.aliases = new String[]{"hackban","forceban"};
+        //this.aliases = new String[]{"hackban","forceban"};
         this.arguments = "<@users> [time] [reason]";
         this.help = "bans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
