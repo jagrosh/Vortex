@@ -43,6 +43,7 @@ public class LookupCmd extends Command
     private final static String BOT_EMOJI = "<:botTag:230105988211015680>";
     private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
     private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
+    private final static String UNKNOWN_ID = "\uD83C\uDD94"; // 🆔
     private final static String LINESTART = "\u25AB"; // ▫
     
     private final Vortex vortex;
@@ -161,7 +162,7 @@ public class LookupCmd extends Command
                 catch(Exception ignore) {}
             }
         }
-        event.reply(constructMessage(invite, widget));
+        event.reply(constructMessage(invite, widget, guildId));
     }
     
     private void lookupGuild(String inviteCode, CommandEvent event)
@@ -190,34 +191,40 @@ public class LookupCmd extends Command
                 catch(Exception ignore) {}
             }
         }
-        event.reply(constructMessage(invite, widget));
+        event.reply(constructMessage(invite, widget, 0));
     }
     
-    private Message constructMessage(Invite invite, Widget widget)
+    private Message constructMessage(Invite invite, Widget widget, long input)
     {
-        String gname;
-        long gid;
-        int users;
+        String gname = null;
+        long gid = 0L;
+        int users = -1;
         if(invite == null)
         {
             if(widget == null)
-                return new MessageBuilder().append(Constants.ERROR + " No users, guilds, or invites found.").build();
-            else if (!widget.isAvailable())
-                return new MessageBuilder().append(Constants.SUCCESS + " Guild with ID `" + widget.getId() + "` found; no further information found.").build();
+            {
+                if(input == 0)
+                    return new MessageBuilder().append(Constants.ERROR + " No users, guilds, or invites found.").build();
+
+                return new MessageBuilder()
+                        .append(UNKNOWN_ID + " Information about an unknown ID:")
+                        .setEmbed(new EmbedBuilder()
+                                .appendDescription(LINESTART + "Creation: " + "**"+TimeUtil.getTimeCreated(input).format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**").build())
+                        .build();
+            }
+
+
             gid = widget.getIdLong();
-            gname = widget.getName();
-            users = widget.getMembers().size();
+            if(widget.isAvailable())
+            {
+                gname = widget.getName();
+                users = widget.getMembers().size();
+            }
         }
         else
         {
             Invite.Guild g = invite.getGuild();
-            if(g == null)
-            {
-                gid = 0L;
-                gname = "Unknown Guild";
-                users = 0;
-            }
-            else
+            if(g != null)
             {
                 gid = g.getIdLong();
                 gname = g.getName();
@@ -225,10 +232,10 @@ public class LookupCmd extends Command
             }
         }
         
-        String text = GUILD_EMOJI + " Information about **" + gname + "**:";
+        String text = GUILD_EMOJI + " Information about " + (gname == null ? "an unknown guild" : "**"+gname+"**") + ":";
         EmbedBuilder eb = new EmbedBuilder();
-        eb.appendDescription(LINESTART + "ID: **" + gid + "**"
-                + "\n" + LINESTART + "Creation: **" + TimeUtil.getTimeCreated(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**"
+        eb.appendDescription(LINESTART + "ID: " + (gid == 0 ? "N/A" : "**"+gid+"**")
+                + "\n" + LINESTART + "Creation: " + (gid == 0 ? "N/A" : "**"+TimeUtil.getTimeCreated(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**")
                 + "\n" + LINESTART + "Users: " + (users == -1 ? "N/A" : "**" + users + "** online")
                 + (widget != null && widget.isAvailable() ? "\n" + LINESTART + "Channels: **" + widget.getVoiceChannels().size() + "** voice" : ""));
         if(invite != null)
