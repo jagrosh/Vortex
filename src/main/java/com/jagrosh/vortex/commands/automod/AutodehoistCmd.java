@@ -67,7 +67,6 @@ public class AutodehoistCmd extends Command
             throw new CommandExceptionListener.CommandErrorException("Provided symbol must be one character of the following: "+OtherUtil.DEHOIST_JOINED);
         
         vortex.getDatabase().automod.setDehoistChar(event.getGuild(), symbol);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now be dehoisted if their effective name starts with `"+symbol+"` or higher."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+        event.replySuccess("Users will now be dehoisted if their effective name starts with `"+symbol+"` or higher.");
     }
 }

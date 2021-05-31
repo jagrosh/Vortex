@@ -82,8 +82,8 @@ public class SetupCmd extends Command
             {
                 event.getChannel().sendTyping().queue();
                 StringBuilder sb = new StringBuilder("**Automod setup complete!**");
-                if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
+                //if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
+                //    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
                 AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
                 if(ams.inviteStrikes==0)
                 {

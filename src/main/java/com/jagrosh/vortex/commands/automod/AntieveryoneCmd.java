@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -67,14 +68,12 @@ public class AntieveryoneCmd extends Command
             }
         }
         if(numstrikes<0 || numstrikes>AutomodManager.MAX_STRIKES)
-        {
-            event.replyError("The number of strikes must be between 0 and "+AutomodManager.MAX_STRIKES);
-            return;
-        }
+            throw new CommandExceptionListener.CommandErrorException("The number of strikes must be between 0 and " + AutomodManager.MAX_STRIKES);
+        if(numstrikes > 0 && !vortex.getDatabase().actions.hasPunishments(event.getGuild()))
+            throw new CommandExceptionListener.CommandErrorException("Anti-Everyone cannot be enabled without first setting at least one punishment.");
+        
         vortex.getDatabase().automod.setEveryoneStrikes(event.getGuild(), numstrikes);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
         event.replySuccess("Users will now receive `"+numstrikes+"` strikes for attempting to ping @\u0435veryone/here. " // cyrillic e
-                + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually "
-                + "have permission to ping everyone."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+                + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually ");
     }
 }

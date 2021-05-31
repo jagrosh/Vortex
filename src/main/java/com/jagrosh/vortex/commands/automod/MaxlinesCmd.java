@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 
@@ -65,17 +66,16 @@ public class MaxlinesCmd extends Command
                 return;
             }
         }
-        if(maxlines<0)
-        {
-            event.replyError("The maximum number of lines must be a positive integer!");
-            return;
-        }
+        if(maxlines < 0)
+            throw new CommandExceptionListener.CommandErrorException("The maximum number of lines must be a positive integer!");
+        if(maxlines > 0 && !vortex.getDatabase().actions.hasPunishments(event.getGuild()))
+            throw new CommandExceptionListener.CommandErrorException("Max Lines cannot be enabled without first setting at least one punishment.");
+        
         vortex.getDatabase().automod.setMaxLines(event.getGuild(), maxlines);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
         if(maxlines==0)
             event.replySuccess("There is now no maximum line limit.");
         else
             event.replySuccess("Messages longer than `"+maxlines+"` lines will now be automatically deleted, "
-                + "and users will receive strikes for every additional multiple of up to `"+maxlines+"` lines."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+                + "and users will receive strikes for every additional multiple of up to `"+maxlines+"` lines.");
     }
 }

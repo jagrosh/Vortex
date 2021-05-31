@@ -43,12 +43,12 @@ public class PunishmentManager extends DataManager
     private static final String STRIKES_TITLE = Action.STRIKE.getEmoji()+" Punishments";
     
     
-    public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + " It looks like you've set up some automoderation without assigning any punishments! "
-                                                     + "I've gone ahead and set up some default punishments; you can see the settings with `" + Constants.PREFIX 
-                                                     + "settings` and set or change any punishments with the `" + Constants.PREFIX+"punishment` command!";
-    private static final int[] DEFAULT_STRIKE_COUNTS = {2,               3,               4,           5,              6};
-    private static final Action[] DEFAULT_ACTIONS =    {Action.TEMPMUTE, Action.TEMPMUTE, Action.KICK, Action.TEMPBAN, Action.BAN};
-    private static final int[] DEFAULT_TIMES =         {10,              120,             0,           1440,           0};
+    //public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + " It looks like you've set up some automoderation without assigning any punishments! "
+    //                                                 + "I've gone ahead and set up some default punishments; you can see the settings with `" + Constants.PREFIX 
+    //                                                 + "settings` and set or change any punishments with the `" + Constants.PREFIX+"punishment` command!";
+    //private static final int[] DEFAULT_STRIKE_COUNTS = {2,               3,               4,           5,              6};
+    //private static final Action[] DEFAULT_ACTIONS =    {Action.TEMPMUTE, Action.TEMPMUTE, Action.KICK, Action.TEMPBAN, Action.BAN};
+    //private static final int[] DEFAULT_TIMES =         {10,              120,             0,           1440,           0};
     
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L);
     public static final SQLColumn<Integer> NUM_STRIKES = new IntegerColumn("NUM_STRIKES", false, 0);
@@ -66,7 +66,7 @@ public class PunishmentManager extends DataManager
         return GUILD_ID+", "+NUM_STRIKES;
     }
     
-    public boolean useDefaultSettings(Guild guild) // only activates if none set
+    /*public boolean useDefaultSettings(Guild guild) // only activates if none set
     {
         return readWrite(selectAll(GUILD_ID.is(guild.getId())), rs -> 
         {
@@ -83,7 +83,7 @@ public class PunishmentManager extends DataManager
             }
             return true;
         });
-    }
+    }*/
     
     public void removeAction(Guild guild, int numStrikes)
     {
@@ -130,6 +130,11 @@ public class PunishmentManager extends DataManager
                 rs.insertRow();
             }
         });
+    }
+    
+    public boolean hasPunishments(Guild guild)
+    {
+        return read(selectAll(GUILD_ID.is(guild.getId())), rs -> {return rs.next();});
     }
     
     public List<Punishment> getAllPunishments(Guild guild)

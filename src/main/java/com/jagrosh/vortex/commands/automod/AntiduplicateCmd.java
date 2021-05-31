@@ -19,7 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 
 /**
  *
@@ -97,10 +97,10 @@ public class AntiduplicateCmd extends Command
             event.replySuccess("Anti-Duplicate has been disabled.");
             return;
         }
+        if(!vortex.getDatabase().actions.hasPunishments(event.getGuild()))
+            throw new CommandExceptionListener.CommandErrorException("Anti-Duplicate cannot be enabled without first setting at least one punishment.");
         vortex.getDatabase().automod.setDupeSettings(event.getGuild(), strikes, deleteThreshold, strikeThreshold);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
         event.replySuccess("Anti-Duplicate will now delete duplicates starting at duplicate **"+deleteThreshold
-                +"** and begin assigning **"+strikes+"** strikes for each duplicate starting at duplicate **"+strikeThreshold+"**."
-                +(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+                +"** and begin assigning **"+strikes+"** strikes for each duplicate starting at duplicate **"+strikeThreshold+"**.");
     }
 }

@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.AutomodManager;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -68,12 +69,11 @@ public class AntiinviteCmd extends Command
             }
         }
         if(numstrikes<0 || numstrikes>AutomodManager.MAX_STRIKES)
-        {
-            event.replyError("The number of strikes must be between 0 and "+AutomodManager.MAX_STRIKES);
-            return;
-        }
+            throw new CommandExceptionListener.CommandErrorException("The number of strikes must be between 0 and "+AutomodManager.MAX_STRIKES);
+        if(numstrikes > 0 && !vortex.getDatabase().actions.hasPunishments(event.getGuild()))
+            throw new CommandExceptionListener.CommandErrorException("Anti-Invite cannot be enabled without first setting at least one punishment.");
+        
         vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), numstrikes);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for posting invite links."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for posting invite links.");
     }
 }
