@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Constants;
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -40,7 +41,6 @@ import net.dv8tion.jda.api.utils.WidgetUtil.Widget;
  */
 public class LookupCmd extends Command
 {
-    private final static String BOT_EMOJI = "<:botTag:230105988211015680>";
     private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
     private final static String GUILD_EMOJI = "\uD83D\uDDA5"; // 🖥
     private final static String UNKNOWN_ID = "\uD83C\uDD94"; // 🆔
@@ -123,13 +123,13 @@ public class LookupCmd extends Command
         catch(Exception ignore) {}
         if(u == null)
             return false;
-        String text = (u.isBot() ? BOT_EMOJI : USER_EMOJI) + " Information about **" + u.getName() + "**#" + u.getDiscriminator() + ":";
+        String text = (u.isBot() ? Emoji.BOT : USER_EMOJI) + " Information about **" + u.getName() + "**#" + u.getDiscriminator() + ":";
         EmbedBuilder eb = new EmbedBuilder();
         eb.setThumbnail(u.getEffectiveAvatarUrl());
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + u.getId() + "** ");
         u.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
         if(u.getAvatarId() != null && u.getAvatarId().startsWith("a_"))
-            str.append("<:nitro:314068430611415041>");
+            str.append(Emoji.BADGE_NITRO);
         str.append("\n" + LINESTART + "Account Creation: **").append(TimeUtil.getDateTimeString(u.getTimeCreated())).append("**");
         eb.setDescription(str.toString());
         event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());

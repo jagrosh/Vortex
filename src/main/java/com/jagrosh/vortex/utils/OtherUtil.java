@@ -15,6 +15,7 @@
  */
 package com.jagrosh.vortex.utils;
 
+import com.jagrosh.vortex.Emoji;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -135,20 +136,21 @@ public class OtherUtil
     {
         switch(flag)
         {
-            case BUG_HUNTER_LEVEL_1:   return "<:bughunter:585765206769139723>";
-            case BUG_HUNTER_LEVEL_2:   return "<:bughunter:585765206769139723>";
-            case EARLY_SUPPORTER:      return "<:supporter:585763690868113455>";
-            case HYPESQUAD:            return "<:hypesquad_events:585765895939424258>";
-            case HYPESQUAD_BALANCE:    return "<:balance:585763004574859273>";
-            case HYPESQUAD_BRAVERY:    return "<:bravery:585763004218343426>";
-            case HYPESQUAD_BRILLIANCE: return "<:brilliance:585763004495298575>";
-            case PARTNER:              return "<:partner:314068430556758017>";
-            case STAFF:                return "<:staff:314068430787706880>";
-            case SYSTEM:               return "<:system:738519297265106954>";
+            case BUG_HUNTER_LEVEL_1:   return Emoji.BADGE_BUG_HUNTER;
+            case BUG_HUNTER_LEVEL_2:   return Emoji.BADGE_BUG_HUNTER;
+            case EARLY_SUPPORTER:      return Emoji.BADGE_EARLY_SUPPORTER;
+            case HYPESQUAD:            return Emoji.BADGE_HYPESQUAD;
+            case HYPESQUAD_BALANCE:    return Emoji.BADGE_HYPESQUAD_BALANCE;
+            case HYPESQUAD_BRAVERY:    return Emoji.BADGE_HYPESQUAD_BRAVERY;
+            case HYPESQUAD_BRILLIANCE: return Emoji.BADGE_HYPESQUAD_BRILLIANCE;
+            case PARTNER:              return Emoji.BADGE_PARTNER;
+            case STAFF:                return Emoji.BADGE_STAFF;
+            case VERIFIED_DEVELOPER:   return Emoji.BADGE_VERIFIED_DEVELOPER;
+            case CERTIFIED_MODERATOR:  return Emoji.BADGE_CERTIFIED_MODERATOR;
             case TEAM_USER:            return "\u2753";
             case UNKNOWN:              return "\u2753";
-            case VERIFIED_BOT:         return "<:verified_bot:738519297265238057>";
-            case VERIFIED_DEVELOPER:   return "<:badgeVerifiedDev:698313392728834049>";
+            case VERIFIED_BOT:         return Emoji.BOT_VERIFIED;
+            case SYSTEM:               return Emoji.BOT_SYSTEM;
             default:                   return "\u2753";
         }
     }

@@ -64,7 +64,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     // level to set permission when finished
     
     // Cache
-    private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+    private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE * 3);
     private final GuildSettings blankSettings = new GuildSettings();
     
     public GuildSettingsDataManager(DatabaseConnector connector)

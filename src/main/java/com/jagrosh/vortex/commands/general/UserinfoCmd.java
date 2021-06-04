@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.util.ArrayList;
@@ -38,7 +39,6 @@ import net.dv8tion.jda.api.entities.User;
  */
 public class UserinfoCmd extends Command
 {
-    private final static String BOT_EMOJI = "<:botTag:230105988211015680>";
     private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
     private final static String LINESTART = "\u25AB"; // ▫
     
@@ -79,11 +79,11 @@ public class UserinfoCmd extends Command
             }
         }
         User user = member.getUser();
-        String title = (user.isBot() ? BOT_EMOJI : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
+        String title = (user.isBot() ? Emoji.BOT : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + user.getId() + "** ");
         user.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
         if(user.getAvatarId() != null && user.getAvatarId().startsWith("a_"))
-            str.append("<:nitro:314068430611415041>");
+            str.append(Emoji.BADGE_NITRO);
         if(member.getNickname()!=null)
             str.append("\n" + LINESTART + "Nickname: **").append(member.getNickname()).append("**");
         String roles="";
@@ -135,13 +135,13 @@ public class UserinfoCmd extends Command
     {
         Activity game = games.isEmpty() ? null : games.get(0);
         if(game!=null && game.getType()==Activity.ActivityType.STREAMING && game.getUrl()!=null && Activity.isValidStreamingUrl(game.getUrl()))
-            return "<:streaming:313956277132853248>";
+            return Emoji.STATUS_STREAMING;
         switch(status) {
-            case ONLINE: return "<:online:313956277808005120>";
-            case IDLE: return "<:away:313956277220802560>";
-            case DO_NOT_DISTURB: return "<:dnd:313956276893646850>";
-            case INVISIBLE: return "<:invisible:313956277107556352>";
-            case OFFLINE: return "<:offline:313956277237710868>";
+            case ONLINE:         return Emoji.STATUS_ONLINE;
+            case IDLE:           return Emoji.STATUS_IDLE;
+            case DO_NOT_DISTURB: return Emoji.STATUS_DO_NOT_DISTURB;
+            case INVISIBLE:      return Emoji.STATUS_INVISIBLE;
+            case OFFLINE:        return Emoji.STATUS_OFFLINE;
             default: return "";
         }
     }

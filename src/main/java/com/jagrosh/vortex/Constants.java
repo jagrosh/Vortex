@@ -28,14 +28,14 @@ public class Constants
 {
     public final static OffsetDateTime STARTUP = OffsetDateTime.now();
     public final static String PREFIX          = ">>";
-    public final static String SUCCESS         = "<:vSuccess:390202497827864597>";
-    public final static String WARNING         = "<:vWarning:390208158699618306>";
-    public final static String ERROR           = "<:vError:390229421228949504>";
-    public final static String LOADING         = "<a:typing:393848431413559296>";
+    public final static String SUCCESS         = Emoji.SUCCESS;
+    public final static String WARNING         = Emoji.WARNING;
+    public final static String ERROR           = Emoji.ERROR;
+    public final static String LOADING         = Emoji.LOADING;
     public final static String HELP_REACTION   = SUCCESS.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
     public final static String ERROR_REACTION  = ERROR.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
-    public final static String VORTEX_EMOJI    = "<:Vortex:386971287282515970>";
-    public final static int DEFAULT_CACHE_SIZE = 8000;
+    public final static String VORTEX_EMOJI    = Emoji.VORTEX;
+    public final static int DEFAULT_CACHE_SIZE = 10000;
     public final static Permission[] PERMISSIONS = {Permission.ADMINISTRATOR, Permission.BAN_MEMBERS, Permission.KICK_MEMBERS, Permission.MANAGE_ROLES,
                                         Permission.MANAGE_SERVER, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_READ,
                                         Permission.MESSAGE_WRITE,Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EXT_EMOJI,
