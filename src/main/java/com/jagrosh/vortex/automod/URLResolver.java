@@ -73,9 +73,10 @@ public interface URLResolver
                 return cache.get(url);
             try
             {
-                List<String> resolved = resolve(client
-                        .newCall(request.post(new FormBody.Builder().add(form, url).build()).build())
-                        .execute().body().string());
+                String resp = client
+                        .newCall(request.post(new FormBody.Builder().add(form, url).add("f", "true").build()).build())
+                        .execute().body().string();
+                List<String> resolved = resolve(resp);
                 cache.put(url, resolved);
                 System.out.println("Link Resolving: "+url+" -> "+resolved);
                 return resolved;
@@ -89,7 +90,6 @@ public interface URLResolver
         private List<String> resolve(String text)
         {
             List<String> list = new LinkedList<>();
-            boolean skip = true; // first link is always the link we gave
             for(int i=0; i<text.length(); )
             {
                 i = text.indexOf(prefix, i);
@@ -97,10 +97,9 @@ public interface URLResolver
                     break;
                 int first = i + prefix.length();
                 i = text.indexOf(suffix,first);
-                if(skip)
-                    skip = false;
-                else
-                    list.add(text.substring(first,i).trim());
+                String url = text.substring(first,i).trim();
+                if(list.isEmpty() || !list.get(list.size()-1).equals(url))
+                    list.add(url);
             }
             return list;
         }

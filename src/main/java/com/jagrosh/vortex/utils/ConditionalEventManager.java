@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.user.update.GenericUserUpdateEvent;
 import net.dv8tion.jda.api.hooks.InterfacedEventManager;
 import net.dv8tion.jda.api.sharding.ShardManager;
 
@@ -68,6 +69,22 @@ public abstract class ConditionalEventManager extends InterfacedEventManager
                     break;
                 }
                 if(bot.getGuildById(guildId) != null)
+                {
+                    return;
+                }
+            }
+        }
+        
+        // for user updates, only use the event of the first shard manager
+        if(ge instanceof GenericUserUpdateEvent)
+        {
+            for(ShardManager bot: getOrderedShardManagers())
+            {
+                if(bot.getShards().get(0).getSelfUser().getIdLong() == selfId)
+                {
+                    break;
+                }
+                if(bot.getUserById(((GenericUserUpdateEvent)ge).getUser().getIdLong()) != null)
                 {
                     return;
                 }

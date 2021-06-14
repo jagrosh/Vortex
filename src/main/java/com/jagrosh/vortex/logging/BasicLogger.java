@@ -206,11 +206,12 @@ public class BasicLogger
     
     
     // Server Logs
-    
+    // Name change logs need to be handled specially because they are not guild-specific events, but only one
+    // bot (pro vs normal) should ever log them.
     public void logNameChange(UserUpdateNameEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        event.getUser().getMutualGuilds().stream()
+        vortex.getShardManager().getMutualGuilds(event.getUser().getIdLong()).stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
             .filter(tc -> tc!=null)
             .forEachOrdered(tc ->
@@ -223,7 +224,7 @@ public class BasicLogger
     public void logNameChange(UserUpdateDiscriminatorEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        event.getUser().getMutualGuilds().stream()
+        vortex.getShardManager().getMutualGuilds(event.getUser().getIdLong()).stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
             .filter(tc -> tc!=null)
             .forEachOrdered(tc ->

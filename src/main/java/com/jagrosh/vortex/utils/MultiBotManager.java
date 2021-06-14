@@ -15,10 +15,7 @@
  */
 package com.jagrosh.vortex.utils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.security.auth.login.LoginException;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -97,6 +94,24 @@ public class MultiBotManager
             if(shards.getTextChannelById(id) != null)
                 return shards.getTextChannelById(id);
         return null;
+    }
+    
+    public Collection<Guild> getMutualGuilds(long userId)
+    {
+        HashMap<Long,Guild> guilds = new HashMap<>();
+        for(ShardManager shards: bots)
+            for(Guild guild: getMutualGuilds(shards, userId))
+                if(!guilds.containsKey(guild.getIdLong()))
+                    guilds.put(guild.getIdLong(), guild);
+        return guilds.values();
+    }
+    
+    private static Collection<Guild> getMutualGuilds(ShardManager shard, long userId)
+    {
+        User user = shard.getUserById(userId);
+        if(user == null)
+            return Collections.emptySet();
+        return shard.getMutualGuilds(user);
     }
     
     private class MultiBotEventManager extends ConditionalEventManager
