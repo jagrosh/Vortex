@@ -29,7 +29,6 @@ import java.time.ZoneId;
 import java.time.zone.ZoneRulesException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
@@ -149,8 +148,13 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public void setServerLogChannel(Guild guild, TextChannel tc)
     {
-        invalidateCache(guild);
-        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, SERVERLOG_ID), rs -> 
+        setServerLogChannel(guild.getIdLong(), tc);
+    }
+    
+    public void setServerLogChannel(long guildId, TextChannel tc)
+    {
+        invalidateCache(guildId);
+        readWrite(select(GUILD_ID.is(guildId), GUILD_ID, SERVERLOG_ID), rs -> 
         {
             if(rs.next())
             {
@@ -160,7 +164,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             else
             {
                 rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
+                GUILD_ID.updateValue(rs, guildId);
                 SERVERLOG_ID.updateValue(rs, tc==null ? 0L : tc.getIdLong());
                 rs.insertRow();
             }

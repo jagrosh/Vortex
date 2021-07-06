@@ -275,6 +275,7 @@ public class Vortex
             database.automod.setResolveUrls(gid, false);
             database.settings.setAvatarLogChannel(gid, null);
             database.settings.setVoiceLogChannel(gid, null);
+            database.settings.setServerLogChannel(gid, null);
             database.filters.deleteAllFilters(gid);
             for(int i = 0; i < shards.size() - 1; i++)
             {
