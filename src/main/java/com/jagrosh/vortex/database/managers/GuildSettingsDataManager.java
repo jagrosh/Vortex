@@ -79,6 +79,8 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         if(cache.contains(guild.getIdLong()))
             return cache.get(guild.getIdLong());
         GuildSettings settings = read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> rs.next() ? new GuildSettings(rs) : blankSettings);
+        if(settings == null)
+            return blankSettings;
         cache.put(guild.getIdLong(), settings);
         return settings;
     }

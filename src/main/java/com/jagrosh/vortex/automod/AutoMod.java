@@ -51,7 +51,6 @@ public class AutoMod
             Pattern.CASE_INSENSITIVE);
     
     private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
     private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
     private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.com\\/invite|\\.gg)\\/(\\S+)";
@@ -269,177 +268,34 @@ public class AutoMod
         // check the channel for channel-specific settings
         String topic = message.getTextChannel().getTopic();
         boolean preventSpam = topic==null || !topic.toLowerCase().contains("{spam}");
-        boolean preventInvites = (topic==null || !topic.toLowerCase().contains("{invites}")) && settings.inviteStrikes > 0;
+        boolean preventInvites = topic==null || !topic.toLowerCase().contains("{invites}");
 
+        // get additional settings and data from the database
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
         List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
         usage.increment(message.getGuild().getIdLong());
         
-        boolean shouldDelete = false;
-        String channelWarning = null;
-        int strikeTotal = 0;
-        StringBuilder reason = new StringBuilder();
-        
-        // anti-duplicate
-        if(settings.useAntiDuplicate() && preventSpam)
+        // detect status of different automod features
+        AutomodStatus currentStatus = new AutomodStatus();
+        if(preventSpam)
         {
-            String key = message.getAuthor().getId()+"|"+message.getGuild().getId();
-            String content = condensedContent(message);
-            DupeStatus status = spams.get(key);
-            if(status==null)
-            {
-                spams.put(key, new DupeStatus(content, latestTime(message)));
-            }
-            else
-            {
-                OffsetDateTime now = latestTime(message);
-                int offenses = status.update(content, now);
-                
-                if(offenses==settings.dupeDeleteThresh)
-                {
-                    channelWarning = "Please stop spamming.";
-                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getTimeCreated().plusMinutes(2).isAfter(now));
-                }
-                else if(offenses>settings.dupeDeleteThresh)
-                    shouldDelete = true;
-                
-                if(offenses >= settings.dupeStrikeThresh)
-                {
-                    strikeTotal += settings.dupeStrikes;
-                    reason.append(", Duplicate messages");
-                }
-            }
+            runAntiDuplicate(settings, currentStatus, message);
+            runMaxLines(settings, currentStatus, message);
+            runAntiCopypasta(settings, currentStatus, message);
+            runAntiEveryone(settings, currentStatus, message);
         }
-        
-        // anti-mention (users)
-        if(settings.maxMentions>=AutomodManager.MENTION_MINIMUM)
-        {
-            
-            long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).distinct().count();
-            if(mentions > settings.maxMentions)
-            {
-                strikeTotal += (int)(mentions-settings.maxMentions);
-                reason.append(", Mentioning ").append(mentions).append(" users");
-                shouldDelete = true;
-            }
-        }
-        
-        // max newlines
-        if(settings.maxLines>0 && preventSpam)
-        {
-            int count = message.getContentRaw().split("\n").length;
-            if(count > settings.maxLines)
-            {
-                strikeTotal += Math.ceil((double)(count-settings.maxLines)/settings.maxLines);
-                reason.append(", Message contained ").append(count).append(" newlines");
-                shouldDelete = true;
-            }
-        }
-        
-        // anti-mention (roles)
-        if(settings.maxRoleMentions >= AutomodManager.ROLE_MENTION_MINIMUM)
-        {
-            long mentions = message.getMentionedRoles().stream().distinct().count();
-            if(mentions > settings.maxRoleMentions)
-            {
-                strikeTotal += (int)(mentions-settings.maxRoleMentions);
-                reason.append(", Mentioning ").append(mentions).append(" roles");
-                shouldDelete = true;
-            }
-        }
-        
-        // filters
-        if(!filters.isEmpty())
-        {
-            Filter mostStrikesFilter = null;
-            for(Filter filter: filters)
-                if((mostStrikesFilter == null || filter.strikes > mostStrikesFilter.strikes) && filter.test(message.getContentRaw()))
-                    mostStrikesFilter = filter;
-            if(mostStrikesFilter != null)
-            {
-                strikeTotal += mostStrikesFilter.strikes;
-                reason.append(", '").append(mostStrikesFilter.name).append("' Filter");
-                shouldDelete = true;
-            }
-        }
-        
-        // prevent referral links
-        if(settings.refStrikes > 0)
-        {
-            Matcher m = REF.matcher(message.getContentRaw());
-            if(m.find())
-            {
-                strikeTotal += settings.refStrikes;
-                reason.append(", Referral link");
-                shouldDelete = true;
-            }
-            else
-            {
-                m = BASE_URL.matcher(message.getContentRaw().toLowerCase());
-                while(m.find())
-                {
-                    if(isReferralUrl(m.group(1)))
-                    {
-                        strikeTotal += settings.refStrikes;
-                        reason.append(", Referral link");
-                        shouldDelete = true;
-                        break;
-                    }
-                }
-            }
-        }
-        
-        // prevent copypastas
-        if(settings.copypastaStrikes > 0 && preventSpam)
-        {
-            String copypastaName = copypastaResolver.getCopypasta(message.getContentRaw());
-            if(copypastaName!=null)
-            {
-                strikeTotal += settings.copypastaStrikes;
-                reason.append(", ").append(copypastaName).append(" copypasta");
-                shouldDelete = true;
-            }
-        }
-        
-        // prevent attempted everyone/here mentions
-        if(settings.everyoneStrikes > 0 && preventSpam && !message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
-        {
-            String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "");
-            if(filtered.contains("@everyone") || filtered.contains("@here")
-                    || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
-            {
-                strikeTotal += settings.everyoneStrikes;
-                reason.append(", ").append("Attempted @\u0435veryone/here"); // cyrillic e
-                shouldDelete = true;
-            }
-        }
-        
-        // anti-invite
         if(preventInvites)
         {
-            List<String> invites = new ArrayList<>();
-            Matcher m = INVITES.matcher(message.getContentRaw());
-            while(m.find())
-                invites.add(m.group(1));
-            LOG.trace("Found "+invites.size()+" invites.");
-            for(String inviteCode : invites)
-            {
-                LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
-                long gid = inviteResolver.resolve(inviteCode, message.getJDA());
-                if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
-                {
-                    strikeTotal += settings.inviteStrikes;
-                    reason.append(", Advertising");
-                    shouldDelete = true;
-                    break;
-                }
-            }
+            runAntiInvite(settings, currentStatus, message, inviteWhitelist);
         }
-        
+        runAntiMention(settings, currentStatus, message);
+        runAntiMentionRoles(settings, currentStatus, message);
+        runAntiReferral(settings, currentStatus, message);
+        runFilters(settings, currentStatus, message, filters);
         
         // delete the message if applicable
-        if(shouldDelete)
+        if(currentStatus.deleteMessage)
         {
             try
             {
@@ -448,21 +304,21 @@ public class AutoMod
         }
         
         // send a short 'warning' message that self-deletes
-        if(channelWarning!=null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_WRITE)) 
+        if(currentStatus.channelWarning != null && message.getGuild().getSelfMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_WRITE)) 
         {
-            message.getChannel().sendMessage(message.getAuthor().getAsMention() + Constants.WARNING + " " + channelWarning)
+            message.getChannel().sendMessage(message.getAuthor().getAsMention() + Constants.WARNING + " " + currentStatus.channelWarning)
                     .queue(m -> m.delete().queueAfter(2500, TimeUnit.MILLISECONDS, s->{}, f->{}), f->{});
         }
         
         // assign strikes if necessary
-        if(strikeTotal>0)
+        if(currentStatus.strikeTotal > 0)
         {
             vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
-                    latestTime(message), message.getAuthor(), strikeTotal, reason.toString().substring(2));
+                    latestTime(message), message.getAuthor(), currentStatus.strikeTotal, currentStatus.reason.toString().substring(2));
         }
         
         // now, lets resolve links, but async
-        if(!shouldDelete && settings.resolveUrls && (preventInvites || settings.refStrikes>0))
+        if(!currentStatus.deleteMessage && settings.resolveUrls && (preventInvites || settings.refStrikes>0))
         {
             List<String> links = new LinkedList<>();
             Matcher m = LINK.matcher(message.getContentRaw());
@@ -491,7 +347,7 @@ public class AutoMod
                             }
                             if(settings.refStrikes>0)
                             {
-                                if(resolved.matches(REF.pattern()) || isReferralUrl(resolved.replaceAll(BASE_URL.pattern(), "$1")))
+                                if(resolved.matches(REF.pattern()) || Arrays.stream(refLinkList).anyMatch(reflink -> resolved.contains(reflink)))
                                     containsRef = true;
                             }
                         }
@@ -514,6 +370,170 @@ public class AutoMod
         }
     }
     
+    private void runAntiDuplicate(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(!settings.useAntiDuplicate())
+            return;
+        String key = message.getAuthor().getId()+"|"+message.getGuild().getId();
+        String content = condensedContent(message);
+        DupeStatus status = spams.get(key);
+        if(status==null)
+        {
+            spams.put(key, new DupeStatus(content, latestTime(message)));
+        }
+        else
+        {
+            OffsetDateTime now = latestTime(message);
+            int offenses = status.update(content, now);
+
+            if(offenses==settings.dupeDeleteThresh)
+            {
+                currentStatus.channelWarning = "Please stop spamming.";
+                purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getTimeCreated().plusMinutes(2).isAfter(now));
+            }
+            else if(offenses>settings.dupeDeleteThresh)
+                currentStatus.deleteMessage();
+
+            if(offenses >= settings.dupeStrikeThresh)
+            {
+                currentStatus.addStrikes(settings.dupeStrikes);
+                currentStatus.appendReason("Duplicate messages");
+            }
+        }
+    }
+    
+    private void runAntiMention(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.maxMentions < AutomodManager.MENTION_MINIMUM)
+            return;
+        long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).distinct().count();
+        if(mentions > settings.maxMentions)
+        {
+            currentStatus.addStrikes((int)(mentions - settings.maxMentions));
+            currentStatus.appendReason("Mentioning " + mentions + " users");
+            currentStatus.deleteMessage();
+        }
+    }
+    
+    private void runAntiMentionRoles(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.maxRoleMentions < AutomodManager.ROLE_MENTION_MINIMUM)
+            return;
+        long mentions = message.getMentionedRoles().stream().distinct().count();
+        if(mentions > settings.maxRoleMentions)
+        {
+            currentStatus.addStrikes((int)(mentions - settings.maxRoleMentions));
+            currentStatus.appendReason("Mentioning " + mentions + " roles");
+            currentStatus.deleteMessage();
+        }
+    }
+    
+    private void runMaxLines(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.maxLines>0)
+        {
+            int count = message.getContentRaw().split("\n").length;
+            if(count > settings.maxLines)
+            {
+                currentStatus.addStrikes((int) Math.ceil((double)(count-settings.maxLines)/settings.maxLines));
+                currentStatus.appendReason("Message contained " + count + " newlines");
+                currentStatus.deleteMessage();
+            }
+        }
+    }
+    
+    private void runAntiCopypasta(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.copypastaStrikes <= 0)
+            return;
+        String copypastaName = copypastaResolver.getCopypasta(message.getContentRaw());
+        if(copypastaName!=null)
+        {
+            currentStatus.addStrikes(settings.copypastaStrikes);
+            currentStatus.appendReason(copypastaName + " copypasta");
+            currentStatus.deleteMessage();
+        }
+    }
+    
+    private void runAntiEveryone(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.everyoneStrikes <= 0 || message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
+            return;
+        String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "");
+        if(filtered.contains("@everyone") || filtered.contains("@here")
+                || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
+        {
+            currentStatus.addStrikes(settings.everyoneStrikes);
+            currentStatus.appendReason("Attempted @\u0435veryone/here"); // cyrillic e
+            currentStatus.deleteMessage();
+        }
+    }
+    
+    private void runAntiInvite(AutomodSettings settings, AutomodStatus currentStatus, Message message, List<Long> inviteWhitelist)
+    {
+        if(settings.inviteStrikes <= 0)
+            return;
+        List<String> invites = new ArrayList<>();
+        Matcher m = INVITES.matcher(message.getContentRaw());
+        while(m.find())
+            invites.add(m.group(1));
+        LOG.trace("Found "+invites.size()+" invites.");
+        for(String inviteCode : invites)
+        {
+            LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
+            long gid = inviteResolver.resolve(inviteCode, message.getJDA());
+            if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
+            {
+                currentStatus.addStrikes(settings.inviteStrikes);
+                currentStatus.appendReason("Advertising");
+                currentStatus.deleteMessage();
+                break;
+            }
+        }
+    }
+    
+    private void runAntiReferral(AutomodSettings settings, AutomodStatus currentStatus, Message message)
+    {
+        if(settings.refStrikes <= 0)
+            return;
+        Matcher m = REF.matcher(message.getContentRaw());
+        boolean found = false;
+        if(m.find())
+            found = true;
+        else
+        {
+            String lower = message.getContentRaw().toLowerCase();
+            for(String reflink: refLinkList)
+                if(lower.contains(reflink))
+                {
+                    found = true;
+                    break;
+                }
+        }
+        if(found)
+        {
+            currentStatus.addStrikes(settings.refStrikes);
+            currentStatus.appendReason("Referral link");
+            currentStatus.deleteMessage();
+        }
+    }
+    
+    private void runFilters(AutomodSettings settings, AutomodStatus currentStatus, Message message, List<Filter> filters)
+    {
+        if(filters.isEmpty())
+            return;
+        Filter mostStrikesFilter = null;
+        for(Filter filter: filters)
+            if((mostStrikesFilter == null || filter.strikes > mostStrikesFilter.strikes) && filter.test(message.getContentRaw()))
+                mostStrikesFilter = filter;
+        if(mostStrikesFilter != null)
+        {
+            currentStatus.addStrikes(mostStrikesFilter.strikes);
+            currentStatus.appendReason("'" + mostStrikesFilter.name + "' Filter");
+            currentStatus.deleteMessage();
+        }
+    }
+    
     private void purgeMessages(Guild guild, Predicate<CachedMessage> predicate)
     {
         vortex.getMessageCache().getMessages(guild, predicate).stream()
@@ -527,26 +547,7 @@ public class AutoMod
             }
             catch(PermissionException ignore) {}
             catch(Exception ex) { LOG.error("Error in purging messages: ", ex); }
-        });//*/
-        /*vortex.getMessageCache().getMessages(guild, predicate).forEach(m -> 
-        {
-            
-            try
-            {
-                TextChannel mtc = m.getTextChannel(guild);
-                if(mtc!=null)
-                    mtc.deleteMessageById(m.getIdLong()).queue(s->{}, f->{});
-            }
-            catch(PermissionException ignore) {}
-        });//*/
-    }
-    
-    private boolean isReferralUrl(String url)
-    {
-        for(String reflink: refLinkList)
-            if(reflink.equalsIgnoreCase(url))
-                return true;
-        return false;
+        });
     }
     
     private final static List<String> ZEROWIDTH = Arrays.asList("\u00AD", "\u034F", "\u17B4", "\u17B5", "\u180B", "\u180C", "\u180D", 
@@ -575,6 +576,29 @@ public class AutoMod
     private static OffsetDateTime latestTime(Message m)
     {
         return m.isEdited() ? m.getTimeEdited(): m.getTimeCreated();
+    }
+    
+    private class AutomodStatus
+    {
+        private int strikeTotal = 0;
+        private boolean deleteMessage = false;
+        private String channelWarning = null;
+        private StringBuilder reason = new StringBuilder();
+        
+        private void deleteMessage()
+        {
+            this.deleteMessage = true;
+        }
+        
+        private void appendReason(String input)
+        {
+            reason.append(", ").append(input);
+        }
+        
+        private void addStrikes(int value)
+        {
+            this.strikeTotal += value;
+        }
     }
     
     private class DupeStatus

@@ -24,6 +24,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
@@ -76,6 +77,8 @@ public class FilterManager extends DataManager
             }
             return list;
         });
+        if(filters == null)
+            return Collections.emptyList();
         cache.put(guild.getIdLong(), filters);
         return filters;
     }

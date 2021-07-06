@@ -76,6 +76,8 @@ public class AutomodManager extends DataManager
         if(cache.contains(guild.getIdLong()))
             return cache.get(guild.getIdLong());
         AutomodSettings settings = read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> rs.next() ? new AutomodSettings(rs) : blankSettings);
+        if(settings == null)
+            return blankSettings;
         cache.put(guild.getIdLong(), settings);
         return settings;
     }

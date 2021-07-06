@@ -17,7 +17,6 @@ package com.jagrosh.vortex;
 
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.JDA.ShardInfo;
 import net.dv8tion.jda.api.entities.Message;
@@ -146,7 +145,7 @@ public class Listener implements EventListener
             
             // Signal the modlogger if someone was muted
             Role mRole = vortex.getDatabase().settings.getSettings(gmrae.getGuild()).getMutedRole(gmrae.getGuild());
-            if(gmrae.getRoles().contains(mRole))
+            if(mRole != null && gmrae.getRoles().contains(mRole))
                 vortex.getModLogger().setNeedUpdate(gmrae.getGuild());
         }
         else if (event instanceof GuildMemberRoleRemoveEvent)
@@ -155,7 +154,7 @@ public class Listener implements EventListener
             
             // Signal the modlogger if someone was unmuted
             Role mRole = vortex.getDatabase().settings.getSettings(gmrre.getGuild()).getMutedRole(gmrre.getGuild());
-            if(gmrre.getRoles().contains(mRole))
+            if(mRole != null && gmrre.getRoles().contains(mRole))
             {
                 vortex.getDatabase().tempmutes.removeMute(gmrre.getGuild(), gmrre.getUser().getIdLong());
                 vortex.getModLogger().setNeedUpdate(gmrre.getGuild());

@@ -21,6 +21,7 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,6 +89,8 @@ public class IgnoreManager extends DataManager
                 set.add(ENTITY_ID.getValue(rs));
             return set;
         });
+        if(ret == null)
+            return Collections.emptySet();
         cache.put(gid, ret);
         return ret;
     }
