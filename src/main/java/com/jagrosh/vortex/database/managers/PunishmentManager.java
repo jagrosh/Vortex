@@ -93,6 +93,15 @@ public class PunishmentManager extends DataManager
                 rs.deleteRow();
         });
     }
+
+    public void removeAllActions(Guild guild)
+    {
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            while(rs.next())
+                rs.deleteRow();
+        });
+    }
     
     public void setAction(Guild guild, int numStrikes, Action action)
     {

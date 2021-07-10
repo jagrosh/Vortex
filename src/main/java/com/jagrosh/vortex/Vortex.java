@@ -141,6 +141,7 @@ public class Vortex
                             new ModroleCmd(this),
                             new PrefixCmd(this),
                             new SettingsCmd(this),
+                            new ResetCmd(this),
 
                             // Automoderation
                             new AntiinviteCmd(this),
