@@ -236,6 +236,7 @@ winfnatic.pro
 wowcloud9.com
 wowfnatic.com
 wowfnatic.site
+dicsord.gifts
 
 // Deceptive Unicode Links
 getlⅰbra.tech
