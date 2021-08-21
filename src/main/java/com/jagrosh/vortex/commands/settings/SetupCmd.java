@@ -201,9 +201,9 @@ public class SetupCmd extends Command
                 {
                     po = cat.getPermissionOverride(mutedRole);
                     if(po==null)
-                        cat.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        cat.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Category overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Text Channel overrides...").complete();
@@ -211,9 +211,9 @@ public class SetupCmd extends Command
                 {
                     po = tc.getPermissionOverride(mutedRole);
                     if(po==null)
-                        tc.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        tc.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Text Channel overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Voice Channel overrides...").complete();
