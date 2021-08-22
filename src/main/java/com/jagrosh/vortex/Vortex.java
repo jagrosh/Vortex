@@ -22,11 +22,13 @@ import com.jagrosh.vortex.commands.moderation.*;
 import com.jagrosh.vortex.commands.tools.*;
 import com.jagrosh.vortex.commands.owner.*;
 import com.jagrosh.vortex.commands.settings.*;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.examples.command.*;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
@@ -40,7 +42,6 @@ import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
-import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.EnumSet;
@@ -54,6 +55,8 @@ import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.utils.cache.CacheFlag;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -62,6 +65,7 @@ import net.dv8tion.jda.webhook.WebhookClientBuilder;
 public class Vortex
 {
     public static final Config config;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Vortex.class);
     private final EventWaiter waiter;
     private final ScheduledExecutorService threadpool;
     private final Database database;
@@ -78,6 +82,37 @@ public class Vortex
 
     static {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
+        File configFile = new File(System.getProperty("config.file"));
+        try {
+            if (configFile.createNewFile()) {
+                InputStream inputStream = Thread.currentThread()
+                        .getContextClassLoader()
+                        .getResourceAsStream("reference.conf");
+
+                if (inputStream == null) {
+                    LOGGER.error("Unable to load reference.conf in resources");
+                    System.exit(1);
+                }
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                BufferedWriter writer = new BufferedWriter(new FileWriter(configFile));
+
+                String line;
+                while ((line = reader.readLine()) != null)
+                {
+                    writer.write(line + "\n");
+                }
+
+                reader.close();
+                writer.close();
+                LOGGER.info("A configuration file named " + System.getProperty("config.file") + " was created. Please fill it out and rerun the bot");
+                System.exit(0);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Could not create a configuration file", e);
+            throw new IOError(e);
+        }
+
         config = ConfigFactory.load();
     }
 
