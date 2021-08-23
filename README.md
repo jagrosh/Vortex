@@ -9,8 +9,8 @@
 [![Support](https://discordapp.com/api/guilds/147698382092238848/widget.png?style=shield)](https://discord.gg/0p9LSGoRLu6Pet0k)
 
 
-## Discord Moderation Bot
-Vortex is a bot designed to keep your server safe and your staff team organized. Its moderation and logging suite keep track of your members and keep your moderators accountable. Its auto-moderator capabilities also allow it to filter out certain types of behavior without need for human intervention, lightening the load on the staff team. Finally, Vortex is designed to be fast and easy to use.
+## Toybot
+This is a customised version of [Vortex](https://github.com/jagrosh/Vortex) for a server I'm in.
 
 
 ## [Vortex Wiki](https://github.com/jagrosh/Vortex/wiki)
