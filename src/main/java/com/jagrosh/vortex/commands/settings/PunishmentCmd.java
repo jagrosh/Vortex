@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.settings;
 
@@ -24,9 +24,9 @@ import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -92,7 +92,18 @@ public class PunishmentCmd extends Command
             case "temp-mute":
             case "mute":
             {
-                int minutes = parts.length>2 ? OtherUtil.parseTime(parts[2])/60 : 0;
+                int minutes = 0;
+                if(parts.length > 2)
+                {
+                    int parseResult = OtherUtil.parseTime(parts[2]);
+                    if(parseResult == -1)
+                    {
+                        event.replyError("Invalid time!");
+                        return;
+                    }
+                    minutes = parseResult/60;
+                }
+
                 if(minutes<0)
                 {
                     event.replyError("Temp-Mute time cannot be negative!");
@@ -120,7 +131,18 @@ public class PunishmentCmd extends Command
             case "temp-ban":
             case "ban":
             {
-                int minutes = parts.length>2 ? OtherUtil.parseTime(parts[2])/60 : 0;
+                int minutes = 0;
+                if(parts.length > 2)
+                {
+                    int parseResult = OtherUtil.parseTime(parts[2]);
+                    if(parseResult == -1)
+                    {
+                        event.replyError("Invalid time!");
+                        return;
+                    }
+                    minutes = parseResult/60;
+                }
+
                 if(minutes<0)
                 {
                     event.replyError("Temp-Ban time cannot be negative!");

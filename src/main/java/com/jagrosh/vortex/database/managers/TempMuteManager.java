@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -20,13 +20,18 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
+import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.utils.Pair;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import java.util.ArrayList;
+import java.util.List;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import org.json.JSONObject;
 
 /**
  *
@@ -47,6 +52,20 @@ public class TempMuteManager extends DataManager
     protected String primaryKey()
     {
         return GUILD_ID+", "+USER_ID;
+    }
+    
+    public JSONObject getAllMutesJson(Guild guild)
+    {
+        List<Pair<Long,Instant>> list = read(selectAll(GUILD_ID.is(guild.getId())), rs -> 
+        {
+            List<Pair<Long,Instant>> arr = new ArrayList<>();
+            while(rs.next())
+                arr.add(new Pair<>(USER_ID.getValue(rs), FINISH.getValue(rs)));
+            return arr;
+        });
+        JSONObject json = new JSONObject();
+        list.forEach(p -> json.put(Long.toString(p.getKey()), p.getValue().getEpochSecond()));
+        return json;
     }
     
     public boolean isMuted(Member member)
@@ -123,14 +142,14 @@ public class TempMuteManager extends DataManager
         });
     }
     
-    public void checkUnmutes(JDA jda, GuildSettingsDataManager data)
+    public void checkUnmutes(MultiBotManager shards, GuildSettingsDataManager data)
     {
         readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
         {
             while(rs.next())
             {
-                Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
-                if(g==null || !g.isAvailable() || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
+                Guild g = shards.getGuildById(GUILD_ID.getValue(rs));
+                if(g==null || g.getMemberCache().isEmpty() || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
                     continue;
                 Role mRole = data.getSettings(g).getMutedRole(g);
                 if(mRole==null || !g.getSelfMember().canInteract(mRole))
@@ -140,7 +159,7 @@ public class TempMuteManager extends DataManager
                 }
                 Member m = g.getMemberById(USER_ID.getValue(rs));
                 if(m!=null && m.getRoles().contains(mRole))
-                    g.getController().removeSingleRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
+                    g.removeRoleFromMember(m, mRole).reason("Temporary Mute Completed").queue();
                 rs.deleteRow();
             }
         });

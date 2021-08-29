@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.owner;
 
@@ -22,7 +22,8 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -49,15 +50,21 @@ public class DebugCmd extends Command
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
         StringBuilder sb = new StringBuilder("**"+event.getSelfUser().getName()+"** statistics:"
                 + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
-                + "\nGuilds: **"+vortex.getShardManager().getGuildCache().size()+"**"
-                + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
-                + "\nAverage Ping: **"+vortex.getShardManager().getAveragePing()+"**ms"
-                + "\nShard Total: **"+vortex.getShardManager().getShardsTotal()+"**"
-                + "\nShard Connectivity: ```diff");
-        vortex.getShardManager().getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
-                .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus())
-                .append(" ~ ").append(jda.getGuildCache().size()).append(" guilds"));
-        sb.append("\n```");
+                + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb\n");
+        vortex.getMultiBotManager().getShardManagers().forEach(bot -> 
+        //Stream.of(vortex.getMultiBotManager()).forEach(bot -> 
+        {
+            User self = bot.getShards().get(0).getSelfUser();
+            sb.append("\n__**").append(self.getName()).append("** (").append(self.getId()).append(")__")
+                    .append("\nGuilds: **").append(bot.getGuildCache().size()).append("**")
+                    .append("\nAverage Ping: **").append(bot.getAverageGatewayPing()).append("**ms")
+                    .append("\nShard Total: **").append(bot.getShardsTotal()).append("**")
+                    .append("\nShard Connectivity: ```diff");
+            bot.getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
+                    .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus())
+                    .append(" ~ ").append(jda.getGuildCache().size()).append(" guilds"));
+            sb.append("\n```");
+        });
         event.reply(sb.toString().trim());
     }
 }

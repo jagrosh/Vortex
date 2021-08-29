@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.logging;
 
@@ -33,13 +33,13 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.audit.AuditLogChange;
-import net.dv8tion.jda.core.audit.AuditLogEntry;
-import net.dv8tion.jda.core.audit.AuditLogKey;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.AuditLogChange;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogKey;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,14 +77,14 @@ public class ModLogger
             }
             if(!toUpdate.isEmpty())
             {
-                LOG.info("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
+                LOG.debug("Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
                 try
                 {
                     long time, diff;
                     for(long gid: toUpdate)
                     {
                         time = System.currentTimeMillis();
-                        update(vortex.getShardManager().getGuildById(gid), 40);
+                        update(vortex.getMultiBotManager().getGuildById(gid), 40);
                         diff = System.currentTimeMillis() - time;
                         if(diff > 10000)
                             LOG.warn("Took " + diff + "ms to update " + gid);
@@ -109,6 +109,16 @@ public class ModLogger
                 needsUpdate.add(guild.getIdLong());
             }
         }, 2, TimeUnit.SECONDS);
+    }
+    
+    public Set<Long> getPending()
+    {
+        Set<Long> toUpdate;
+        synchronized(needsUpdate)
+        {
+            toUpdate = new HashSet<>(needsUpdate);
+        }
+        return toUpdate;
     }
     
     public int updateCase(Guild guild, int num, String reason)
@@ -223,7 +233,7 @@ public class ModLogger
         Role mRole = gs.getMutedRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;
@@ -269,7 +279,7 @@ public class ModLogger
                         continue; // restoring muted or gravel role (aka role persist) shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes = 0;
-                    User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
+                    User target = vortex.getMultiBotManager().getUserById(ale.getTargetIdLong());
                     if(target==null)
                         target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).complete();
                     ZoneId timezone = vortex.getDatabase().settings.getSettings(guild).getTimezone();
@@ -294,7 +304,7 @@ public class ModLogger
                     if(act==Action.UNBAN) // check for softban
                     {
                         Message banMsg = banLogCache.get(banCacheKey);
-                        if(banMsg!=null && banMsg.getCreationTime().plusMinutes(2).isAfter(ale.getCreationTime()))
+                        if(banMsg!=null && banMsg.getTimeCreated().plusMinutes(2).isAfter(ale.getTimeCreated()))
                         {
                             // This is a softban, because the user was banned by the same mod within the past 2 minutes
                             // We need to edit the existing modlog entry instead of making a new one
@@ -310,8 +320,8 @@ public class ModLogger
                         vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong());
                     }
                     String msg = FormatUtil.filterEveryone(minutes > 0 ? 
-                            LogUtil.modlogTimeFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
-                            LogUtil.modlogUserFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, target, reason));
+                            LogUtil.modlogTimeFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
+                            LogUtil.modlogUserFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, target, reason));
                     if(act==Action.BAN)
                         banLogCache.put(banCacheKey, modlog.sendMessage(msg).complete());
                     else
@@ -355,9 +365,9 @@ public class ModLogger
         }
     }
     
-    private static int getCaseNumber(Message m)
+    private int getCaseNumber(Message m)
     {
-        if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
+        if(!vortex.getMultiBotManager().getBotIds().contains(m.getAuthor().getIdLong()))
             return -1;
         if(!m.getContentRaw().startsWith("`["))
             return -1;

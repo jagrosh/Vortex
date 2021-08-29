@@ -2,6 +2,7 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
+ *
  */
 package com.jagrosh.vortex.commands.automod;
 
@@ -9,10 +10,10 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 
@@ -60,7 +61,7 @@ public class IgnoreCmd extends Command
                     builder.append("\n").append(r.getAsMention()).append(" [elevated perms]");
             });
             channels.forEach(c -> builder.append("\n").append(c.getAsMention()));
-            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2048) + "..." : builder.toString());
+            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2045) + "..." : builder.toString());
             event.reply(ebuilder.build());
             return;
         }
@@ -81,13 +82,13 @@ public class IgnoreCmd extends Command
         
         List<Role> roles = FinderUtil.findRoles(event.getArgs(), event.getGuild());
         if(roles.isEmpty())
-            event.replyError("No roles or text channels found for `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("No roles or text channels found for `"+event.getArgs()+"`"));
         else if (roles.size()==1)
         {
             vortex.getDatabase().ignores.ignore(roles.get(0));
-            event.replySuccess("Automod is now ignoring role `"+roles.get(0).getName()+"`");
+            event.replySuccess(FormatUtil.filterEveryone("Automod is now ignoring role `"+roles.get(0).getName()+"`"));
         }
         else
-            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(roles, event.getArgs())));
     }
 }

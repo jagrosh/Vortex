@@ -6,8 +6,8 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
-import net.dv8tion.jda.core.entities.Guild;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.json.JSONArray;
 
+@Slf4j
 public class InviteWhitelistManager extends DataManager
 {
     public static final int MAX_WHITELISTED_GUILDS = 80;
@@ -113,7 +115,7 @@ public class InviteWhitelistManager extends DataManager
         }
         catch(SQLException e)
         {
-            LoggerFactory.getLogger(DatabaseConnector.class).error("Exception in SQL: "+e);
+            log.error("Exception in SQL: "+e);
         }
     }
 
@@ -130,6 +132,14 @@ public class InviteWhitelistManager extends DataManager
         });
         cache.put(guild.getIdLong(), whitelist);
         return whitelist;
+    }
+    
+    public JSONArray getWhitelistJson(Guild guild)
+    {
+        List<Long> list = readWhitelist(guild);
+        JSONArray arr = new JSONArray();
+        list.forEach(arr::put);
+        return arr;
     }
 
     private void invalidateCache(Guild guild)

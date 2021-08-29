@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -28,8 +28,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -42,12 +43,12 @@ public class PunishmentManager extends DataManager
     private static final String STRIKES_TITLE = Action.STRIKE.getEmoji()+" Punishments";
     
     
-    public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + " It looks like you've set up some automoderation without assigning any punishments! "
-                                                     + "I've gone ahead and set up some default punishments; you can see the settings with `" + Constants.PREFIX 
-                                                     + "settings` and set or change any punishments with the `" + Constants.PREFIX+"punishment` command!";
-    private static final int[] DEFAULT_STRIKE_COUNTS = {2,               3,               4,           5,              6};
-    private static final Action[] DEFAULT_ACTIONS =    {Action.TEMPMUTE, Action.TEMPMUTE, Action.KICK, Action.TEMPBAN, Action.BAN};
-    private static final int[] DEFAULT_TIMES =         {10,              120,             0,           1440,           0};
+    //public static final String DEFAULT_SETUP_MESSAGE = "\n" + Constants.WARNING + " It looks like you've set up some automoderation without assigning any punishments! "
+    //                                                 + "I've gone ahead and set up some default punishments; you can see the settings with `" + Constants.PREFIX 
+    //                                                 + "settings` and set or change any punishments with the `" + Constants.PREFIX+"punishment` command!";
+    //private static final int[] DEFAULT_STRIKE_COUNTS = {2,               3,               4,           5,              6};
+    //private static final Action[] DEFAULT_ACTIONS =    {Action.TEMPMUTE, Action.TEMPMUTE, Action.KICK, Action.TEMPBAN, Action.BAN};
+    //private static final int[] DEFAULT_TIMES =         {10,              120,             0,           1440,           0};
     
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L);
     public static final SQLColumn<Integer> NUM_STRIKES = new IntegerColumn("NUM_STRIKES", false, 0);
@@ -65,7 +66,7 @@ public class PunishmentManager extends DataManager
         return GUILD_ID+", "+NUM_STRIKES;
     }
     
-    public boolean useDefaultSettings(Guild guild) // only activates if none set
+    /*public boolean useDefaultSettings(Guild guild) // only activates if none set
     {
         return readWrite(selectAll(GUILD_ID.is(guild.getId())), rs -> 
         {
@@ -82,7 +83,7 @@ public class PunishmentManager extends DataManager
             }
             return true;
         });
-    }
+    }*/
     
     public void removeAction(Guild guild, int numStrikes)
     {
@@ -131,6 +132,11 @@ public class PunishmentManager extends DataManager
         });
     }
     
+    public boolean hasPunishments(Guild guild)
+    {
+        return read(selectAll(GUILD_ID.is(guild.getId())), rs -> {return rs.next();});
+    }
+    
     public List<Punishment> getAllPunishments(Guild guild)
     {
         return read(selectAll(GUILD_ID.is(guild.getId())), rs -> 
@@ -170,6 +176,14 @@ public class PunishmentManager extends DataManager
                 .append(FormatUtil.capitalize(p.action.name())).append("** ").append(p.action.getEmoji())
                 .append(p.time>0 ? " "+FormatUtil.secondsToTimeCompact(p.time*60) : ""));
         return new Field(STRIKES_TITLE, sb.toString().trim(), true);
+    }
+    
+    public JSONObject getAllPunishmentsJson(Guild guild)
+    {
+        JSONObject obj = new JSONObject();
+        getAllPunishments(guild).forEach(p -> obj.put(Integer.toString(p.numStrikes), 
+                new JSONObject().put("action", p.action.toString()).put("time", p.time)));
+        return obj;
     }
     
     public class Punishment

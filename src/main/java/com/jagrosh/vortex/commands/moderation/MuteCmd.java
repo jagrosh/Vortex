@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -20,9 +20,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -43,7 +43,6 @@ public class MuteCmd extends ModCommand
         this.arguments = "<@users> [time] [reason]";
         this.help = "applies muted role to users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
-        this.guildOnly = true;
     }
 
     @Override
@@ -73,9 +72,9 @@ public class MuteCmd extends ModCommand
             return;
         }
         int minutes;
-        if(args.time < 0)
+        if(args.time < -1)
             throw new CommandErrorException("Timed mutes cannot be negative time!");
-        else if(args.time == 0)
+        else if(args.time == -1)
             minutes = 0;
         else if(args.time > 60)
             minutes = (int)Math.round(args.time/60.0);
@@ -121,7 +120,7 @@ public class MuteCmd extends ModCommand
         {
             Member m = toMute.get(i);
             boolean last = i+1 == toMute.size();
-            event.getGuild().getController().addSingleRoleToMember(m, muteRole).reason(reason).queue(success -> 
+            event.getGuild().addRoleToMember(m, muteRole).reason(reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully muted ").append(FormatUtil.formatUser(m.getUser())).append(time);
                 if(minutes>0)

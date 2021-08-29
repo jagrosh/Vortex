@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -19,9 +19,9 @@ import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -40,7 +40,6 @@ public class UnmuteCmd extends ModCommand
         this.arguments = "<@users> [reason]";
         this.help = "removes muted role from users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
-        this.guildOnly = true;
     }
 
     @Override
@@ -104,7 +103,7 @@ public class UnmuteCmd extends ModCommand
         {
             Member m = toUnmute.get(i);
             boolean last = i+1 == toUnmute.size();
-            event.getGuild().getController().removeSingleRoleFromMember(m, muteRole).reason(reason).queue(success -> 
+            event.getGuild().removeRoleFromMember(m, muteRole).reason(reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unmuted ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)

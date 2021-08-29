@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -19,7 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -42,11 +42,10 @@ public class BanCmd extends ModCommand
     {
         super(vortex, Permission.BAN_MEMBERS);
         this.name = "ban";
-        this.aliases = new String[]{"hackban","forceban"};
+        //this.aliases = new String[]{"hackban","forceban"};
         this.arguments = "<@users> [time] [reason]";
         this.help = "bans users";
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
-        this.guildOnly = true;
     }
 
     @Override
@@ -59,9 +58,9 @@ public class BanCmd extends ModCommand
             return;
         }
         int minutes;
-        if(args.time < 0)
+        if(args.time < -1)
             throw new CommandErrorException("Timed bans cannot be negative time!");
-        else if(args.time == 0)
+        else if(args.time == -1)
             minutes = 0;
         else if(args.time > 60)
             minutes = (int)Math.round(args.time/60.0);
@@ -104,7 +103,7 @@ public class BanCmd extends ModCommand
             long uid = ids.get(i);
             String id = Long.toString(uid);
             boolean last = i+1 == ids.size();
-            event.getGuild().getController().ban(id, daysToDelete, reason).queue(success -> 
+            event.getGuild().ban(id, daysToDelete, reason).queue(success -> 
             {
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully banned <@").append(id).append(">").append(time);
                 if(minutes>0)

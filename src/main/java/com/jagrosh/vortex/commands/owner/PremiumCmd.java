@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.owner;
 
@@ -22,7 +22,7 @@ import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.database.managers.PremiumManager.PremiumInfo;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 
 /**
  *
@@ -53,7 +53,7 @@ public class PremiumCmd extends Command
             return;
         }
         int seconds = OtherUtil.parseTime(parts[1]);
-        if(seconds == 0)
+        if(seconds <= 0)
         {
             event.replyError("Invalid time");
             return;
@@ -61,7 +61,7 @@ public class PremiumCmd extends Command
         Guild guild;
         try
         {
-            guild = vortex.getShardManager().getGuildById(Long.parseLong(parts[0]));
+            guild = vortex.getMultiBotManager().getGuildById(Long.parseLong(parts[0]));
         }
         catch(NumberFormatException ex)
         {

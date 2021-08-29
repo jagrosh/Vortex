@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.automod;
 
@@ -20,9 +20,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
 import com.jagrosh.vortex.utils.FormatUtil;
 
 /**
@@ -71,18 +71,18 @@ public class UnignoreCmd extends Command {
         
         List<Role> roles = FinderUtil.findRoles(event.getArgs(), event.getGuild());
         if(roles.isEmpty())
-            event.replyError("No roles or text channels found for `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("No roles or text channels found for `"+event.getArgs()+"`"));
         else if (roles.size()==1)
         {
             if(vortex.getDatabase().ignores.unignore(roles.get(0)))
                 event.replySuccess("Automod is no longer ignoring role `"+roles.get(0).getName()+"`");
             else
-                event.replyError("Automod was not ignoring role `"+roles.get(0).getName()+"`"
+                event.replyError(FormatUtil.filterEveryone("Automod was not ignoring role `"+roles.get(0).getName()+"`"
                         + "\n"+event.getClient().getWarning()+" If this role is still listed when using `"+event.getClient().getPrefix()+"ignore`:"
                         + "\n`[can't interact]` - the role is above "+event.getSelfUser().getName()+"'s highest role; try moving the '"+event.getSelfUser().getName()+"' role higher"
-                        + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator");
+                        + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator"));
         }
         else
-            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(roles, event.getArgs())));
     }
 }

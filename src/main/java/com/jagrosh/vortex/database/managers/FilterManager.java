@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -25,8 +25,9 @@ import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -88,6 +89,14 @@ public class FilterManager extends DataManager
         filters.forEach(f -> sb.append("\n**").append(f.name).append("** (`").append(f.strikes).append(" ")
                 .append(Action.STRIKE.getEmoji()).append("`): ").append(f.printContentEscaped()));
         return new Field(SETTINGS_TITLE, sb.toString().trim(), true);
+    }
+    
+    public JSONObject getFiltersJson(Guild guild)
+    {
+        List<Filter> filters = getFilters(guild);
+        JSONObject obj = new JSONObject();
+        filters.forEach(f -> obj.put(f.name, new JSONObject().put("strikes",f.strikes).put("content", f.printContent())));
+        return obj;
     }
     
     public boolean addFilter(Guild guild, Filter filter)

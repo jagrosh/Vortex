@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.general;
 
@@ -21,11 +21,11 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 
 /**
  *
@@ -73,7 +73,7 @@ public class ServerinfoCmd extends Command
         String str = LINESTART+"ID: **"+guild.getId()+"**\n"
                 +LINESTART+"Owner: "+FormatUtil.formatUser(guild.getOwner().getUser())+"\n"
                 +LINESTART+"Location: "+(guild.getRegion().getEmoji()==null ? NO_REGION : guild.getRegion().getEmoji())+" **"+guild.getRegion().getName()+"**\n"
-                +LINESTART+"Creation: **"+guild.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                +LINESTART+"Creation: **"+guild.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 +LINESTART+"Users: **"+guild.getMemberCache().size()+"** ("+onlineCount+" online, "+botCount+" bots)\n"
                 +LINESTART+"Channels: **"+guild.getTextChannelCache().size()+"** Text, **"+guild.getVoiceChannelCache().size()+"** Voice, **"+guild.getCategoryCache().size()+"** Categories\n"
                 +LINESTART+"Verification: **"+verif+"**";

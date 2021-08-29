@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -21,9 +21,9 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import com.jagrosh.vortex.utils.FormatUtil;
 
 /**
@@ -39,7 +39,6 @@ public class VoicemoveCmd extends ModCommand
         this.aliases = new String[]{"magnet"};
         this.help = "mass-moves voice channel users";
         this.arguments = "[channel]";
-        this.guildOnly = true;
     }
     
     @Override
@@ -66,7 +65,7 @@ public class VoicemoveCmd extends ModCommand
             }
             if(list.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfVoice(list, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfVoice(list, event.getArgs())));
                 return;
             }
             vc = list.get(0);
@@ -91,7 +90,7 @@ public class VoicemoveCmd extends ModCommand
         }
         catch(Exception e) 
         {
-            event.replyWarning("I could not connect to **"+vc.getName()+"**");
+            event.replyWarning(FormatUtil.filterEveryone("I could not connect to **"+vc.getName()+"**"));
             return;
         }
         vortex.getEventWaiter().waitForEvent(GuildVoiceMoveEvent.class,
@@ -99,7 +98,7 @@ public class VoicemoveCmd extends ModCommand
                     e.getGuild().equals(event.getGuild()) && e.getMember().equals(event.getGuild().getSelfMember()), 
                 (GuildVoiceMoveEvent e) -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
-                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().getController().moveVoiceMember(m, e.getChannelJoined()).queue());
+                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().moveVoiceMember(m, e.getChannelJoined()).queue());
                 }, 1, TimeUnit.MINUTES, () -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
                     event.replyWarning("You waited too long, "+event.getMember().getAsMention());

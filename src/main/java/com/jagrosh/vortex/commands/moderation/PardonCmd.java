@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -21,7 +21,7 @@ import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.ArgsUtil.ResolvedArgs;
 import com.jagrosh.vortex.utils.FormatUtil;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 /**
  *
@@ -35,7 +35,6 @@ public class PardonCmd extends ModCommand
         this.name = "pardon";
         this.arguments = "[numstrikes] <@users> <reason>";
         this.help = "removes strikes from users";
-        this.guildOnly = true;
     }
 
     @Override
@@ -100,7 +99,7 @@ public class PardonCmd extends ModCommand
             else
             {
                 strikes = fnumstrikes<strikes ? fnumstrikes : strikes;
-                vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getCreationTime(), id, strikes, args.reason);
+                vortex.getStrikeHandler().pardonStrikes(event.getMember(), event.getMessage().getTimeCreated(), id, strikes, args.reason);
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully pardoned `").append(strikes).append("` strikes from ").append(user);
             }
         });

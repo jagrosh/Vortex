@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.automod;
 
@@ -31,10 +31,10 @@ import okhttp3.Request;
  */
 public interface URLResolver
 {
-    public List<String> findRedirects(String url);
-    public void loadSafeDomains();
+    List<String> findRedirects(String url);
+    void loadSafeDomains();
     
-    public static class DummyURLResolver implements URLResolver
+    class DummyURLResolver implements URLResolver
     {
         @Override
         public List<String> findRedirects(String url)
@@ -46,7 +46,7 @@ public interface URLResolver
         public void loadSafeDomains() {}
     }
     
-    public static class ActiveURLResolver implements URLResolver
+    class ActiveURLResolver implements URLResolver
     {
         private final String prefix, suffix, form;
         private final OkHttpClient client = new OkHttpClient.Builder().build();
@@ -73,9 +73,10 @@ public interface URLResolver
                 return cache.get(url);
             try
             {
-                List<String> resolved = resolve(client
-                        .newCall(request.post(new FormBody.Builder().add(form, url).build()).build())
-                        .execute().body().string());
+                String resp = client
+                        .newCall(request.post(new FormBody.Builder().add(form, url).add("f", "true").build()).build())
+                        .execute().body().string();
+                List<String> resolved = resolve(resp);
                 cache.put(url, resolved);
                 System.out.println("Link Resolving: "+url+" -> "+resolved);
                 return resolved;
@@ -89,7 +90,6 @@ public interface URLResolver
         private List<String> resolve(String text)
         {
             List<String> list = new LinkedList<>();
-            boolean skip = true; // first link is always the link we gave
             for(int i=0; i<text.length(); )
             {
                 i = text.indexOf(prefix, i);
@@ -97,10 +97,9 @@ public interface URLResolver
                     break;
                 int first = i + prefix.length();
                 i = text.indexOf(suffix,first);
-                if(skip)
-                    skip = false;
-                else
-                    list.add(text.substring(first,i).trim());
+                String url = text.substring(first,i).trim();
+                if(list.isEmpty() || !list.get(list.size()-1).equals(url))
+                    list.add(url);
             }
             return list;
         }

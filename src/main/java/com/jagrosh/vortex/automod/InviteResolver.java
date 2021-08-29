@@ -11,13 +11,13 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.automod;
 
 import com.jagrosh.vortex.utils.FixedCache;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Invite;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Invite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,23 +27,17 @@ import org.slf4j.LoggerFactory;
  */
 public class InviteResolver
 {
-    private final JDA altBot;
     private final Logger log = LoggerFactory.getLogger(InviteResolver.class);
     private final FixedCache<String,Long> cached = new FixedCache<>(5000);
     
-    public InviteResolver(JDA altBot)
-    {
-        this.altBot = altBot;
-    }
-    
-    public long resolve(String code)
+    public long resolve(String code, JDA jda)
     {
         log.debug("Attempting to resolve " + code);
         if(cached.contains(code))
             return cached.get(code);
         try
         {
-            Invite i = Invite.resolve(altBot, code).complete(false);
+            Invite i = Invite.resolve(jda, code).complete(false);
             cached.put(code, i.getGuild().getIdLong());
             return i.getGuild().getIdLong();
         }

@@ -11,10 +11,12 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
@@ -33,52 +35,50 @@ import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
+
+import lombok.Getter;
+import net.dv8tion.jda.api.OnlineStatus;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
-import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
+import com.jagrosh.vortex.utils.MultiBotManager;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.EnumSet;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.requests.restaction.MessageAction;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
+ * Main class for Vortex
  * @author John Grosh (jagrosh)
  */
 public class Vortex
 {
     public static final Config config;
     private static final Logger LOGGER = LoggerFactory.getLogger(Vortex.class);
-    private final EventWaiter waiter;
-    private final ScheduledExecutorService threadpool;
-    private final Database database;
-    private final TextUploader uploader;
-    private final ShardManager shards;
-    private final ModLogger modlog;
-    private final BasicLogger basiclog;
-    private final MessageCache messages;
-    private final WebhookClient logwebhook;
-    private final AutoMod automod;
-    private final StrikeHandler strikehandler;
-    private final CommandExceptionListener listener;
-
+    private final @Getter EventWaiter eventWaiter;
+    private final @Getter ScheduledExecutorService threadpool;
+    private final @Getter Database database;
+    private final @Getter TextUploader textUploader;
+    private final @Getter MultiBotManager multiBotManager;
+    private final @Getter ModLogger modLogger;
+    private final @Getter BasicLogger basicLogger;
+    private final @Getter MessageCache messageCache;
+    private final @Getter WebhookClient logWebhook;
+    private final @Getter AutoMod autoMod;
+    private final @Getter StrikeHandler strikeHandler;
+    private final @Getter CommandExceptionListener listener;
 
     static {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
@@ -119,23 +119,22 @@ public class Vortex
 
     public Vortex() throws Exception
     {
-        JDA altBot = new JDABuilder(config.getString("alt-token")).build();
-        waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
-        threadpool = Executors.newScheduledThreadPool(100);
+        eventWaiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
+        threadpool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "vortex"));
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
-        uploader = new TextUploader(altBot, config.getLong("uploader.guild"), config.getLong("uploader.category"));
-        modlog = new ModLogger(this);
-        basiclog = new BasicLogger(this, config);
-        messages = new MessageCache();
-        logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
-        automod = new AutoMod(this, altBot, config);
-        strikehandler = new StrikeHandler(this);
+        textUploader = new TextUploader(config.getStringList("upload-webhooks"));
+        modLogger = new ModLogger(this);
+        basicLogger = new BasicLogger(this, config);
+        messageCache = new MessageCache();
+        logWebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
+        autoMod = new AutoMod(this, config);
+        strikeHandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
+                        .setActivity(Activity.playing(Constants.Wiki.PRIMARY_LINK))
                         .setOwnerId(Constants.OWNER_ID)
                         .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
@@ -171,6 +170,7 @@ public class Vortex
                             new PardonCmd(this),
                             new CheckCmd(this),
                             new ReasonCmd(this),
+                            new SlowmodeCmd(this),
 
 
                             // Settings
@@ -207,6 +207,7 @@ public class Vortex
                             new AnnounceCmd(),
                             new AuditCmd(),
                             new DehoistCmd(),
+                            new ExportCmd(this),
                             new InvitepruneCmd(this),
                             new LookupCmd(this),
                             new TagCmd(this),
@@ -230,94 +231,27 @@ public class Vortex
                         .setDiscordBotsKey(config.getString("listing.discord-bots"))
                         //.setCarbonitexKey(config.getString("listing.carbon"))
                         .build();
-        shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
-                .addEventListeners(new Listener(this), client, waiter)
+        MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL));
+        multiBotManager = new MultiBotManager.MultiBotManagerBuilder()
+                .addBot(config.getString("bot-token"), Constants.INTENTS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
+                .disableCache(CacheFlag.EMOTE, CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, CacheFlag.ONLINE_STATUS)
+                .addEventListeners(new Listener(this), client, eventWaiter)
                 .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
-                .setBulkDeleteSplittingEnabled(false)
-                .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
-                .setSessionController(new BlockingSessionController())
-                .setCompressionEnabled(false)
+                .setActivity(Activity.playing("loading..."))
                 .build();
         
-        modlog.start();
-        
-        threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
-        threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
-    }
-    
-    
-    // Getters
-    public EventWaiter getEventWaiter()
-    {
-        return waiter;
-    }
-    
-    public Database getDatabase()
-    {
-        return database;
-    }
-    
-    public ScheduledExecutorService getThreadpool()
-    {
-        return threadpool;
-    }
-    
-    public TextUploader getTextUploader()
-    {
-        return uploader;
-    }
-    
-    public ShardManager getShardManager()
-    {
-        return shards;
-    }
-    
-    public ModLogger getModLogger()
-    {
-        return modlog;
-    }
-    
-    public BasicLogger getBasicLogger()
-    {
-        return basiclog;
-    }
-    
-    public MessageCache getMessageCache()
-    {
-        return messages;
-    }
-    
-    public WebhookClient getLogWebhook()
-    {
-        return logwebhook;
-    }
-    
-    public AutoMod getAutoMod()
-    {
-        return automod;
-    }
-    
-    public StrikeHandler getStrikeHandler()
-    {
-        return strikehandler;
-    }
-    
-    public CommandExceptionListener getListener()
-    {
-        return listener;
-    }
+        modLogger.start();
 
-    // Global methods
-    @Deprecated
-    public void cleanPremium() {}
+        threadpool.scheduleWithFixedDelay(() -> database.tempbans.checkUnbans(multiBotManager), 0, 2, TimeUnit.MINUTES);
+        threadpool.scheduleWithFixedDelay(() -> database.tempmutes.checkUnmutes(multiBotManager, database.settings), 0, 45, TimeUnit.SECONDS);
+        threadpool.scheduleWithFixedDelay(() -> database.tempslowmodes.checkSlowmode(multiBotManager), 0, 45, TimeUnit.SECONDS);
+    }
 
     /**
      * @param args the command line arguments
-     * @throws java.lang.Exception
+     * @throws java.lang.Exception Any uncaught exception in the bot that may occur
      */
     public static void main(String[] args) throws Exception
     {

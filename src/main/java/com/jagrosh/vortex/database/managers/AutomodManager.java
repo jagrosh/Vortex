@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -24,8 +24,9 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -110,6 +111,26 @@ public class AutomodManager extends DataManager
                         ? "Disabled" 
                         : "`"+settings.dehoistChar+"` and above")
                 /*+ "\u200B"*/, true);
+    }
+    
+    public JSONObject getSettingsJson(Guild guild)
+    {
+        AutomodSettings settings = getSettings(guild);
+        return new JSONObject()
+                .put("copypastaStrikes", settings.copypastaStrikes)
+                .put("dehoistChar", ""+settings.dehoistChar)
+                .put("dupeDeleteThresh", settings.dupeDeleteThresh)
+                .put("dupeStrikeThresh", settings.dupeStrikeThresh)
+                .put("dupeStrikes", settings.dupeStrikes)
+                .put("everyoneStrikes", settings.everyoneStrikes)
+                .put("inviteStrikes", settings.inviteStrikes)
+                .put("maxLines", settings.maxLines)
+                .put("maxMentions", settings.maxMentions)
+                .put("maxRoleMentions", settings.maxRoleMentions)
+                .put("raidmodeNumber", settings.raidmodeNumber)
+                .put("raidmodeTime", settings.raidmodeTime)
+                .put("refStrikes", settings.refStrikes)
+                .put("resolveUrls", settings.resolveUrls);
     }
     
     public boolean hasSettings(Guild guild)

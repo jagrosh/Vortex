@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.settings;
 
@@ -22,11 +22,11 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 
 /**
  *
@@ -48,7 +48,7 @@ public class SetupCmd extends Command
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
-        this.children = new Command[]{new MuteSetupCmd(), new AutomodSetupCmd()};
+        this.children = new Command[]{new MuteSetupCmd()/*, new AutomodSetupCmd()*/};
     }
     
     @Override
@@ -82,8 +82,8 @@ public class SetupCmd extends Command
             {
                 event.getChannel().sendTyping().queue();
                 StringBuilder sb = new StringBuilder("**Automod setup complete!**");
-                if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
+                //if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
+                //    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
                 AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
                 if(ams.inviteStrikes==0)
                 {
@@ -187,7 +187,7 @@ public class SetupCmd extends Command
                 Role mutedRole;
                 if(role==null)
                 {
-                    mutedRole = event.getGuild().getController().createRole().setName("Muted").setPermissions().setColor(1).complete();
+                    mutedRole = event.getGuild().createRole().setName("Muted").setPermissions().setColor(1).complete();
                 }
                 else
                 {
@@ -197,13 +197,13 @@ public class SetupCmd extends Command
                 sb.append(event.getClient().getSuccess()).append(" Role initialized!\n");
                 m.editMessage(sb + Constants.LOADING+" Making Category overrides...").complete();
                 PermissionOverride po;
-                for(net.dv8tion.jda.core.entities.Category cat: event.getGuild().getCategories())
+                for(net.dv8tion.jda.api.entities.Category cat: event.getGuild().getCategories())
                 {
                     po = cat.getPermissionOverride(mutedRole);
                     if(po==null)
-                        cat.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        cat.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Category overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Text Channel overrides...").complete();
@@ -211,9 +211,9 @@ public class SetupCmd extends Command
                 {
                     po = tc.getPermissionOverride(mutedRole);
                     if(po==null)
-                        tc.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        tc.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.USE_PUBLIC_THREADS, Permission.USE_PRIVATE_THREADS).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Text Channel overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Voice Channel overrides...").complete();

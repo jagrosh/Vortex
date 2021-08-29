@@ -11,15 +11,15 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.automod;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 
 /**
  *
@@ -97,10 +97,10 @@ public class AntiduplicateCmd extends Command
             event.replySuccess("Anti-Duplicate has been disabled.");
             return;
         }
+        if(!vortex.getDatabase().actions.hasPunishments(event.getGuild()))
+            throw new CommandExceptionListener.CommandErrorException("Anti-Duplicate cannot be enabled without first setting at least one punishment.");
         vortex.getDatabase().automod.setDupeSettings(event.getGuild(), strikes, deleteThreshold, strikeThreshold);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
         event.replySuccess("Anti-Duplicate will now delete duplicates starting at duplicate **"+deleteThreshold
-                +"** and begin assigning **"+strikes+"** strikes for each duplicate starting at duplicate **"+strikeThreshold+"**."
-                +(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+                +"** and begin assigning **"+strikes+"** strikes for each duplicate starting at duplicate **"+strikeThreshold+"**.");
     }
 }

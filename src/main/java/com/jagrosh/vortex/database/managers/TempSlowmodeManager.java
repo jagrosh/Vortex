@@ -22,53 +22,51 @@ import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import com.jagrosh.vortex.utils.MultiBotManager;
 import com.jagrosh.vortex.utils.Pair;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.TextChannel;
+import org.json.JSONObject;
+
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Guild;
-import org.json.JSONObject;
 
 /**
  *
- * @author John Grosh (john.a.grosh@gmail.com)
+ * @author Michail K (mysteriouscursor+git@protonmail.com)
  */
-public class TempBanManager extends DataManager
+public class TempSlowmodeManager extends DataManager
 {
-    public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0);
-    public static final SQLColumn<Long> USER_ID = new LongColumn("USER_ID", false, 0);
+    public static final SQLColumn<Long> CHANNEL_ID = new LongColumn("CHANNEL_ID", false, 0, true);
     public static final SQLColumn<Instant> FINISH = new InstantColumn("FINISH", false, Instant.EPOCH);
-    
-    public TempBanManager(DatabaseConnector connector)
+
+    public TempSlowmodeManager(DatabaseConnector connector)
     {
-        super(connector, "TEMP_BANS");
+        super(connector, "TEMP_SLOWMODES");
     }
-    
-    @Override
-    protected String primaryKey()
+
+    public JSONObject getAllSlowmodesJson(Guild guild)
     {
-        return GUILD_ID+", "+USER_ID;
-    }
-    
-    public JSONObject getAllBansJson(Guild guild)
-    {
-        List<Pair<Long,Instant>> list = read(selectAll(GUILD_ID.is(guild.getId())), rs -> 
+        List<Pair<Long,Instant>> list = new ArrayList<>();
+        for(TextChannel channel : guild.getTextChannels())
         {
-            List<Pair<Long,Instant>> arr = new ArrayList<>();
-            while(rs.next())
-                arr.add(new Pair<>(USER_ID.getValue(rs), FINISH.getValue(rs)));
-            return arr;
-        });
+            read(selectAll(CHANNEL_ID.is(channel.getId())), rs ->
+            {
+                if(rs.next())
+                    list.add(new Pair<>(CHANNEL_ID.getValue(rs), FINISH.getValue(rs)));
+            });
+        }
+
         JSONObject json = new JSONObject();
         list.forEach(p -> json.put(Long.toString(p.getKey()), p.getValue().getEpochSecond()));
         return json;
     }
     
-    public void setBan(Guild guild, long userId, Instant finish)
+    public void setSlowmode(TextChannel channel, Instant finish)
     {
-        readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(userId)), rs -> 
+        readWrite(selectAll(CHANNEL_ID.is(channel.getId())), rs ->
         {
             if(rs.next())
             {
@@ -78,49 +76,49 @@ public class TempBanManager extends DataManager
             else
             {
                 rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
-                USER_ID.updateValue(rs, userId);
+                CHANNEL_ID.updateValue(rs, channel.getIdLong());
                 FINISH.updateValue(rs, finish);
                 rs.insertRow();
             }
         });
     }
     
-    public void clearBan(Guild guild, long userId)
+    public void clearSlowmode(TextChannel channel)
     {
-        readWrite(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(userId)), rs -> 
+        readWrite(selectAll(CHANNEL_ID.is(channel.getId())), rs ->
         {
             if(rs.next())
                 rs.deleteRow();
         });
     }
     
-    public int timeUntilUnban(Guild guild, long userId)
+    public int timeUntilDisableSlowmode(TextChannel channel)
     {
-        return read(selectAll(GUILD_ID.is(guild.getId())+" AND "+USER_ID.is(userId)), rs -> 
+        return read(selectAll(CHANNEL_ID.is(channel.getId())), rs ->
         {
             if(rs.next())
             {
                 Instant end = FINISH.getValue(rs);
                 if(end==Instant.MAX)
-                    return Integer.MAX_VALUE;
+                    return 0;
                 else
-                    return (int)(Instant.now().until(end, ChronoUnit.MINUTES));
+                    return (int)(Instant.now().until(end, ChronoUnit.SECONDS));
             }
             return 0;
         });
     }
     
-    public void checkUnbans(MultiBotManager shards)
+    public void checkSlowmode(MultiBotManager shards)
     {
         readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
         {
             while(rs.next())
             {
-                Guild g = shards.getGuildById(GUILD_ID.getValue(rs));
-                if(g==null || g.getMemberCache().isEmpty() || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                TextChannel tc = shards.getTextChannelById(CHANNEL_ID.getValue(rs));
+                if(tc==null)
                     continue;
-                g.unban(Long.toString(USER_ID.getValue(rs))).reason("Temporary Ban Completed").queue(s->{}, f->{});
+                if(tc.getGuild().getSelfMember().hasPermission(tc, Permission.MANAGE_CHANNEL))
+                    tc.getManager().setSlowmode(0).reason("Temporary Slowmode Completed").queue(s->{}, f->{});
                 rs.deleteRow();
             }
         });

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 John Grosh (john.a.grosh@gmail.com).
+ * Copyright 2020 John Grosh (john.a.grosh@gmail.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
-package com.jagrosh.vortex.commands.moderation;
+package com.jagrosh.vortex.utils;
 
-import com.jagrosh.vortex.Vortex;
+import lombok.Data;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class SilentbanCmd extends BanCmd
+@Data
+public class Pair<K,V>
 {
-    public SilentbanCmd(Vortex vortex)
-    {
-        super(vortex);
-        this.name = "silentban";
-        this.aliases = new String[]{};
-        this.help = "bans users without deleting messages";
-        this.daysToDelete = 0;
-    }
+    private final K key;
+    private final V value;
 }

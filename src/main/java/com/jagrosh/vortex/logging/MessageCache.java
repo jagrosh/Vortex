@@ -11,19 +11,22 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.utils.FixedCache;
+import com.jagrosh.vortex.utils.MultiBotManager;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.entities.Message.Attachment;
+
+import lombok.Getter;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.sharding.ShardManager;
 
 /**
  *
@@ -54,10 +57,12 @@ public class MessageCache
             return Collections.EMPTY_LIST;
         return cache.get(guild.getIdLong()).getValues().stream().filter(predicate).collect(Collectors.toList());
     }
-    
-    public class CachedMessage implements ISnowflake
+
+    public static class CachedMessage implements ISnowflake
     {
-        private final String content, username, discriminator;
+        private final String content;
+        private final @Getter String username;
+        private final @Getter String discriminator;
         private final long id, author, channel, guild;
         private final List<Attachment> attachments;
         
@@ -69,7 +74,7 @@ public class MessageCache
             username = message.getAuthor().getName();
             discriminator = message.getAuthor().getDiscriminator();
             channel = message.getChannel().getIdLong();
-            guild = message.getGuild()==null ? 0L : message.getGuild().getIdLong();
+            guild = message.isFromGuild() ? message.getGuild().getIdLong() : 0L;
             attachments = message.getAttachments();
         }
         
@@ -83,24 +88,29 @@ public class MessageCache
             return attachments;
         }
         
+        public User getAuthor(MultiBotManager botManager)
+        {
+            return botManager.getUserById(author);
+        }
+        
         public User getAuthor(ShardManager shardManager)
         {
             return shardManager.getUserById(author);
         }
         
-        public String getUsername()
-        {
-            return username;
-        }
-        
-        public String getDiscriminator()
-        {
-            return discriminator;
-        }
-        
         public long getAuthorId()
         {
             return author;
+        }
+        
+        public TextChannel getTextChannel(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            Guild g = botManager.getGuildById(guild);
+            if (g == null)
+                return null;
+            return g.getTextChannelById(channel);
         }
         
         public TextChannel getTextChannel(ShardManager shardManager)
@@ -121,6 +131,13 @@ public class MessageCache
         public TextChannel getTextChannel(Guild guild)
         {
             return guild.getTextChannelById(channel);
+        }
+        
+        public Guild getGuild(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            return botManager.getGuildById(guild);
         }
         
         public Guild getGuild(ShardManager shardManager)

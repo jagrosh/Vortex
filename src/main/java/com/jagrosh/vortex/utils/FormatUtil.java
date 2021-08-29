@@ -11,16 +11,16 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.utils;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.VoiceChannel;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
@@ -28,11 +28,9 @@ import java.awt.Color;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.*;
 
 /**
  *
@@ -48,7 +46,8 @@ public class FormatUtil {
         return input.replace("\u202E","") // RTL override
                 .replace("@everyone","@\u0435veryone") // cyrillic e
                 .replace("@here","@h\u0435re") // cyrillic e
-                .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
+                .replace("discord.gg/", "discord\u2024gg/") // one dot leader
+                .replace("@&", "\u0DB8&"); // role failsafe
     }
     
     public static String formatMessage(Message m)
@@ -253,7 +252,7 @@ public class FormatUtil {
     public static Message formatHelp(CommandEvent event, Vortex vortex)
     {
         EmbedBuilder builder = new EmbedBuilder()
-            .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
+            .setColor(!event.isFromType(ChannelType.TEXT) ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
         
         List<Command> commandsInCategory;
         String content;
@@ -304,5 +303,19 @@ public class FormatUtil {
                 + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
                 +  CMD_EMOJI + " [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
                 + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")";
+    }
+
+    public static String formatPing(long ping) {
+        String formattedPing = "";
+
+        if (ping >= 60000) {
+            formattedPing += (ping / 60000) + "m " ;
+        }
+
+        if (ping >= 1000) {
+            formattedPing += ((ping %= 60000) / 1000) + "s ";
+        }
+
+        return formattedPing + (ping % 1000) + "ms";
     }
 }

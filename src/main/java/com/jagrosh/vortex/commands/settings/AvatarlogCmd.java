@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.settings;
 
@@ -20,7 +20,7 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.LogCommand;
 import com.jagrosh.vortex.database.managers.PremiumManager;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
  *
@@ -49,7 +49,7 @@ public class AvatarlogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
+        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.ULTRA))
         {
             vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
             if(tc==null)
@@ -58,6 +58,6 @@ public class AvatarlogCmd extends LogCommand
                 event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
         }
         else
-            event.reply(PremiumManager.Level.PRO.getRequirementMessage());
+            event.reply(PremiumManager.Level.ULTRA.getRequirementMessage());
     }
 }

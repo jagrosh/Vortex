@@ -11,17 +11,16 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.Vortex;
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Category;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.TextChannel;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,30 +37,28 @@ public class TextUploader
      * message logs. 
      */
     private final Logger LOG = LoggerFactory.getLogger("Upload");
-    private final JDA altBot;
-    private final long categoryId;
-    private final long guildId;
+    private final List<WebhookClient> webhooks = new ArrayList<>();
     private int index = 0;
     
-    public TextUploader(JDA altBot, long guildId, long categoryId)
+    public TextUploader(List<String> urls)
     {
-        this.altBot = altBot;
-        this.guildId = guildId;
-        this.categoryId = categoryId;
+        urls.forEach(url -> webhooks.add(new WebhookClientBuilder(url).build()));
     }
     
-    public void upload(String content, String filename, Result done)
+    public synchronized void upload(String content, String filename, BiConsumer<String,String> done)
     {
-        Guild guild = altBot.getGuildById(guildId);
-        if(guild==null)
-            return;
-        Category category = guild.getCategoryById(categoryId);
-        List<TextChannel> list = category.getTextChannels();
-        list.get(index % list.size()).sendFile(content.getBytes(StandardCharsets.UTF_8), filename+".txt", null).queue(
-                m -> done.consume(
-                        "https://txt.discord.website?txt="+m.getAttachments().get(0).getUrl().substring(m.getAttachments().get(0).getUrl().indexOf("s/")+2, m.getAttachments().get(0).getUrl().length()-4), 
-                        m.getAttachments().get(0).getUrl()), 
-                f -> LOG.error("Failed to upload: "+f));
+        webhooks.get(index % webhooks.size()).send(content.getBytes(StandardCharsets.UTF_8), filename+".txt").whenCompleteAsync((msg, err) -> 
+        {
+            if(msg != null)
+            {
+                String url = msg.getAttachments().get(0).getUrl();
+                done.accept("https://txt.discord.website?txt=" + url.substring(url.indexOf("s/")+2, url.length()-4), url);
+            }
+            else if(err != null)
+            {
+                LOG.error("Failed to upload: ", err);
+            }
+        });
         index++;
     }
     

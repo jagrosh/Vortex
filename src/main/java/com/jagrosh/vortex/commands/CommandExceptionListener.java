@@ -11,15 +11,16 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.CommandListener;
+import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.Usage;
-import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.api.entities.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +37,9 @@ public class CommandExceptionListener implements CommandListener
     public void onCommandException(CommandEvent event, Command command, Throwable throwable)
     {
         if (throwable instanceof CommandErrorException)
-            event.replyError(throwable.getMessage());
+            event.replyError(FormatUtil.filterEveryone(throwable.getMessage()));
         else if (throwable instanceof CommandWarningException)
-            event.replyWarning(throwable.getMessage());
+            event.replyWarning(FormatUtil.filterEveryone(throwable.getMessage()));
         else
             log.error("An exception occurred in a command: "+command, throwable);
     }

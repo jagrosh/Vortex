@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.tools;
 
@@ -24,8 +24,8 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningExcept
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Invite;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Invite;
 
 /**
  *
@@ -48,7 +48,7 @@ public class InvitepruneCmd extends Command
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.guildOnly = true;
-        this.cooldown = 10;
+        this.cooldown = 60*5; // 5 minute cooldown for safety
     }
     
     @Override
@@ -76,7 +76,7 @@ public class InvitepruneCmd extends Command
     private void pruneInvites(int uses, CommandEvent event)
     {
         event.getChannel().sendTyping().queue();
-        event.getGuild().getInvites().queue(list -> 
+        event.getGuild().retrieveInvites().queue(list -> 
         {
             List<Invite> toPrune = list.stream().filter(i -> i.getInviter()!=null && !i.getInviter().isBot() && i.getUses()<=uses).collect(Collectors.toList());
             toPrune.forEach(i -> i.delete().queue());

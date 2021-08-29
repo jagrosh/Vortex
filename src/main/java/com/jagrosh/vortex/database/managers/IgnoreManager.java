@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -25,10 +25,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import org.json.JSONArray;
 
 /**
  *
@@ -45,6 +46,13 @@ public class IgnoreManager extends DataManager
     public IgnoreManager(DatabaseConnector connector)
     {
         super(connector, "IGNORED");
+    }
+    
+    public JSONArray getIgnoresJson(Guild guild)
+    {
+        JSONArray array = new JSONArray();
+        getIgnores(guild).forEach(id -> array.put(id));
+        return array;
     }
     
     public boolean isIgnored(TextChannel tc)

@@ -4,9 +4,9 @@ import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -90,7 +90,7 @@ public class GravelCmd extends ModCommand
         {
             Member m = toGravel.get(i);
             boolean last = i+1 == toGravel.size();
-            event.getGuild().getController().addSingleRoleToMember(m, gravelRole).reason(reason).queue(success ->
+            event.getGuild().addRoleToMember(m, gravelRole).reason(reason).queue(success ->
             {
                 vortex.getDatabase().gravels.gravel(event.getGuild(), m.getUser().getIdLong());
                 String user = FormatUtil.formatUser(m.getUser());

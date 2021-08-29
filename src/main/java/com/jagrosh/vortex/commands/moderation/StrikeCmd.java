@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -24,14 +24,15 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class StrikeCmd extends ModCommand
 {
     public StrikeCmd(Vortex vortex)
@@ -40,7 +41,6 @@ public class StrikeCmd extends ModCommand
         this.name = "strike";
         this.arguments = "[number] <@users> <reason>";
         this.help = "applies strikes to users";
-        this.guildOnly = true;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class StrikeCmd extends ModCommand
         List<Long> unknownIds = new LinkedList<>();
         args.ids.forEach(id -> 
         {
-            User u = vortex.getShardManager().getUserById(id);
+            User u = vortex.getMultiBotManager().getUserById(id);
             if(u==null)
                 unknownIds.add(id);
             else
@@ -136,7 +136,7 @@ public class StrikeCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
             else
             {
-                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), u, numstrikes, reason);
+                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getTimeCreated(), u, numstrikes, reason);
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(numstrikes)
                         .append("` strikes to ").append(FormatUtil.formatUser(u));
             }

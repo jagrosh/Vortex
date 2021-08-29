@@ -1,14 +1,10 @@
-
 package com.jagrosh.vortex.commands.general;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.OtherUtil;
-import net.dv8tion.jda.core.Permission;
 
-import java.time.temporal.ChronoUnit;
 import java.util.Random;
 
 public class RatCmd extends Command {

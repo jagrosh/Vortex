@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.automod;
 
@@ -27,22 +27,17 @@ import com.jagrosh.vortex.utils.Usage;
 import com.typesafe.config.Config;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +47,14 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoMod
 {
-    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|app\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
+    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|(?:app)?\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
             Pattern.CASE_INSENSITIVE);
     
     private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
     private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
     private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
-    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.gg)\\/(\\S+)";
+    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.com\\/invite|\\.gg)\\/(\\S+)";
     
     private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
@@ -70,16 +65,15 @@ public class AutoMod
     
     private String[] refLinkList;
     private final URLResolver urlResolver;
-    private final InviteResolver inviteResolver;
+    private final InviteResolver inviteResolver = new InviteResolver();
     private final CopypastaResolver copypastaResolver = new CopypastaResolver();
     private final FixedCache<String,DupeStatus> spams = new FixedCache<>(3000);
     private final HashMap<Long,OffsetDateTime> latestGuildJoin = new HashMap<>();
     private final Usage usage = new Usage();
     
-    public AutoMod(Vortex vortex, JDA altBot, Config config)
+    public AutoMod(Vortex vortex, Config config)
     {
         this.vortex = vortex;
-        this.inviteResolver = new InviteResolver(altBot);
         this.urlResolver = config.getBoolean("url-resolver.active") ? new ActiveURLResolver(config) : new DummyURLResolver();
         loadCopypastas();
         loadReferralDomains();
@@ -164,8 +158,8 @@ public class AutoMod
         else if(ams.useAutoRaidMode())
         {
             // find the time that we should be looking after, and count the number of people that joined after that
-            OffsetDateTime min = event.getMember().getJoinDate().minusSeconds(ams.raidmodeTime);
-            long recent = event.getGuild().getMemberCache().stream().filter(m -> !m.getUser().isBot() && m.getJoinDate().isAfter(min)).count();
+            OffsetDateTime min = event.getMember().getTimeJoined().minusSeconds(ams.raidmodeTime);
+            long recent = event.getGuild().getMemberCache().stream().filter(m -> !m.getUser().isBot() && m.getTimeJoined().isAfter(min)).count();
             if(recent>=ams.raidmodeNumber)
             {
                 enableRaidMode(event.getGuild(), event.getGuild().getSelfMember(), now, "Maximum join rate exceeded ("+ams.raidmodeNumber+"/"+ams.raidmodeTime+"s)");
@@ -180,7 +174,7 @@ public class AutoMod
                     {
                         try
                         {
-                            event.getGuild().getController().kick(event.getMember(), "Anti-Raid Mode").queue();
+                            event.getGuild().kick(event.getMember(), "Anti-Raid Mode").queue();
                         }catch(Exception ignore){}
                     });
         }
@@ -190,8 +184,8 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController()
-                            .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
+                    event.getGuild()
+                            .addRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild()))
                             .reason(RESTORE_MUTE_ROLE_AUDIT).queue();
                 } catch(Exception ignore){}
             }
@@ -199,8 +193,8 @@ public class AutoMod
             {
                 try
                 {
-                    event.getGuild().getController()
-                            .addSingleRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild()))
+                    event.getGuild()
+                            .addRoleToMember(event.getMember(), vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild()))
                             .reason(RESTORE_GRAVEL_ROLE_AUDIT).queue();
                 } catch(Exception ignore){}
             }
@@ -214,11 +208,11 @@ public class AutoMod
     private boolean shouldPerformAutomod(Member member, TextChannel channel)
     {
         // ignore users not in the guild
-        if(member==null || member.getGuild()==null)
+        if(member==null)
             return false;
         
         // ignore broken guilds
-        if(member.getGuild().getSelfMember()==null || member.getGuild().getOwner()==null)
+        if(member.getGuild().getOwner()==null)
             return false;
         
         // ignore bots
@@ -283,11 +277,9 @@ public class AutoMod
             return;
 
         // check the channel for channel-specific settings
-        boolean preventSpam = message.getTextChannel().getTopic()==null 
-                || !message.getTextChannel().getTopic().toLowerCase().contains("{spam}");
-        boolean preventInvites = (message.getTextChannel().getTopic()==null 
-                || !message.getTextChannel().getTopic().toLowerCase().contains("{invites}"))
-                && settings.inviteStrikes > 0;
+        String topic = message.getTextChannel().getTopic();
+        boolean preventSpam = topic==null || !topic.toLowerCase().contains("{spam}");
+        boolean preventInvites = (topic==null || !topic.toLowerCase().contains("{invites}")) && settings.inviteStrikes > 0;
 
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
@@ -317,7 +309,7 @@ public class AutoMod
                 if(offenses==settings.dupeDeleteThresh)
                 {
                     channelWarning = "Please stop spamming.";
-                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getCreationTime().plusMinutes(2).isAfter(now));
+                    purgeMessages(message.getGuild(), m -> m.getAuthorId()==message.getAuthor().getIdLong() && m.getTimeCreated().plusMinutes(2).isAfter(now));
                 }
                 else if(offenses>settings.dupeDeleteThresh)
                     shouldDelete = true;
@@ -444,7 +436,7 @@ public class AutoMod
             for(String inviteCode : invites)
             {
                 LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
-                long gid = inviteResolver.resolve(inviteCode);
+                long gid = inviteResolver.resolve(inviteCode, message.getJDA());
                 if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
                     strikeTotal += settings.inviteStrikes;
@@ -503,7 +495,7 @@ public class AutoMod
                             {
                                 String code = resolved.replaceAll(INVITE_LINK, "$1");
                                 LOG.info("Delayed resolving invite in " + message.getGuild().getId() + ": " + code);
-                                long invite = inviteResolver.resolve(code);
+                                long invite = inviteResolver.resolve(code, message.getJDA());
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
@@ -567,13 +559,22 @@ public class AutoMod
         return false;
     }
     
+    private final static List<String> ZEROWIDTH = Arrays.asList("\u00AD", "\u034F", "\u17B4", "\u17B5", "\u180B", "\u180C", "\u180D", 
+        "\u180E", "\u200B", "\u200C", "\u200D", "\u200E", "\u202A", "\u202C", "\u202D", "\u2060", "\u2061", "\u2062", 
+        "\u2063", "\u2064", "\u2065", "\u2066", "\u2067", "\u2068", "\u2069", "\u206A", "\u206B", "\u206C", "\u206D", 
+        "\u206E", "\u206F", "\uFE00", "\uFE01", "\uFE02", "\uFE03", "\uFE04", "\uFE05", "\uFE06", "\uFE07", "\uFE08", 
+        "\uFE09", "\uFE0A", "\uFE0B", "\uFE0C", "\uFE0D", "\uFE0E", "\uFE0F", "\uFEFF", "\uFFF0", "\uFFF1", "\uFFF2", 
+        "\uFFF3", "\uFFF4", "\uFFF5", "\uFFF6", "\uFFF7", "\uFFF8");
+    
     private static String condensedContent(Message m)
     {
         StringBuilder sb = new StringBuilder(m.getContentRaw());
         m.getAttachments().forEach(at -> sb.append("\n").append(at.getFileName()));
         try
         {
-            return sb.toString().trim().replaceAll(CONDENSER, "$1");
+            StringBuilder sb2 = new StringBuilder();
+            sb.toString().chars().filter(c -> !ZEROWIDTH.contains(Character.toString((char)c))).forEach(c -> sb2.append((char)c));
+            return sb2.toString().trim().replaceAll(CONDENSER, "$1");
         }
         catch(Exception ex)
         {
@@ -583,7 +584,7 @@ public class AutoMod
     
     private static OffsetDateTime latestTime(Message m)
     {
-        return m.isEdited() ? m.getEditedTime() : m.getCreationTime();
+        return m.isEdited() ? m.getTimeEdited(): m.getTimeCreated();
     }
     
     private class DupeStatus

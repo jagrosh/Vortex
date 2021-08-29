@@ -11,10 +11,11 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.logging;
 
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -27,19 +28,19 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateAvatarEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateDiscriminatorEvent;
-import net.dv8tion.jda.core.events.user.update.UserUpdateNameEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 
 /**
  *
@@ -94,9 +95,8 @@ public class BasicLogger
         try
         {
             usage.increment(tc.getGuild().getIdLong());
-            tc.sendFile(file, filename, new MessageBuilder()
-                .append(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
-                .build()).queue();
+            tc.sendMessage(FormatUtil.filterEveryone(LogUtil.basiclogFormat(now, vortex.getDatabase().settings.getSettings(tc.getGuild()).getTimezone(), emote, message)))
+                    .addFile(file, filename).queue();
         }
         catch(PermissionException ignore) {}
     }
@@ -107,7 +107,7 @@ public class BasicLogger
     {
         if(oldMessage==null)
             return;
-        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        TextChannel mtc = oldMessage.getTextChannel(vortex.getMultiBotManager());
         PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
@@ -125,7 +125,7 @@ public class BasicLogger
             edit.addField("To:", newm.length()>1024 ? newm.substring(0,1016)+" (...)" : newm, false);
         else
             edit.appendDescription("\n**To:** "+newm);
-        log(newMessage.getEditedTime()==null ? newMessage.getCreationTime() : newMessage.getEditedTime(), tc, EDIT, 
+        log(newMessage.getTimeEdited()==null ? newMessage.getTimeCreated(): newMessage.getTimeEdited(), tc, EDIT, 
                 FormatUtil.formatFullUser(newMessage.getAuthor())+" edited a message in "+newMessage.getTextChannel().getAsMention()+":", edit.build());
     }
     
@@ -133,10 +133,10 @@ public class BasicLogger
     {
         if(oldMessage==null)
             return;
-        Guild guild = oldMessage.getGuild(vortex.getShardManager());
+        Guild guild = oldMessage.getGuild(vortex.getMultiBotManager());
         if(guild==null)
             return;
-        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        TextChannel mtc = oldMessage.getTextChannel(vortex.getMultiBotManager());
         PermissionOverride po = mtc.getPermissionOverride(guild.getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
@@ -149,7 +149,7 @@ public class BasicLogger
         EmbedBuilder delete = new EmbedBuilder()
                 .setColor(Color.RED)
                 .appendDescription(formatted);
-        User author = oldMessage.getAuthor(vortex.getShardManager());
+        User author = oldMessage.getAuthor(vortex.getMultiBotManager());
         String user = author==null ? FormatUtil.formatCachedMessageFullUser(oldMessage) : FormatUtil.formatFullUser(author);
         log(OffsetDateTime.now(), tc, DELETE, user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
     }
@@ -166,7 +166,7 @@ public class BasicLogger
             //log(OffsetDateTime.now(), tc, "\uD83D\uDEAE", "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged)", null);
             return;
         }
-        TextChannel mtc = messages.get(0).getTextChannel(vortex.getShardManager());
+        TextChannel mtc = messages.get(0).getTextChannel(vortex.getMultiBotManager());
         PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
@@ -178,12 +178,12 @@ public class BasicLogger
             EmbedBuilder delete = new EmbedBuilder()
                     .setColor(Color.RED)
                     .appendDescription(formatted);
-            User author = messages.get(0).getAuthor(vortex.getShardManager());
+            User author = messages.get(0).getAuthor(vortex.getMultiBotManager());
             String user = author==null ? FormatUtil.formatCachedMessageFullUser(messages.get(0)) : FormatUtil.formatFullUser(author);
             log(OffsetDateTime.now(), tc, DELETE, user+"'s message has been deleted from "+mtc.getAsMention()+":", delete.build());
             return;
         }
-        vortex.getTextUploader().upload(LogUtil.logCachedMessagesForwards("Deleted Messages", messages, vortex.getShardManager()), "DeletedMessages", (view, download) ->
+        vortex.getTextUploader().upload(LogUtil.logCachedMessagesForwards("Deleted Messages", messages, vortex.getMultiBotManager()), "DeletedMessages", (view, download) ->
         {
             log(OffsetDateTime.now(), tc, BULK_DELETE, "**"+count+"** messages were deleted from "+text.getAsMention()+" (**"+messages.size()+"** logged):", 
                 new EmbedBuilder().setColor(Color.RED.darker().darker())
@@ -206,11 +206,12 @@ public class BasicLogger
     
     
     // Server Logs
-    
+    // Name change logs need to be handled specially because they are not guild-specific events, but only one
+    // bot (pro vs normal) should ever log them.
     public void logNameChange(UserUpdateNameEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        event.getUser().getMutualGuilds().stream()
+        vortex.getMultiBotManager().getMutualGuilds(event.getUser().getIdLong()).stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
             .filter(tc -> tc!=null)
             .forEachOrdered(tc ->
@@ -223,7 +224,7 @@ public class BasicLogger
     public void logNameChange(UserUpdateDiscriminatorEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        event.getUser().getMutualGuilds().stream()
+        vortex.getMultiBotManager().getMutualGuilds(event.getUser().getIdLong()).stream()
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
             .filter(tc -> tc!=null)
             .forEachOrdered(tc ->
@@ -239,32 +240,37 @@ public class BasicLogger
         if(tc==null)
             return;
         OffsetDateTime now = OffsetDateTime.now();
-        long seconds = event.getUser().getCreationTime().until(now, ChronoUnit.SECONDS);
+        long seconds = event.getUser().getTimeCreated().until(now, ChronoUnit.SECONDS);
         log(now, tc, JOIN, FormatUtil.formatFullUser(event.getUser())+" joined the server. "
                 +(seconds<16*60 ? NEW : "")
-                +"\nCreation: "+event.getUser().getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)", null);
+                +"\nCreation: "+event.getUser().getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)", null);
     }
     
-    public void logGuildLeave(GuildMemberLeaveEvent event)
+    public void logGuildLeave(GuildMemberRemoveEvent event)
     {
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getServerLogChannel(event.getGuild());
         if(tc==null)
             return;
         OffsetDateTime now = OffsetDateTime.now();
-        long seconds = event.getMember().getJoinDate().until(now, ChronoUnit.SECONDS);
-        StringBuilder rlist;
-        if(event.getMember().getRoles().isEmpty())
-            rlist = new StringBuilder();
-        else
+        String msg = FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server.";
+        Member member = event.getMember();
+        if(member != null)
         {
-            rlist= new StringBuilder("\nRoles: `"+event.getMember().getRoles().get(0).getName());
-            for(int i=1; i<event.getMember().getRoles().size(); i++)
-                rlist.append("`, `").append(event.getMember().getRoles().get(i).getName());
-            rlist.append("`");
+            long seconds = member.getTimeJoined().until(now, ChronoUnit.SECONDS);
+            StringBuilder rlist;
+            if(member.getRoles().isEmpty())
+                rlist = new StringBuilder();
+            else
+            {
+                rlist= new StringBuilder("\nRoles: `"+member.getRoles().get(0).getName());
+                for(int i=1; i<member.getRoles().size(); i++)
+                    rlist.append("`, `").append(member.getRoles().get(i).getName());
+                rlist.append("`");
+            }
+            msg += "\nJoined: " + member.getTimeJoined().format(DateTimeFormatter.RFC_1123_DATE_TIME) 
+                    + " (" + FormatUtil.secondsToTimeCompact(seconds) + " ago)" + rlist.toString();
         }
-        log(now, tc, LEAVE, FormatUtil.formatFullUser(event.getUser())+" left or was kicked from the server. "
-                +"\nJoined: "+event.getMember().getJoinDate().format(DateTimeFormatter.RFC_1123_DATE_TIME)+" ("+FormatUtil.secondsToTimeCompact(seconds)+" ago)"
-                +rlist.toString(), null);
+        log(now, tc, LEAVE, msg, null);
     }
     
     
@@ -275,7 +281,7 @@ public class BasicLogger
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
-        log(OffsetDateTime.now(), tc, "<:voicejoin:314044543605407757>", FormatUtil.formatFullUser(event.getMember().getUser())
+        log(OffsetDateTime.now(), tc, Emoji.VOICE_JOIN, FormatUtil.formatFullUser(event.getMember().getUser())
                 +" has joined voice channel _"+event.getChannelJoined().getName()+"_", null);
     }
     
@@ -284,7 +290,7 @@ public class BasicLogger
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
-        log(OffsetDateTime.now(), tc, "<:voicechange:314043907992190987>", FormatUtil.formatFullUser(event.getMember().getUser())
+        log(OffsetDateTime.now(), tc, Emoji.VOICE_CHANGE, FormatUtil.formatFullUser(event.getMember().getUser())
                 +" has moved voice channels from _"+event.getChannelLeft().getName()+"_ to _"+event.getChannelJoined().getName()+"_", null);
     }
     
@@ -293,7 +299,7 @@ public class BasicLogger
         TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getVoiceLogChannel(event.getGuild());
         if(tc==null)
             return;
-        log(OffsetDateTime.now(), tc, "<:voiceleave:314044543609864193>", FormatUtil.formatFullUser(event.getMember().getUser())
+        log(OffsetDateTime.now(), tc, Emoji.VOICE_LEAVE, FormatUtil.formatFullUser(event.getMember().getUser())
                 +" has left voice channel _"+event.getChannelLeft().getName()+"_", null);
     }
     
@@ -314,7 +320,7 @@ public class BasicLogger
             byte[] im = avatarSaver.makeAvatarImage(event.getUser(), event.getOldAvatarUrl(), event.getOldAvatarId());
             if(im!=null)
                 logs.forEach(tc -> logFile(now, tc, AVATAR, FormatUtil.formatFullUser(event.getUser())+" has changed avatars"
-                        +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " <:gif:314068430624129039>" : "")
+                        +(event.getUser().getAvatarId()!=null && event.getUser().getAvatarId().startsWith("a_") ? " " + Emoji.GIF_AVATAR : "")
                         +":", im, "AvatarChange.png"));
         });
     }

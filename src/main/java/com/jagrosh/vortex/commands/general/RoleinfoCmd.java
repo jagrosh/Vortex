@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.general;
 
@@ -24,11 +24,11 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorExceptio
 import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
 /**
  *
@@ -69,7 +69,7 @@ public class RoleinfoCmd extends Command
             }
             else if(found.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfRoles(found, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(found, event.getArgs())));
                 return;
             }
             else
@@ -81,7 +81,7 @@ public class RoleinfoCmd extends Command
         String title = ROLE_EMOJI + " Information about **"+role.getName()+"**:";
         List<Member> list = role.isPublicRole() ? event.getGuild().getMembers() : event.getGuild().getMembersWithRoles(role);
         StringBuilder desr = new StringBuilder(LINESTART+"ID: **"+role.getId()+"**\n"
-                + LINESTART+"Creation: **"+role.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
+                + LINESTART+"Creation: **"+role.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
                 + LINESTART+"Position: **"+role.getPosition()+"**\n"
                 + LINESTART+"Color: **#"+(role.getColor()==null ? "000000" : Integer.toHexString(role.getColor().getRGB()).toUpperCase().substring(2))+"**\n"
                 + LINESTART+"Mentionable: **"+role.isMentionable()+"**\n"

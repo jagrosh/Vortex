@@ -6,5 +6,7 @@
 /database/
 /.idea/
 nb*.xml
-*.conf
+application.conf
+*.db
+*.iml
 /nbproject/

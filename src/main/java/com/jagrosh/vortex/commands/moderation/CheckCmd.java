@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -22,11 +22,11 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild.Ban;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild.Ban;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -40,7 +40,6 @@ public class CheckCmd extends ModCommand
         this.name = "check";
         this.arguments = "<user>";
         this.help = "checks a user";
-        this.guildOnly = true;
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
     }
     
@@ -68,7 +67,7 @@ public class CheckCmd extends ModCommand
         try
         {
             Long uid = Long.parseLong(event.getArgs());
-            User u = vortex.getShardManager().getUserById(uid);
+            User u = vortex.getMultiBotManager().getUserById(uid);
             if(u!=null)
                 check(event, u);
             else
@@ -78,7 +77,7 @@ public class CheckCmd extends ModCommand
         }
         catch(Exception ex)
         {
-            event.replyError("Could not find a user `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("Could not find a user `"+event.getArgs()+"`"));
         }
     }
     
@@ -87,7 +86,7 @@ public class CheckCmd extends ModCommand
         if(event.getGuild().isMember(user))
             check(event, user, null);
         else
-            event.getGuild().getBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
+            event.getGuild().retrieveBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
     }
     
     private void check(CommandEvent event, User user, Ban ban)
@@ -104,6 +103,6 @@ public class CheckCmd extends ModCommand
                 + Action.TEMPMUTE.getEmoji() + " Mute Time Remaining: " + (minutesMuted <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesMuted * 60)) + "\n"
                 + Action.BAN.getEmoji() + " Banned: **" + (ban==null ? "No**" : "Yes** (`" + ban.getReason() + "`)") + "\n"
                 + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (minutesBanned <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesBanned * 60));
-        event.replySuccess(str);
+        event.replySuccess(FormatUtil.filterEveryone(str));
     }
 }

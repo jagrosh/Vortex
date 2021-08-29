@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.automod;
 
@@ -22,9 +22,10 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.database.managers.PremiumManager;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import com.jagrosh.vortex.utils.FormatUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 
 /**
  *
@@ -113,8 +114,8 @@ public class FilterCmd extends Command
                 Filter filter = Filter.parseFilter(parts[0], strikes, parts[2]);
                 if(vortex.getDatabase().filters.addFilter(event.getGuild(), filter))
                 {
-                    event.replySuccess("Filter *" + filter.name + "* (`" + filter.strikes + " " + Action.STRIKE.getEmoji() 
-                            + "`) successfully created with filtered terms:\n" + filter.printContentEscaped());
+                    event.replySuccess(FormatUtil.filterEveryone("Filter *" + filter.name + "* (`" + filter.strikes + " " + Action.STRIKE.getEmoji() 
+                            + "`) successfully created with filtered terms:\n" + filter.printContentEscaped()));
                 }
                 else
                 {
@@ -153,11 +154,11 @@ public class FilterCmd extends Command
             Filter filter = vortex.getDatabase().filters.deleteFilter(event.getGuild(), event.getArgs());
             if(filter == null)
             {
-                event.replyError("Filter `" + event.getArgs() + "` could not be found");
+                event.replyError(FormatUtil.filterEveryone("Filter `" + event.getArgs() + "` could not be found"));
             }
             else
             {
-                event.replySuccess("Removed filter `" + filter.name + "`");
+                event.replySuccess(FormatUtil.filterEveryone("Removed filter `" + filter.name + "`"));
             }
         }
     }
@@ -181,7 +182,7 @@ public class FilterCmd extends Command
             Field field = vortex.getDatabase().filters.getFiltersDisplay(event.getGuild());
             if(field == null)
             {
-                event.replyWarning("There are no filters for **" + event.getGuild().getName() + "**");
+                event.replyWarning(FormatUtil.filterEveryone("There are no filters for **" + event.getGuild().getName() + "**"));
                 return;
             }
             
