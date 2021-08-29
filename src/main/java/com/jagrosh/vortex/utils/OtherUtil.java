@@ -58,7 +58,7 @@ public class OtherUtil
                 break;
             }
         }
-        m.modifyNickname(newname).reason("Dehoisting").queue();
+        m.modifyNickname(newname).reason("Dehoisting").queue(s -> {}, f -> {});
         return true;
     }
     

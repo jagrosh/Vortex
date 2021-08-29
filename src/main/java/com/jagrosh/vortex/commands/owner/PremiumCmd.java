@@ -22,6 +22,7 @@ import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.database.managers.PremiumManager.PremiumInfo;
 import com.jagrosh.vortex.utils.OtherUtil;
 import java.time.temporal.ChronoUnit;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.entities.Guild;
 
 /**
@@ -41,6 +42,7 @@ public class PremiumCmd extends Command
         this.ownerCommand = true;
         this.guildOnly = false;
         this.hidden = true;
+        this.children = new Command[]{ new PremiumInfoCmd() };
     }
 
     @Override
@@ -77,5 +79,28 @@ public class PremiumCmd extends Command
         vortex.getDatabase().premium.addPremium(guild, PremiumManager.Level.PRO, seconds, ChronoUnit.SECONDS);
         PremiumInfo after = vortex.getDatabase().premium.getPremiumInfo(guild);
         event.replySuccess("Before: " + before + "\n" + event.getClient().getSuccess() + " After: " + after);
+    }
+    
+    private class PremiumInfoCmd extends Command
+    {
+        private PremiumInfoCmd()
+        {
+            this.name = "info";
+            this.help = "shows premium info";
+            this.ownerCommand = true;
+            this.guildOnly = false;
+            this.hidden = true;
+        }
+        
+        @Override
+        protected void execute(CommandEvent event)
+        {
+            event.reply(vortex.getDatabase().premium.getPremiumGuildsInfo().entrySet().stream()
+                    .map(pinfo -> 
+                    {
+                        Guild guild = vortex.getShardManager().getGuildById(pinfo.getKey());
+                        return pinfo.getKey() + " (" + (guild == null ? "unknown" : "**" + guild.getName() + "**") + ") " + pinfo.getValue().toString();
+                    }).collect(Collectors.joining("\n")));
+        }
     }
 }

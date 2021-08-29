@@ -374,6 +374,11 @@ public class AutoMod
     {
         if(!settings.useAntiDuplicate())
             return;
+        // This is a temporary measure to reduce some potentially-high CPU traffic that may
+        // be unnecessary. These are the default values from when anti-duplicate was automatically
+        // set up when automod was set up.
+        if(settings.dupeStrikes == 1 && settings.dupeDeleteThresh == 2 && settings.dupeStrikeThresh == 4)
+            return;
         String key = message.getAuthor().getId()+"|"+message.getGuild().getId();
         String content = condensedContent(message);
         DupeStatus status = spams.get(key);

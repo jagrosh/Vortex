@@ -211,9 +211,10 @@ public class BasicLogger
     public void logNameChange(UserUpdateNameEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        vortex.getShardManager().getMutualGuilds(event.getUser().getIdLong()).stream()
+        event.getJDA().getMutualGuilds(event.getEntity()).stream()
+            .filter(guild -> vortex.getShardManager().isHighestAccount(guild))
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
-            .filter(tc -> tc!=null)
+            .filter(tc -> tc!=null).distinct()
             .forEachOrdered(tc ->
             {
                 log(now, tc, NAME, "**"+event.getOldName()+"**#"+event.getUser().getDiscriminator()+" (ID:"
@@ -224,9 +225,10 @@ public class BasicLogger
     public void logNameChange(UserUpdateDiscriminatorEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
-        vortex.getShardManager().getMutualGuilds(event.getUser().getIdLong()).stream()
+        event.getJDA().getMutualGuilds(event.getEntity()).stream()
+            .filter(guild -> vortex.getShardManager().isHighestAccount(guild))
             .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
-            .filter(tc -> tc!=null)
+            .filter(tc -> tc!=null).distinct()
             .forEachOrdered(tc ->
             {
                 log(now, tc, NAME, "**"+event.getUser().getName()+"**#"+event.getOldDiscriminator()+" (ID:"

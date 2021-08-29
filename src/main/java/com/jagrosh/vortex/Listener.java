@@ -19,12 +19,14 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.JDA.ShardInfo;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.GenericEvent;
 import net.dv8tion.jda.api.events.ReadyEvent;
 import net.dv8tion.jda.api.events.channel.text.update.TextChannelUpdateSlowmodeEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
@@ -50,10 +52,12 @@ public class Listener implements EventListener
 {
     private final static Logger LOG = LoggerFactory.getLogger("Listener");
     private final Vortex vortex;
+    private final List<String> pruneTerms;
     
     public Listener(Vortex vortex)
     {
         this.vortex = vortex;
+        this.pruneTerms = vortex.getConfig().getStringList("prune-terms");
     }
 
     @Override
@@ -210,6 +214,18 @@ public class Listener implements EventListener
         else if (event instanceof TextChannelUpdateSlowmodeEvent)
         {
             vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
+        }
+        else if (event instanceof GuildJoinEvent)
+        {
+            Guild guild = ((GuildJoinEvent)event).getGuild();
+            String lower = guild.getName().toLowerCase();
+            for(String term: pruneTerms)
+                if(lower.contains(term))
+                {
+                    LOG.info("Leaving " + guild + " due to filtered term '" + term + "'");
+                    guild.leave().queue();
+                    break;
+                }
         }
         else if (event instanceof ReadyEvent)
         {

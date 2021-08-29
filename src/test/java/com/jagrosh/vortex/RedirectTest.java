@@ -16,6 +16,9 @@
 package com.jagrosh.vortex;
 
 import com.jagrosh.vortex.automod.URLResolver;
+import com.jagrosh.vortex.automod.URLResolver.ActiveURLResolver;
+import com.jagrosh.vortex.automod.URLResolver.DummyURLResolver;
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import java.util.List;
 import org.junit.Test;
@@ -30,7 +33,11 @@ public class RedirectTest
     @Test
     public void redirectTest()
     {
-        URLResolver resolver = new URLResolver.ActiveURLResolver(ConfigFactory.load());
+        Config config = ConfigFactory.load();
+        URLResolver resolver = config.getBoolean("url-resolver.active") ? new ActiveURLResolver(config) : new DummyURLResolver();
+        if(resolver instanceof URLResolver.DummyURLResolver)
+            return;
+        
         List<String> redir1 = resolver.findRedirects("https://tinyurl.com/yggtreehouse");
         System.out.println(redir1);
         assertFalse(redir1.isEmpty());

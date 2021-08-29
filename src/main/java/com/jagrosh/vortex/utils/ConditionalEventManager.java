@@ -64,10 +64,13 @@ public abstract class ConditionalEventManager extends InterfacedEventManager
         {
             for(ShardManager bot: getOrderedShardManagers())
             {
+                // if we find the account that got this event, break the loop and run the event
                 if(bot.getShards().get(0).getSelfUser().getIdLong() == selfId)
                 {
                     break;
                 }
+                // however, if we first encounter a different account that can see this guild,
+                // return and ignore the event completely
                 if(bot.getGuildById(guildId) != null)
                 {
                     return;
@@ -80,10 +83,13 @@ public abstract class ConditionalEventManager extends InterfacedEventManager
         {
             for(ShardManager bot: getOrderedShardManagers())
             {
+                // if we iterate to the account that got this event, break the loop and run the event
                 if(bot.getShards().get(0).getSelfUser().getIdLong() == selfId)
                 {
                     break;
                 }
+                // however, if we first encounter a different account that already can see this user,
+                // return and ignore the event
                 if(bot.getUserById(((GenericUserUpdateEvent)ge).getUser().getIdLong()) != null)
                 {
                     return;

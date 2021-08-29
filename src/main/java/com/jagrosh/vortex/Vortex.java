@@ -73,11 +73,12 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
+    private final Config config;
     
     public Vortex() throws Exception
     {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
-        Config config = ConfigFactory.load();
+        config = ConfigFactory.load();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
         threadpool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "vortex"));
         database = new Database(config.getString("database.host"), 
@@ -266,6 +267,10 @@ public class Vortex
         return listener;
     }
     
+    public Config getConfig()
+    {
+        return config;
+    }
     
     // Global methods
     public void cleanPremium()

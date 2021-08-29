@@ -66,34 +66,38 @@ public class ModLogger
         if(isStarted)
             return;
         isStarted=true;
-        
         vortex.getThreadpool().scheduleWithFixedDelay(()->
         {
-            Set<Long> toUpdate;
-            synchronized(needsUpdate)
+            try
             {
-                toUpdate = new HashSet<>(needsUpdate);
-                needsUpdate.clear();
-            }
-            if(!toUpdate.isEmpty())
-            {
-                LOG.debug("Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
-                try
+                Set<Long> toUpdate;
+                synchronized(needsUpdate)
                 {
-                    long time, diff;
-                    for(long gid: toUpdate)
-                    {
-                        time = System.currentTimeMillis();
-                        update(vortex.getShardManager().getGuildById(gid), 40);
-                        diff = System.currentTimeMillis() - time;
-                        if(diff > 10000)
-                            LOG.warn("Took " + diff + "ms to update " + gid);
-                    }
-                } catch(Exception ex)
-                {
-                    LOG.error("Exception thrown during modlog update loop: "+ex);
-                    ex.printStackTrace();
+                    toUpdate = new HashSet<>(needsUpdate);
+                    needsUpdate.clear();
                 }
+                if(!toUpdate.isEmpty())
+                {
+                    LOG.debug("Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
+                    try
+                    {
+                        toUpdate.parallelStream().forEach(gid -> 
+                        {
+                            long time = System.currentTimeMillis();
+                            update(vortex.getShardManager().getGuildById(gid), 40);
+                            long diff = System.currentTimeMillis() - time;
+                            if(diff > 10000)
+                                LOG.warn("Took " + diff + "ms to update " + gid);
+                        });
+                    } catch(Exception ex)
+                    {
+                        LOG.error("Exception thrown during modlog update loop: "+ex);
+                        ex.printStackTrace();
+                    }
+                }
+            } catch(Exception ex)
+            {
+                ex.printStackTrace();
             }
         }, 0, 3, TimeUnit.SECONDS);
     }
@@ -108,7 +112,7 @@ public class ModLogger
             {
                 needsUpdate.add(guild.getIdLong());
             }
-        }, 2, TimeUnit.SECONDS);
+        }, 3, TimeUnit.SECONDS);
     }
     
     public Set<Long> getPending()
@@ -233,7 +237,12 @@ public class ModLogger
         Role mRole = gs.getMutedRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
+            long time = System.currentTimeMillis();
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(10, TimeUnit.SECONDS);
+            long diff = System.currentTimeMillis() - time;
+            LOG.debug("Retrieved " + list.size() + " logs from " + guild.getId());
+            if(diff > 5000)
+                LOG.warn("Took " + diff + "ms to retrieve audit logs from " + guild.getId());
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;
@@ -281,7 +290,7 @@ public class ModLogger
                     int minutes = 0;
                     User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
                     if(target==null)
-                        target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).complete();
+                        target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).submit().get(5, TimeUnit.SECONDS);
                     ZoneId timezone = vortex.getDatabase().settings.getSettings(guild).getTimezone();
                     if(mod.isBot())
                     {
@@ -323,7 +332,7 @@ public class ModLogger
                             LogUtil.modlogTimeFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
                             LogUtil.modlogUserFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, target, reason));
                     if(act==Action.BAN)
-                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).complete());
+                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).submit().get(4, TimeUnit.SECONDS));
                     else
                         modlog.sendMessage(msg).queue();
                 }
@@ -331,7 +340,7 @@ public class ModLogger
         }
         catch (TimeoutException ex)
         {
-            LOG.warn("Retreiving audit logs for "+guild+" took longer than 30 seconds!");
+            LOG.warn("Retreiving audit logs for "+guild+" took longer than 10 seconds!");
         }
         catch(Exception ex)
         {

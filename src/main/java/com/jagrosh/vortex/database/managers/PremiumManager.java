@@ -26,9 +26,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import net.dv8tion.jda.api.entities.Guild;
 import org.json.JSONObject;
 
@@ -57,6 +55,17 @@ public class PremiumManager extends DataManager
             while(rs.next())
                 list.add(GUILD_ID.getValue(rs));
             return list;
+        });
+    }
+    
+    public Map<Long,PremiumInfo> getPremiumGuildsInfo()
+    {
+        return read(selectAll(LEVEL.isGreaterThan(-1)), rs -> 
+        {
+            Map<Long,PremiumInfo> map = new HashMap<>();
+            while(rs.next())
+                map.put(GUILD_ID.getValue(rs), new PremiumInfo(rs));
+            return map;
         });
     }
     
@@ -197,7 +206,7 @@ public class PremiumManager extends DataManager
         {
             if(level==Level.NONE)
                 return "This server does not have Vortex Pro";
-            if(until.getEpochSecond()==Instant.MAX.getEpochSecond())
+            if(isPermanent())
                 return "This server has " + level.name + " permanently";
             return "This server has " + level.name + " until";
         }
@@ -208,11 +217,16 @@ public class PremiumManager extends DataManager
                 return null;
             return until;
         }
+        
+        public boolean isPermanent()
+        {
+            return until != null && until.getEpochSecond() == Instant.MAX.getEpochSecond();
+        }
 
         @Override
         public String toString()
         {
-            return level.name + " (Until " + (until == null ? "never" 
+            return level.name + " (Until " + (until == null ? "never" : isPermanent() ? "forever"
                     : until.atZone(ZoneId.of("GMT-4")).format(DateTimeFormatter.RFC_1123_DATE_TIME)) + ")";
         }
     }

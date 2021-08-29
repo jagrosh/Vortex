@@ -344,8 +344,13 @@ public class AutomodManager extends DataManager
     
     public void setDupeSettings(Guild guild, int strikes, int deleteThresh, int strikeThresh)
     {
-        invalidateCache(guild);
-        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        setDupeSettings(guild.getIdLong(), strikes, deleteThresh, strikeThresh);
+    }
+    
+    public void setDupeSettings(long guildId, int strikes, int deleteThresh, int strikeThresh)
+    {
+        invalidateCache(guildId);
+        readWrite(selectAll(GUILD_ID.is(guildId)), rs ->
         {
             if(rs.next())
             {
@@ -357,7 +362,7 @@ public class AutomodManager extends DataManager
             else
             {
                 rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
+                GUILD_ID.updateValue(rs, guildId);
                 DUPE_STRIKES.updateValue(rs, strikes);
                 DUPE_DELETE_THRESH.updateValue(rs, deleteThresh);
                 DUPE_STRIKE_THRESH.updateValue(rs, strikeThresh);

@@ -18,6 +18,7 @@ package com.jagrosh.vortex.utils;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.security.auth.login.LoginException;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
@@ -46,6 +47,7 @@ public class MultiBotManager
             b.setEventManagerProvider(i -> new MultiBotEventManager());
             b.setBulkDeleteSplittingEnabled(false);
             b.setRequestTimeoutRetry(true);
+            b.setSessionController(new SlowerConcurrentSessionController(20));
             bots.add(b.build());
         }
     }
@@ -96,6 +98,11 @@ public class MultiBotManager
         return null;
     }
     
+    public boolean isHighestAccount(Guild guild)
+    {
+        return getGuildById(guild.getIdLong()).getJDA().getSelfUser().getIdLong() == guild.getJDA().getSelfUser().getIdLong();
+    }
+    
     public Collection<Guild> getMutualGuilds(long userId)
     {
         HashMap<Long,Guild> guilds = new HashMap<>();
@@ -106,12 +113,23 @@ public class MultiBotManager
         return guilds.values();
     }
     
-    private static Collection<Guild> getMutualGuilds(ShardManager shard, long userId)
+    private static Collection<Guild> getMutualGuilds(ShardManager shards, long userId)
     {
-        User user = shard.getUserById(userId);
-        if(user == null)
-            return Collections.emptySet();
-        return shard.getMutualGuilds(user);
+        List<Guild> guilds = new ArrayList<>();
+        for(JDA jda: shards.getShards())
+        {
+            // only query the shards that are actually connected
+            // this prevents a problematic or loading shard from slowing down the rest of the bot
+            // with infinite resources, we wouldn't need to check this, but this has been a 
+            // frequent bottleneck in the bot's startup and reconnecting lifecycle
+            if(jda.getStatus() == JDA.Status.CONNECTED)
+            {
+                User user = jda.getUserById(userId);
+                if(user != null)
+                    guilds.addAll(jda.getMutualGuilds(user));
+            }
+        }
+        return guilds;
     }
     
     private class MultiBotEventManager extends ConditionalEventManager
