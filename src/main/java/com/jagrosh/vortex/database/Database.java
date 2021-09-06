@@ -16,7 +16,6 @@
 package com.jagrosh.vortex.database;
 
 import com.jagrosh.easysql.DatabaseConnector;
-import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.database.managers.*;
 
 /**
@@ -29,13 +28,10 @@ public class Database extends DatabaseConnector
     public final GuildSettingsDataManager settings; // logs and other settings
     public final IgnoreManager ignores; // ignored roles and channels
     public final AuditCacheManager auditcache; // cache of latest audit logs
-    public final StrikeManager strikes; // strike counts for members
-    public final PunishmentManager actions; // strike punishment settings
     public final TempMuteManager tempmutes;
     public final GravelManager gravels;
     public final TempBanManager tempbans;
     public final TempSlowmodeManager tempslowmodes;
-    public final PremiumManager premium;
     public final InviteWhitelistManager inviteWhitelist;
     public final FilterManager filters;
     public final TagManager tags;
@@ -48,13 +44,10 @@ public class Database extends DatabaseConnector
         settings = new GuildSettingsDataManager(this);
         ignores = new IgnoreManager(this);
         auditcache = new AuditCacheManager(this);
-        strikes = new StrikeManager(this);
-        actions = new PunishmentManager(this);
         tempmutes = new TempMuteManager(this);
         gravels = new GravelManager(this);
         tempbans = new TempBanManager(this);
         tempslowmodes = new TempSlowmodeManager(this);
-        premium = new PremiumManager(this);
         inviteWhitelist = new InviteWhitelistManager(this);
         filters = new FilterManager(this);
         tags = new TagManager(this);

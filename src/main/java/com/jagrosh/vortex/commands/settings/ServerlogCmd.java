@@ -48,15 +48,10 @@ public class ServerlogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PLUS))
-        {
-            vortex.getDatabase().settings.setServerLogChannel(event.getGuild(), tc);
-            if(tc==null)
-                event.replySuccess("Server Logs will not be sent");
-            else
-                event.replySuccess("Server Logs will now be sent in "+tc.getAsMention());
-        }
+        vortex.getDatabase().settings.setServerLogChannel(event.getGuild(), tc);
+        if(tc==null)
+            event.replySuccess("Server Logs will not be sent");
         else
-            event.reply(PremiumManager.Level.PLUS.getRequirementMessage());
+            event.replySuccess("Server Logs will now be sent in "+tc.getAsMention());
     }
 }

@@ -23,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -127,7 +128,7 @@ public class ArgsUtil
         return new ResolvedArgs(members, users, ids, unresolved, time, args);
     }
 
-    @AllArgsConstructor
+    @Data
     public static class ResolvedArgs
     {
         public final Set<Member> members;

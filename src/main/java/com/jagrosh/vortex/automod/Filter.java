@@ -26,22 +26,10 @@ import java.util.regex.PatternSyntaxException;
  */
 public class Filter
 {
-    public final static int MAX_NAME_LENGTH = 32;
     public final static int MAX_CONTENT_LENGTH = 255;
-    public final static int MAX_STRIKES = 100;
     
     private final static String[] TEST_CASES = {"welcome", "i will follow the rules", "this is a sentence"};
-    
-    public final String name;
-    public final int strikes;
-    public final List<Item> items;
-    
-    private Filter(String name, int strikes)
-    {
-        this.name = name;
-        this.strikes = strikes;
-        this.items = new ArrayList<>();
-    }
+    public final List<Item> items = new ArrayList<>();
     
     public boolean test(String message)
     {
@@ -63,20 +51,14 @@ public class Filter
         return printContent().replace("*", "\\*").replace("`", "\\`");
     }
     
-    public static Filter parseFilter(String name, int strikes, String content) throws IllegalArgumentException
+    public static Filter parseFilter(String content) throws IllegalArgumentException
     {
         // pre checks
         if(content.length() > MAX_CONTENT_LENGTH + 50) // parsing may reduce a bit
             throw new IllegalArgumentException("Filter content is longer than " + MAX_CONTENT_LENGTH + " characters");
-        if(name.length() > MAX_NAME_LENGTH)
-            throw new IllegalArgumentException("Filter name `" + name + "` is longer than " + MAX_NAME_LENGTH + " characters");
-        if(strikes < 0)
-            throw new IllegalArgumentException("Filter strikes is less than 0");
-        if(strikes > MAX_STRIKES)
-            throw new IllegalArgumentException("Filter strikes is more than " + MAX_STRIKES);
-        
+
         // begin parsing
-        Filter filter = new Filter(name, strikes);
+        Filter filter = new Filter();
         String current = content.trim();
         while(!current.isEmpty())
         {

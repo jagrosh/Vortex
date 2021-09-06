@@ -166,32 +166,6 @@ public class ModLogger
         });
     }
     
-    public void postStrikeCase(Member moderator, OffsetDateTime now, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
-        if(modlog==null || !modlog.canTalk())
-            return;
-        getCaseNumberAsync(modlog, i -> 
-        {
-            modlog.sendMessage(FormatUtil.filterEveryone(LogUtil.modlogStrikeFormat(now, 
-                    vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone(), i, 
-                    moderator.getUser(), givenStrikes, oldStrikes, newStrikes, target, reason))).queue();
-        });
-    }
-    
-    public void postPardonCase(Member moderator, OffsetDateTime now, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
-        if(modlog==null || !modlog.canTalk())
-            return;
-        getCaseNumberAsync(modlog, i -> 
-        {
-            modlog.sendMessage(FormatUtil.filterEveryone(LogUtil.modlogPardonFormat(now, 
-                    vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone(), i, 
-                    moderator.getUser(), pardonedStrikes, oldStrikes, newStrikes, target, reason))).queue();
-        });
-    }
-    
     public void postRaidmodeCase(Member moderator, OffsetDateTime now, boolean enabled, String reason)
     {
         TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());

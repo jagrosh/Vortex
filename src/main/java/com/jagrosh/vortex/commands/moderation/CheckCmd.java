@@ -31,7 +31,9 @@ import net.dv8tion.jda.api.entities.User;
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
+ * @deprecated Will be replaced by the modlogs command, just here for reference if needed later
  */
+@Deprecated
 public class CheckCmd extends ModCommand
 {
     public CheckCmd(Vortex vortex)
@@ -91,12 +93,10 @@ public class CheckCmd extends ModCommand
     
     private void check(CommandEvent event, User user, Ban ban)
     {
-        int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), user.getIdLong());
         int minutesMuted = vortex.getDatabase().tempmutes.timeUntilUnmute(event.getGuild(), user.getIdLong());
         Role mRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
         int minutesBanned = vortex.getDatabase().tempbans.timeUntilUnban(event.getGuild(), user.getIdLong());
         String str = "Moderation Information for "+FormatUtil.formatFullUser(user)+":\n"
-                + Action.STRIKE.getEmoji() + " Strikes: **"+strikes+"**\n"
                 + Action.MUTE.getEmoji() + " Muted: **" + (event.getGuild().isMember(user) 
                         ? (event.getGuild().getMember(user).getRoles().contains(mRole) ? "Yes" : "No") 
                         : "Not In Server") + "**\n"

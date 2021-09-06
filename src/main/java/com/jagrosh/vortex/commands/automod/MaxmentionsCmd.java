@@ -22,7 +22,6 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.database.managers.AutomodManager;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
 
 /**
  *
@@ -64,11 +63,9 @@ public class MaxmentionsCmd extends Command
             short num = Short.parseShort(event.getArgs());
             if(num < AutomodManager.MENTION_MINIMUM)
                 throw new CommandExceptionListener.CommandErrorException("Maximum mentions must be at least `"+AutomodManager.MENTION_MINIMUM+"`");
-            if(!vortex.getDatabase().actions.hasPunishments(event.getGuild()))
-                throw new CommandExceptionListener.CommandErrorException("Max Mentions cannot be enabled without first setting at least one punishment.");
             vortex.getDatabase().automod.setMaxMentions(event.getGuild(), num);
             event.replySuccess("Set the maximum allowed mentions to **"+num+"** users. Messages containing more than **"
-                    +num+"** mentions will be deleted and the user will obtain 1 strike for every mention above the maximum."
+                    +num+"** mentions will be deleted."
                     + "\n\nTo set the maximum allowed role mentions, use `"+Constants.PREFIX+name+" "+children[0].getName()+" "+children[0].getArguments()+"`");
         }
         catch(NumberFormatException e)
@@ -109,8 +106,6 @@ public class MaxmentionsCmd extends Command
                 short num = Short.parseShort(event.getArgs());
                 if(num<AutomodManager.ROLE_MENTION_MINIMUM)
                     throw new CommandExceptionListener.CommandErrorException("Maximum role mentions must be at least `"+AutomodManager.ROLE_MENTION_MINIMUM+"`");
-                if(!vortex.getDatabase().actions.hasPunishments(event.getGuild()))
-                    throw new CommandExceptionListener.CommandErrorException("Max Role Mentions cannot be enabled without first setting at least one punishment.");
                 vortex.getDatabase().automod.setMaxRoleMentions(event.getGuild(), num);
                 event.replySuccess("Set the maximum allowed role mentions to **"+num+"** roles.");
             }

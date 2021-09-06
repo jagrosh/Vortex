@@ -42,7 +42,7 @@ public class WhitelistInvitesCmd extends Command
         this.guildOnly = true;
         this.category = new Category("AutoMod");
         this.arguments = "<ADD GUILD_ID[ GUILD_ID...]|REMOVE GUILD_ID[ GUILD_ID...]|SHOW>";
-        this.help = "if strikes for invites are enabled, add/remove whitelisted guilds";
+        this.help = "adds/removes whitelisted guild invites from the invites filter.";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 

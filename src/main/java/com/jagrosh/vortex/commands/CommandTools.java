@@ -5,6 +5,8 @@ import com.jagrosh.vortex.Vortex;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Role;
 
+import java.util.Locale;
+
 public class CommandTools
 {
     private CommandTools(){}
@@ -33,5 +35,25 @@ public class CommandTools
                 return true;
 
         return false;
+    }
+
+    /**
+     * Checks if a user provided string is to enable or disable something
+     * @return true if said something is to be enabled, false if its to be disabled
+     * @throws IllegalArgumentException If it could not be properly parsed
+     */
+    public static boolean parseEnabledDisabled(String str) throws IllegalArgumentException {
+        switch (str.toLowerCase().trim()) {
+            case "enable":
+            case "enabled":
+            case "on":
+                return true;
+            case "disable":
+            case "disabled":
+            case "off":
+                return false;
+            default:
+                throw new IllegalArgumentException("Could not parse string '" + str + "'");
+        }
     }
 }

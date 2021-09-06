@@ -20,7 +20,6 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.OtherUtil;
 
 /**
@@ -40,7 +39,7 @@ public class AutodehoistCmd extends Command
         this.category = new Category("AutoMod");
         this.arguments = "<character | OFF>";
         this.help = "prevents name-hoisting via usernames or nicknames";
-        this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+        this.userPermissions = new Permission[]{Permission.NICKNAME_MANAGE};
     }
 
     @Override

@@ -16,10 +16,8 @@
 package com.jagrosh.vortex.commands.settings;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
-import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.LogCommand;
-import com.jagrosh.vortex.database.managers.PremiumManager;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
@@ -49,15 +47,10 @@ public class AvatarlogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.ULTRA))
-        {
-            vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
-            if(tc==null)
-                event.replySuccess("Avatar Logs will not be sent");
-            else
-                event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
-        }
+        vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
+        if(tc==null)
+            event.replySuccess("Avatar Logs will not be sent");
         else
-            event.reply(PremiumManager.Level.ULTRA.getRequirementMessage());
+            event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
     }
 }

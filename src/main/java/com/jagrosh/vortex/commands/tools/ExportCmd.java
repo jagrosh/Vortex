@@ -53,14 +53,11 @@ public class ExportCmd extends Command
                 .put("automod", db.automod.getSettingsJson(g))
                 .put("settings", db.settings.getSettingsJson(g))
                 .put("ignores", db.ignores.getIgnoresJson(g))
-                .put("strikes", db.strikes.getAllStrikesJson(g))
-                .put("punishments", db.actions.getAllPunishmentsJson(g))
                 .put("tempmutes", db.tempmutes.getAllMutesJson(g))
                 .put("tempbans", db.tempbans.getAllBansJson(g))
                 .put("tempslowmodes", db.tempslowmodes.getAllSlowmodesJson(g))
                 .put("inviteWhitelist", db.inviteWhitelist.getWhitelistJson(g))
-                .put("filters", db.filters.getFiltersJson(g))
-                .put("premium", db.premium.getPremiumInfoJson(g));
+                .put("filters", db.filters.getFiltersJson(g));
         event.getChannel().sendFile(obj.toString(1).getBytes(), "vortex_data_" + g.getId() + ".json").queue();
     }
 }

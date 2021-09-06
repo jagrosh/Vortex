@@ -28,27 +28,27 @@ import com.jagrosh.vortex.commands.settings.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.vortex.automod.AutoMod;
-import com.jagrosh.vortex.automod.StrikeHandler;
-import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.OnlineStatus;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
+import com.jagrosh.jdautilities.command.CommandClient;
+import com.jagrosh.jdautilities.command.CommandClientBuilder;
+import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
+import com.jagrosh.vortex.automod.AutoMod;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.MultiBotManager;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Message;
@@ -56,17 +56,15 @@ import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.requests.restaction.MessageAction;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Main class for Vortex
  * @author John Grosh (jagrosh)
  */
+@Slf4j
 public class Vortex
 {
     public static final Config config;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Vortex.class);
     private final @Getter EventWaiter eventWaiter;
     private final @Getter ScheduledExecutorService threadpool;
     private final @Getter Database database;
@@ -77,7 +75,6 @@ public class Vortex
     private final @Getter MessageCache messageCache;
     private final @Getter WebhookClient logWebhook;
     private final @Getter AutoMod autoMod;
-    private final @Getter StrikeHandler strikeHandler;
     private final @Getter CommandExceptionListener listener;
 
     static {
@@ -90,7 +87,7 @@ public class Vortex
                         .getResourceAsStream("reference.conf");
 
                 if (inputStream == null) {
-                    LOGGER.error("Unable to load reference.conf in resources");
+                    log.error("Unable to load reference.conf in resources");
                     System.exit(1);
                 }
 
@@ -105,11 +102,11 @@ public class Vortex
 
                 reader.close();
                 writer.close();
-                LOGGER.info("A configuration file named " + System.getProperty("config.file") + " was created. Please fill it out and rerun the bot");
+                log.info("A configuration file named " + System.getProperty("config.file") + " was created. Please fill it out and rerun the bot");
                 System.exit(0);
             }
         } catch (IOException e) {
-            LOGGER.error("Could not create a configuration file", e);
+            log.error("Could not create a configuration file", e);
             throw new IOError(e);
         }
 
@@ -130,7 +127,6 @@ public class Vortex
         messageCache = new MessageCache();
         logWebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
         autoMod = new AutoMod(this, config);
-        strikeHandler = new StrikeHandler(this);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
@@ -166,16 +162,12 @@ public class Vortex
                             new UngravelCmd(this),
                             new UnmuteCmd(this),
                             new RaidCmd(this),
-                            new StrikeCmd(this),
-                            new PardonCmd(this),
-                            new CheckCmd(this),
                             new ReasonCmd(this),
                             new SlowmodeCmd(this),
 
 
                             // Settings
                             new SetupCmd(this),
-                            new PunishmentCmd(this),
                             new MessagelogCmd(this),
                             new ModlogCmd(this),
                             new ServerlogCmd(this),
@@ -190,9 +182,6 @@ public class Vortex
 
                             // Automoderation
                             new AntiinviteCmd(this),
-                            new AnticopypastaCmd(this),
-                            new AntieveryoneCmd(this),
-                            new AntirefCmd(this),
                             new MaxlinesCmd(this),
                             new MaxmentionsCmd(this),
                             new AntiduplicateCmd(this),
@@ -216,7 +205,6 @@ public class Vortex
                             // Owner
                             new EvalCmd(this),
                             new DebugCmd(this),
-                            new PremiumCmd(this),
                             new ReloadCmd(this)
                             //new TransferCmd(this)
                         )

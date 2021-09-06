@@ -87,13 +87,7 @@ public class LookupCmd extends Command
             // if it's valid and we find a user, we're done
             if(id > 0 && lookupUser(id, event))
                 return;
-            
-            // require Vortex Plus for looking up guilds
-            if(!vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PLUS))
-            {
-                event.reply("No users found. Searching for guilds is not available here.\n" + PremiumManager.Level.PLUS.getRequirementMessage());
-                return;
-            }
+
             
             // if valid id, use widget, otherwise try invite code
             if(id > 0)

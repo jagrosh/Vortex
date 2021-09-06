@@ -18,7 +18,7 @@ package com.jagrosh.vortex.commands.automod;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.database.managers.PremiumManager;
+import com.jagrosh.vortex.commands.CommandTools;
 import net.dv8tion.jda.api.Permission;
 
 /**
@@ -44,20 +44,13 @@ public class ResolvelinksCmd extends Command
     @Override
     protected void execute(CommandEvent event)
     {
-        if(event.getArgs().equalsIgnoreCase("on") || event.getArgs().equalsIgnoreCase("off"))
+        try
         {
-            if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
-            {
-                vortex.getDatabase().automod.setResolveUrls(event.getGuild(), event.getArgs().equalsIgnoreCase("on"));
-                event.replySuccess("Link Resolving has been turned `"+event.getArgs().toUpperCase()+"`");
-            }
-            else
-                event.reply(PremiumManager.Level.PRO.getRequirementMessage());
-        }
-        else
-        {
+            boolean enabled = CommandTools.parseEnabledDisabled(event.getArgs());
+            vortex.getDatabase().automod.setResolveUrls(event.getGuild(), enabled);
+            event.replySuccess("Link Resolving has been turned `" + (enabled ? "ON" : "OFF") + "`");
+        } catch (IllegalArgumentException e) {
             event.replyWarning(DESCRIPTION+"\nValid options are `ON` and `OFF`");
         }
-        
     }
 }

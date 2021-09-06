@@ -47,14 +47,14 @@ import org.slf4j.LoggerFactory;
  */
 public class AutoMod
 {
-    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|(?:app)?\\s?\\.\\s?com\\s?\\/\\s?invite)\\s?\\/\\s?([A-Z0-9-]{2,18})",
+    private static final Pattern INVITES = Pattern.compile("discord\\s?(?:(?:\\.|dot|\\(\\.\\)|\\(dot\\))\\s?gg|(?:app)?\\s?\\.\\s?com\\s?/\\s?invite)\\s?/\\s?([A-Z0-9-]{2,18})",
             Pattern.CASE_INSENSITIVE);
     
-    private static final Pattern REF = Pattern.compile("https?:\\/\\/\\S+(?:\\/ref\\/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
-    private static final Pattern BASE_URL = Pattern.compile("https?:\\/\\/(?:[^?&:\\/\\s]+\\.)?([^?&:\\/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern REF = Pattern.compile("https?://\\S+(?:/ref/|[?&#]ref(?:errer|erral)?=)\\S+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern BASE_URL = Pattern.compile("https?://(?:[^?&:/\\s]+\\.)?([^?&:/\\s]+\\.\\w+)(?:\\W|$)", Pattern.CASE_INSENSITIVE);
     
-    private static final Pattern LINK       = Pattern.compile("https?:\\/\\/\\S+", Pattern.CASE_INSENSITIVE);
-    private static final String INVITE_LINK = "https?:\\/\\/discord(?:app\\.com\\/invite|\\.com\\/invite|\\.gg)\\/(\\S+)";
+    private static final Pattern LINK       = Pattern.compile("https?://\\S+", Pattern.CASE_INSENSITIVE);
+    private static final String INVITE_LINK = "https?://discord(?:app\\.com/invite|\\.com/invite|\\.gg)/(\\S+)";
     
     private static final String CONDENSER = "(.+?)\\s*(\\1\\s*)+";
     private static final Logger LOG = LoggerFactory.getLogger("AutoMod");
@@ -223,26 +223,20 @@ public class AutoMod
         if(!member.getGuild().getSelfMember().canInteract(member))
             return false;
 
-        // ignore users that can kick
-        if(member.hasPermission(Permission.KICK_MEMBERS))
+        // ignore users that can kick, ban, or manage server
+        if(
+                member.hasPermission(Permission.KICK_MEMBERS) ||
+                member.hasPermission(Permission.BAN_MEMBERS) ||
+                member.hasPermission(Permission.MANAGE_SERVER)
+        ) {
             return false;
-
-        // ignore users that can ban
-        if(member.hasPermission(Permission.BAN_MEMBERS))
-            return false;
-
-        // ignore users that can manage server
-        if(member.hasPermission(Permission.MANAGE_SERVER))
-            return false;
+        }
 
         // if a channel is specified, ignore users that can manage messages in that channel
         if(channel!=null && (member.hasPermission(channel, Permission.MESSAGE_MANAGE) || vortex.getDatabase().ignores.isIgnored(channel)))
             return false;
-        
-        if(vortex.getDatabase().ignores.isIgnored(member))
-            return false;
-        
-        return true;
+
+        return !vortex.getDatabase().ignores.isIgnored(member);
     }
     
     public void dehoist(Member member)
@@ -279,16 +273,14 @@ public class AutoMod
         // check the channel for channel-specific settings
         String topic = message.getTextChannel().getTopic();
         boolean preventSpam = topic==null || !topic.toLowerCase().contains("{spam}");
-        boolean preventInvites = (topic==null || !topic.toLowerCase().contains("{invites}")) && settings.inviteStrikes > 0;
+        boolean preventInvites = (topic==null || !topic.toLowerCase().contains("{invites}")) && settings.filterInvites;
 
         List<Long> inviteWhitelist = !preventInvites ? Collections.emptyList()
                 : vortex.getDatabase().inviteWhitelist.readWhitelist(message.getGuild());
-        List<Filter> filters = vortex.getDatabase().filters.getFilters(message.getGuild());
         usage.increment(message.getGuild().getIdLong());
         
         boolean shouldDelete = false;
         String channelWarning = null;
-        int strikeTotal = 0;
         StringBuilder reason = new StringBuilder();
         
         // anti-duplicate
@@ -313,12 +305,6 @@ public class AutoMod
                 }
                 else if(offenses>settings.dupeDeleteThresh)
                     shouldDelete = true;
-                
-                if(offenses >= settings.dupeStrikeThresh)
-                {
-                    strikeTotal += settings.dupeStrikes;
-                    reason.append(", Duplicate messages");
-                }
             }
         }
         
@@ -329,7 +315,6 @@ public class AutoMod
             long mentions = message.getMentionedUsers().stream().filter(u -> !u.isBot() && !u.equals(message.getAuthor())).distinct().count();
             if(mentions > settings.maxMentions)
             {
-                strikeTotal += (int)(mentions-settings.maxMentions);
                 reason.append(", Mentioning ").append(mentions).append(" users");
                 shouldDelete = true;
             }
@@ -341,7 +326,6 @@ public class AutoMod
             int count = message.getContentRaw().split("\n").length;
             if(count > settings.maxLines)
             {
-                strikeTotal += Math.ceil((double)(count-settings.maxLines)/settings.maxLines);
                 reason.append(", Message contained ").append(count).append(" newlines");
                 shouldDelete = true;
             }
@@ -353,34 +337,28 @@ public class AutoMod
             long mentions = message.getMentionedRoles().stream().distinct().count();
             if(mentions > settings.maxRoleMentions)
             {
-                strikeTotal += (int)(mentions-settings.maxRoleMentions);
                 reason.append(", Mentioning ").append(mentions).append(" roles");
                 shouldDelete = true;
             }
         }
         
         // filters
-        if(!filters.isEmpty())
-        {
-            Filter mostStrikesFilter = null;
-            for(Filter filter: filters)
-                if((mostStrikesFilter == null || filter.strikes > mostStrikesFilter.strikes) && filter.test(message.getContentRaw()))
-                    mostStrikesFilter = filter;
-            if(mostStrikesFilter != null)
-            {
-                strikeTotal += mostStrikesFilter.strikes;
-                reason.append(", '").append(mostStrikesFilter.name).append("' Filter");
-                shouldDelete = true;
-            }
+        Filter badWordsFilter = vortex.getDatabase().filters.getBadWordsFilter(message.getGuild().getIdLong());
+        Filter veryBadWordsFilter = vortex.getDatabase().filters.getVeryBadWordsFilter(message.getGuild().getIdLong());
+        if (veryBadWordsFilter != null && veryBadWordsFilter.test(message.getContentRaw())) {
+            shouldDelete = true;
+            reason.append(", Very Bad Words Filter");
+        } else if (badWordsFilter != null && badWordsFilter.test(message.getContentRaw())) {
+            shouldDelete = true;
+            reason.append(", Bad Words Filter");
         }
         
         // prevent referral links
-        if(settings.refStrikes > 0)
+        if(settings.filterRefs)
         {
             Matcher m = REF.matcher(message.getContentRaw());
             if(m.find())
             {
-                strikeTotal += settings.refStrikes;
                 reason.append(", Referral link");
                 shouldDelete = true;
             }
@@ -391,7 +369,6 @@ public class AutoMod
                 {
                     if(isReferralUrl(m.group(1)))
                     {
-                        strikeTotal += settings.refStrikes;
                         reason.append(", Referral link");
                         shouldDelete = true;
                         break;
@@ -401,26 +378,12 @@ public class AutoMod
         }
         
         // prevent copypastas
-        if(settings.copypastaStrikes > 0 && preventSpam)
+        if(settings.filterCopypastas && preventSpam)
         {
             String copypastaName = copypastaResolver.getCopypasta(message.getContentRaw());
             if(copypastaName!=null)
             {
-                strikeTotal += settings.copypastaStrikes;
                 reason.append(", ").append(copypastaName).append(" copypasta");
-                shouldDelete = true;
-            }
-        }
-        
-        // prevent attempted everyone/here mentions
-        if(settings.everyoneStrikes > 0 && preventSpam && !message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
-        {
-            String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "");
-            if(filtered.contains("@everyone") || filtered.contains("@here")
-                    || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
-            {
-                strikeTotal += settings.everyoneStrikes;
-                reason.append(", ").append("Attempted @\u0435veryone/here"); // cyrillic e
                 shouldDelete = true;
             }
         }
@@ -439,7 +402,6 @@ public class AutoMod
                 long gid = inviteResolver.resolve(inviteCode, message.getJDA());
                 if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
                 {
-                    strikeTotal += settings.inviteStrikes;
                     reason.append(", Advertising");
                     shouldDelete = true;
                     break;
@@ -464,15 +426,8 @@ public class AutoMod
                     .queue(m -> m.delete().queueAfter(2500, TimeUnit.MILLISECONDS, s->{}, f->{}), f->{});
         }
         
-        // assign strikes if necessary
-        if(strikeTotal>0)
-        {
-            vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
-                    latestTime(message), message.getAuthor(), strikeTotal, reason.toString().substring(2));
-        }
-        
         // now, lets resolve links, but async
-        if(!shouldDelete && settings.resolveUrls && (preventInvites || settings.refStrikes>0))
+        if(!shouldDelete && settings.resolveUrls && (preventInvites || settings.filterRefs))
         {
             List<String> links = new LinkedList<>();
             Matcher m = LINK.matcher(message.getContentRaw());
@@ -499,26 +454,23 @@ public class AutoMod
                                 if(invite != message.getGuild().getIdLong() && !inviteWhitelist.contains(invite))
                                     containsInvite = true;
                             }
-                            if(settings.refStrikes>0)
+                            if(settings.filterRefs)
                             {
                                 if(resolved.matches(REF.pattern()) || isReferralUrl(resolved.replaceAll(BASE_URL.pattern(), "$1")))
                                     containsRef = true;
                             }
                         }
-                        if((containsInvite || !preventInvites) && (containsRef || settings.refStrikes<1))
+                        if((containsInvite || !preventInvites) && (containsRef || settings.filterRefs))
                             break;
                     }
-                    int rstrikeTotal = (containsInvite ? settings.inviteStrikes : 0) + (containsRef ? settings.refStrikes : 0);
-                    if(rstrikeTotal > 0)
+                    if(containsInvite || containsRef)
                     {
                         vortex.getBasicLogger().logRedirectPath(message, llink, redirects);
                         String rreason = ((containsInvite ? ", Advertising (Resolved Link)" : "") + (containsRef ? ", Referral Link (Resolved Link)" : "")).substring(2);
                         try
                         {
-                            message.delete().reason("Automod").queue(v->{}, f->{});
+                            message.delete().reason(rreason).queue(v->{}, f->{});
                         }catch(PermissionException ignore){}
-                        vortex.getStrikeHandler().applyStrikes(message.getGuild().getSelfMember(), 
-                            latestTime(message), message.getAuthor(), rstrikeTotal, rreason);
                     }
                 });
         }

@@ -20,11 +20,9 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayDeque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -53,8 +51,6 @@ public class LogUtil
     private final static String MODLOG_USER_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + REASON;
     private final static String MODLOG_TIME_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + " for %s" + REASON;
     private final static String MODLOG_CLEAN_FORMAT  = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + " `%d` messages in %s\n`[Criteria]` %s" + REASON;
-    private final static String MODLOG_STRIKE_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " gave `%d` strikes `[%d → %d]` to" + TARGET_USER + REASON;
-    private final static String MODLOG_PARDON_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " pardoned `%d` strikes `[%d → %d]` from" + TARGET_USER + REASON;
     private final static String MODLOG_RAID_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " `%s` anti-raid mode" + REASON;
     
     private final static String BASICLOG_FORMAT = LOG_TIME + EMOJI + " %s";
@@ -78,20 +74,6 @@ public class LogUtil
     {
         return String.format(MODLOG_CLEAN_FORMAT, timeF(time, zone), caseNum, Action.CLEAN.getEmoji(), moderator.getName(), 
                 moderator.getDiscriminator(), Action.CLEAN.getVerb(), numMessages, channel.getAsMention(), criteria, reasonF(reason));
-    }
-    
-    public static String modlogStrikeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        return String.format(MODLOG_STRIKE_FORMAT, timeF(time, zone), caseNum, Action.STRIKE.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), givenStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
-                reasonF(reason));
-    }
-    
-    public static String modlogPardonFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        return String.format(MODLOG_PARDON_FORMAT, timeF(time, zone), caseNum, Action.PARDON.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), pardonedStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
-                reasonF(reason));
     }
     
     public static String modlogRaidFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, boolean enabled, String reason)
@@ -191,11 +173,6 @@ public class LogUtil
     private final static Pattern AUDIT_TIMED_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}) \\((\\d{1,9})m\\): (.*)$", Pattern.DOTALL);
     
     // Auditlog methods
-    public static String auditStrikeReasonFormat(Member moderator, int minutes, int oldstrikes, int newstrikes, String reason)
-    {
-        return auditReasonFormat(moderator, minutes, "["+oldstrikes+" → "+newstrikes+" strikes] "+reason);
-    }
-    
     public static String auditReasonFormat(Member moderator, String reason)
     {
         return limit512(String.format(AUDIT_BASIC_FORMAT, moderator.getUser().getName(), moderator.getUser().getDiscriminator(), reasonF(reason)));

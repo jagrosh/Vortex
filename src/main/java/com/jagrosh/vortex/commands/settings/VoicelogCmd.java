@@ -18,7 +18,6 @@ package com.jagrosh.vortex.commands.settings;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.LogCommand;
-import com.jagrosh.vortex.database.managers.PremiumManager;
 import net.dv8tion.jda.api.entities.TextChannel;
 
 /**
@@ -48,15 +47,10 @@ public class VoicelogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PLUS))
-        {
-            vortex.getDatabase().settings.setVoiceLogChannel(event.getGuild(), tc);
-            if(tc==null)
-                event.replySuccess("Voice Logs will not be sent");
-            else
-                event.replySuccess("Voice Logs will now be sent in "+tc.getAsMention());
-        }
+        vortex.getDatabase().settings.setVoiceLogChannel(event.getGuild(), tc);
+        if(tc==null)
+            event.replySuccess("Voice Logs will not be sent");
         else
-            event.reply(PremiumManager.Level.PLUS.getRequirementMessage());
+            event.replySuccess("Voice Logs will now be sent in "+tc.getAsMention());
     }
 }
