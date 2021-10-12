@@ -890,7 +890,7 @@ hunts.monster
 hydra2018.ru
 hyper-tournament.xyz
 into-nitro.com
-iscord.gift
+// iscord.gift this one is problematic
 itemcloud.one
 jetcase.fun
 jjdiscord.com
