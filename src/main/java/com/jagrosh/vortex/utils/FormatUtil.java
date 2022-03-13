@@ -242,8 +242,8 @@ public class FormatUtil {
         if(timeseconds>0)
             builder.append("**").append(timeseconds).append("**s");
         String str = builder.toString();
-        if(str.endsWith(", "))
-            str = str.substring(0,str.length()-2);
+        if(str.endsWith(" "))
+            str = str.substring(0,str.length()-1);
         if(str.isEmpty())
             str="**No time**";
         return str;
