@@ -88,21 +88,23 @@ public class CheckCmd extends ModCommand
         else
             event.getGuild().retrieveBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
     }
-    
+
     private void check(CommandEvent event, User user, Ban ban)
     {
         int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), user.getIdLong());
         int minutesMuted = vortex.getDatabase().tempmutes.timeUntilUnmute(event.getGuild(), user.getIdLong());
         Role mRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
+        boolean isMuted = event.getGuild().getMember(user).getRoles().contains(mRole);
         int minutesBanned = vortex.getDatabase().tempbans.timeUntilUnban(event.getGuild(), user.getIdLong());
+
         String str = "Moderation Information for "+FormatUtil.formatFullUser(user)+":\n"
                 + Action.STRIKE.getEmoji() + " Strikes: **"+strikes+"**\n"
-                + Action.MUTE.getEmoji() + " Muted: **" + (event.getGuild().isMember(user) 
-                        ? (event.getGuild().getMember(user).getRoles().contains(mRole) ? "Yes" : "No") 
-                        : "Not In Server") + "**\n"
-                + Action.TEMPMUTE.getEmoji() + " Mute Time Remaining: " + (minutesMuted <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesMuted * 60)) + "\n"
+                + Action.MUTE.getEmoji() + " Muted: **" + (event.getGuild().isMember(user)
+                ? (isMuted ? "Yes" : "No")
+                : "Not In Server") + "**\n"
+                + Action.TEMPMUTE.getEmoji() + " Mute Time Remaining: " + (!isMuted ? "N/A" : (minutesMuted <= 0 ? "<1 minute" : FormatUtil.secondsToTime(minutesMuted * 60))) + "\n"
                 + Action.BAN.getEmoji() + " Banned: **" + (ban==null ? "No**" : "Yes** (`" + ban.getReason() + "`)") + "\n"
-                + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (minutesBanned <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesBanned * 60));
+                + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (ban == null ? "N/A" : (minutesBanned <= 0 ? "<1 minute" : FormatUtil.secondsToTime(minutesBanned * 60)));
         event.replySuccess(FormatUtil.filterEveryone(str));
     }
 }
