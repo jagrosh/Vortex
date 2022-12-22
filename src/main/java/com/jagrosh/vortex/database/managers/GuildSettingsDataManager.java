@@ -48,6 +48,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L,true);
     public final static SQLColumn<Long> MOD_ROLE_ID = new LongColumn("MOD_ROLE_ID",false,0L);
+    public final static SQLColumn<Long> MuTE_ROLE_ID = new LongColumn("MUTE_ROLE_ID",false,0L);
     
     public final static SQLColumn<Long> MODLOG_ID = new LongColumn("MODLOG_ID",false,0L);
     public final static SQLColumn<Long> SERVERLOG_ID = new LongColumn("SERVERLOG_ID",false,0L);
@@ -243,6 +244,26 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         });
     }
     
+    public void setMutedRole(Guild guild, Role role)
+    {
+        invalidateCache(guild);
+        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, MuTE_ROLE_ID), rs -> 
+        {
+            if(rs.next())
+            {
+                MuTE_ROLE_ID.updateValue(rs, role==null ? 0L : role.getIdLong());
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                MuTE_ROLE_ID.updateValue(rs, role==null ? 0L : role.getIdLong());
+                rs.insertRow();
+            }
+        });
+    }
+    
     public void setModeratorRole(Guild guild, Role role)
     {
         invalidateCache(guild);
@@ -380,7 +401,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         private GuildSettings(ResultSet rs) throws SQLException
         {
             this.modRole = MOD_ROLE_ID.getValue(rs);
-            this.muteRole = 0;
+            this.muteRole = MuTE_ROLE_ID.getValue(rs);
             this.modlog = MODLOG_ID.getValue(rs);
             this.serverlog = SERVERLOG_ID.getValue(rs);
             this.messagelog = MESSAGELOG_ID.getValue(rs);

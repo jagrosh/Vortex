@@ -20,6 +20,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.automod.InviteResolver;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
@@ -46,6 +47,7 @@ public class LookupCmd extends Command
     private final static String UNKNOWN_ID = "\uD83C\uDD94"; // 🆔
     private final static String LINESTART = "\u25AB"; // ▫
     
+    private final InviteResolver ir = new InviteResolver();
     private final Vortex vortex;
     
     public LookupCmd(Vortex vortex)
@@ -132,7 +134,7 @@ public class LookupCmd extends Command
             str.append(Emoji.BADGE_NITRO);
         str.append("\n" + LINESTART + "Account Creation: **").append(TimeUtil.getDateTimeString(u.getTimeCreated())).append("**");
         eb.setDescription(str.toString());
-        event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
+        event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbeds(eb.build()).build());
         return true;
     }
     
@@ -157,7 +159,7 @@ public class LookupCmd extends Command
             {
                 try
                 {
-                    invite = Invite.resolve(event.getJDA(), invCode, true).complete(false);
+                    invite = ir.resolveFull(invCode, event.getJDA());
                 }
                 catch(Exception ignore) {}
             }
@@ -171,14 +173,13 @@ public class LookupCmd extends Command
         Widget widget = null;
         try
         {
-            invite = Invite.resolve(event.getJDA(), inviteCode, true).complete(false);
+            invite = ir.resolveFull(inviteCode, event.getJDA());
         }
-        catch(RateLimitedException ratelimited)
+        catch(Exception ex)
         {
             event.reactWarning();
             return;
         }
-        catch(Exception ignore) {}
         if(invite != null)
         {
             Invite.Guild g = invite.getGuild();
@@ -208,7 +209,7 @@ public class LookupCmd extends Command
 
                 return new MessageBuilder()
                         .append(UNKNOWN_ID + " Information about an unknown ID:")
-                        .setEmbed(new EmbedBuilder()
+                        .setEmbeds(new EmbedBuilder()
                                 .appendDescription(LINESTART + "Creation: " + "**"+TimeUtil.getTimeCreated(input).format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**").build())
                         .build();
             }
@@ -248,6 +249,6 @@ public class LookupCmd extends Command
                     + "\n" + LINESTART + "Inviter: " + (invite.getInviter() == null ? "N/A" : FormatUtil.formatFullUser(invite.getInviter()))
                     + (g.getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
         }
-        return new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build();
+        return new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbeds(eb.build()).build();
     }
 }

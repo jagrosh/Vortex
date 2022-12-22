@@ -74,6 +74,9 @@ public class AntieveryoneCmd extends Command
         
         vortex.getDatabase().automod.setEveryoneStrikes(event.getGuild(), numstrikes);
         event.replySuccess("Users will now receive `"+numstrikes+"` strikes for attempting to ping @\u0435veryone/here. " // cyrillic e
-                + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually ");
+                + "This also considers pingable roles called 'everyone' and 'here'. This will not affect users that actually "
+                + "have permission to ping everyone. Pinging oneself or bots do not count towards this total. Duplicate "
+                + "pings in the same message are also not counted towards this total (pinging the same person 3 times only "
+                + "counts as 1 ping).");
     }
 }

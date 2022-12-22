@@ -485,8 +485,8 @@ public class AutoMod
         LOG.trace("Found "+invites.size()+" invites.");
         for(String inviteCode : invites)
         {
-            LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode);
             long gid = inviteResolver.resolve(inviteCode, message.getJDA());
+            LOG.info("Resolving invite in " + message.getGuild().getId() + ": " + inviteCode + " -> " + gid);
             if(gid != message.getGuild().getIdLong() && !inviteWhitelist.contains(gid))
             {
                 currentStatus.addStrikes(settings.inviteStrikes);

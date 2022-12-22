@@ -25,7 +25,7 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.api.entities.Guild.Ban;
+//import net.dv8tion.jda.api.entities.Guild.Ban;
 
 /**
  *
@@ -54,25 +54,25 @@ public class UnbanCmd extends ModCommand
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
         StringBuilder builder = new StringBuilder();
         
-        event.getGuild().retrieveBanList().queue(list -> 
-        {
-            List<Ban> toUnban = new LinkedList<>();
-            args.members.forEach(m -> args.users.add(m.getUser()));
+        //event.getGuild().retrieveBanList().queue(list -> 
+        //{
+            List<Long> toUnban = new LinkedList<>();
+            args.members.forEach(m -> builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(m.getUser())).append(" is not banned!"));
             args.users.forEach(u -> 
             {
-                Ban ban = list.stream().filter(b -> b.getUser().getIdLong()==u.getIdLong()).findFirst().orElse(null);
-                if(ban==null)
-                    builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(u)).append(" is not banned!");
-                else
-                    toUnban.add(ban);
+                //Ban ban = list.stream().filter(b -> b.getUser().getIdLong()==u.getIdLong()).findFirst().orElse(null);
+                //if(ban==null)
+                //    builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(u)).append(" is not banned!");
+                //else
+                    toUnban.add(u.getIdLong());
             });
             args.ids.forEach(id -> 
             {
-                Ban ban = list.stream().filter(b -> b.getUser().getIdLong()==id).findFirst().orElse(null);
-                if(ban==null)
-                    builder.append("\n").append(event.getClient().getError()).append(" <@").append(id).append("> is not banned!");
-                else
-                    toUnban.add(ban);
+                //Ban ban = list.stream().filter(b -> b.getUser().getIdLong()==id).findFirst().orElse(null);
+                //if(ban==null)
+                //    builder.append("\n").append(event.getClient().getError()).append(" <@").append(id).append("> is not banned!");
+                //else
+                    toUnban.add(id);
             });
             args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a user ID"));
             
@@ -87,21 +87,21 @@ public class UnbanCmd extends ModCommand
             
             for(int i=0; i<toUnban.size(); i++)
             {
-                Ban ban = toUnban.get(i);
+                Long ban = toUnban.get(i);
                 boolean last = i+1 == toUnban.size();
-                event.getGuild().unban(ban.getUser()).reason(reason).queue(success -> 
+                event.getGuild().unban(Long.toString(ban)).reason(reason).queue(success -> 
                 {
-                    builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unbanned ").append(FormatUtil.formatUser(ban.getUser()));
+                    builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully unbanned <@").append(ban).append(">");
                     if(last)
                         event.reply(builder.toString());
                 }, f -> 
                 {
-                    builder.append("\n").append(event.getClient().getError()).append(" Failed to unban ").append(FormatUtil.formatUser(ban.getUser()));
+                    builder.append("\n").append(event.getClient().getError()).append(" Failed to unban <@").append(ban).append(">");
                     if(last)
                         event.reply(builder.toString());
                 });
             }
 
-        }, f -> event.replyError("Failed to retreive the ban list."));
+        //}, f -> event.replyError("Failed to retreive the ban list."));
     }
 }

@@ -14,9 +14,8 @@
     
     <repositories>
         <repository>
-            <id>dv8tion</id>
-            <name>m2-dv8tion</name>
-            <url>https://m2.dv8tion.net/releases</url>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
         <repository>
             <id>jcenter</id>
@@ -26,11 +25,11 @@
     </repositories>
     
     <dependencies>
-        <dependency>
-            <groupId>net.dv8tion</groupId>
-            <artifactId>JDA</artifactId>
-            <version>4.3.0_307</version>
-        </dependency>
+	<dependency>
+	    <groupId>com.github.jagrosh</groupId>
+	    <artifactId>JDA</artifactId>
+	    <version>vortex-SNAPSHOT</version>
+	</dependency>
         <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>jda-utilities</artifactId>

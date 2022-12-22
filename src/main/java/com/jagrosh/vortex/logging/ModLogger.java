@@ -25,11 +25,13 @@ import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.LogUtil.ParsedAuditReason;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -52,7 +54,7 @@ public class ModLogger
     private final static Logger LOG = LoggerFactory.getLogger(ModLogger.class);
     private final HashMap<Long,Integer> caseNum = new HashMap<>();
     private final HashSet<Long> needsUpdate = new HashSet<>();
-    private final FixedCache<String, Message> banLogCache = new FixedCache<>(1000);
+    private final FixedCache<String, CompletableFuture<Message>> banLogCache = new FixedCache<>(1000);
     private final Vortex vortex;
     private boolean isStarted = false;
     
@@ -86,7 +88,7 @@ public class ModLogger
                             long time = System.currentTimeMillis();
                             update(vortex.getShardManager().getGuildById(gid), 40);
                             long diff = System.currentTimeMillis() - time;
-                            if(diff > 10000)
+                            if(diff > 15000)
                                 LOG.warn("Took " + diff + "ms to update " + gid);
                         });
                     } catch(Exception ex)
@@ -226,6 +228,7 @@ public class ModLogger
     
     // private methods
     
+    @SuppressWarnings("unchecked")
     private void update(Guild guild, int limit) // not async
     {
         if(guild==null)
@@ -235,17 +238,19 @@ public class ModLogger
         if(modlog==null || !modlog.canTalk() || !modlog.getGuild().getSelfMember().hasPermission(Permission.VIEW_AUDIT_LOGS))
             return;
         Role mRole = gs.getMutedRole(guild);
+        long auditDiff = 0;
         try
         {
             long time = System.currentTimeMillis();
-            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(10, TimeUnit.SECONDS);
-            long diff = System.currentTimeMillis() - time;
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(limit).submit().get(5, TimeUnit.SECONDS);
+            auditDiff = System.currentTimeMillis() - time;
             LOG.debug("Retrieved " + list.size() + " logs from " + guild.getId());
-            if(diff > 5000)
-                LOG.warn("Took " + diff + "ms to retrieve audit logs from " + guild.getId());
+            if(auditDiff > 5000)
+                LOG.warn("Took " + auditDiff + "ms to retrieve audit logs from " + guild.getId());
             for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
             {
                 Action act = null;
+                long minutes = 0;
                 switch(ale.getType())
                 {
                     case BAN: 
@@ -256,6 +261,17 @@ public class ModLogger
                         break;
                     case UNBAN: 
                         act = Action.UNBAN; 
+                        break;
+                    case MEMBER_UPDATE:
+                        AuditLogChange change = ale.getChangeByKey("communication_disabled_until");
+                        if(change==null)
+                            break;
+                        try
+                        {
+                            minutes = ale.getTimeCreated().minusSeconds(30).until(OffsetDateTime.parse((String)change.getNewValue()), ChronoUnit.MINUTES);
+                        }
+                        catch (Exception ex) {}
+                        act = minutes == 0 ? Action.UNMUTE : Action.TEMPMUTE;
                         break;
                     case MEMBER_ROLE_UPDATE:
                         if(mRole==null)
@@ -287,7 +303,6 @@ public class ModLogger
                     if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()))
                         continue; // restoring muted role shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
-                    int minutes = 0;
                     User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
                     if(target==null)
                         target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).submit().get(5, TimeUnit.SECONDS);
@@ -312,17 +327,20 @@ public class ModLogger
                     String banCacheKey = banCacheKey(ale, mod);
                     if(act==Action.UNBAN) // check for softban
                     {
-                        Message banMsg = banLogCache.get(banCacheKey);
-                        if(banMsg!=null && banMsg.getTimeCreated().plusMinutes(2).isAfter(ale.getTimeCreated()))
+                        if(banLogCache.contains(banCacheKey))
                         {
-                            // This is a softban, because the user was banned by the same mod within the past 2 minutes
-                            // We need to edit the existing modlog entry instead of making a new one
-                            banMsg.editMessage(banMsg.getContentRaw()
-                                    .replaceFirst(Action.BAN.getEmoji(), Action.SOFTBAN.getEmoji())
-                                    .replaceFirst(Action.BAN.getVerb(), Action.SOFTBAN.getVerb())).queue();
-                            continue;
+                            Message banMsg = banLogCache.get(banCacheKey).get(5, TimeUnit.SECONDS);
+                            if(banMsg != null && banMsg.getTimeCreated().plusMinutes(2).isAfter(ale.getTimeCreated()))
+                            {
+                                // This is a softban, because the user was banned by the same mod within the past 2 minutes
+                                // We need to edit the existing modlog entry instead of making a new one
+                                banMsg.editMessage(banMsg.getContentRaw()
+                                        .replaceFirst(Action.BAN.getEmoji(), Action.SOFTBAN.getEmoji())
+                                        .replaceFirst(Action.BAN.getVerb(), Action.SOFTBAN.getVerb())).queue();
+                                continue;
+                            }
+                            vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong());
                         }
-                        vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong());
                     }
                     if(act==Action.UNMUTE)
                     {
@@ -332,7 +350,7 @@ public class ModLogger
                             LogUtil.modlogTimeFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
                             LogUtil.modlogUserFormat(ale.getTimeCreated(), timezone, getCaseNumber(modlog), mod, act, target, reason));
                     if(act==Action.BAN)
-                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).submit().get(4, TimeUnit.SECONDS));
+                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).submit());
                     else
                         modlog.sendMessage(msg).queue();
                 }
@@ -340,7 +358,7 @@ public class ModLogger
         }
         catch (TimeoutException ex)
         {
-            LOG.warn("Retreiving audit logs for "+guild+" took longer than 10 seconds!");
+            LOG.warn("Retreiving audit logs for " + guild + " took longer than 5 seconds! Audit: " + auditDiff + "ms, Msg: " + ex.getMessage());
         }
         catch(Exception ex)
         {

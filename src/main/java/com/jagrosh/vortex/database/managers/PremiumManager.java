@@ -20,15 +20,22 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Constants;
+import com.jagrosh.vortex.utils.MultiBotManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import org.json.JSONObject;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 /**
  *
@@ -39,8 +46,12 @@ public class PremiumManager extends DataManager
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L, true);
     public static final SQLColumn<Instant> UNTIL = new InstantColumn("UNTIL", false, Instant.EPOCH);
     public static final SQLColumn<Integer> LEVEL = new IntegerColumn("LEVEL", false, 0);
+    public static final SQLColumn<Long> USER_ID  = new LongColumn("USER_ID", false, 0L);
     
+    private final long premiumGuildId = 147698382092238848L;
+    private final long premiumRoleId = 867194076813852692L;
     private final PremiumInfo NO_PREMIUM = new PremiumInfo();
+    private final Logger LOG = LoggerFactory.getLogger(PremiumManager.class);
     
     public PremiumManager(DatabaseConnector connector)
     {
@@ -88,6 +99,64 @@ public class PremiumManager extends DataManager
         return new JSONObject()
                 .put("level", info.level.name())
                 .put("until", info.until == null ? 0 : info.until.getEpochSecond());
+    }
+    
+    public boolean setUserForGuild(User user, Guild guild)
+    {
+        return readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> 
+        {
+            if(rs.next())
+            {
+                USER_ID.updateValue(rs, user.getIdLong());
+                rs.updateRow();
+                return true;
+            }
+            else
+                return false;
+        });
+    }
+    
+    public void checkPremiumSubscriptions(MultiBotManager shards)
+    {
+        Guild guild = shards.getGuildById(premiumGuildId);
+        if(guild == null)
+            return;
+        Role role = guild.getRoleById(premiumRoleId);
+        if(role == null)
+            return;
+        // get all the user IDs with a specific role
+        List<Long> users = guild.getMembersWithRoles(role).stream().map(m -> m.getIdLong()).collect(Collectors.toList());
+        // apply a minimum time of 40 days
+        List<Long> guilds = applyMinimumTimeBuffer(users, 40, ChronoUnit.DAYS);
+        LOG.info("Updated premium subscriptions for " + guilds.toString());
+    }
+    
+    /**
+     * Updates the time remaining for all guilds with a premium subscription, based on the user who is associated with
+     * the guild
+     * 
+     * @param users A list of users that have active premium subscriptions
+     * @param time The value of the minimum time
+     * @param unit The units of the minimum time
+     * @return A list of the guild IDs that got updated
+     */
+    public List<Long> applyMinimumTimeBuffer(List<Long> users, int time, TemporalUnit unit)
+    {
+        Instant targetTime = Instant.now().plus(time, unit);
+        List<Long> guilds = new ArrayList<>();
+        readWrite(selectAll(UNTIL.isLessThan(targetTime.getEpochSecond())), rs -> 
+        {
+            while(rs.next())
+            {
+                if(LEVEL.getValue(rs) > Level.NONE.ordinal() && users.contains(USER_ID.getValue(rs)))
+                {
+                    UNTIL.updateValue(rs, targetTime);
+                    rs.updateRow();
+                    guilds.add(GUILD_ID.getValue(rs));
+                }
+            }
+        });
+        return guilds;
     }
     
     public void addPremiumForever(Guild guild, Level level)
@@ -189,17 +258,20 @@ public class PremiumManager extends DataManager
     {
         public final Level level;
         public final Instant until;
+        public final long user;
         
         private PremiumInfo(ResultSet rs) throws SQLException
         {
             this.level = Level.values()[LEVEL.getValue(rs)];
             this.until = UNTIL.getValue(rs);
+            this.user = USER_ID.getValue(rs);
         }
         
         private PremiumInfo()
         {
             level = Level.NONE;
             until = null;
+            user = 0L;
         }
         
         public String getFooterString()

@@ -39,6 +39,8 @@ public class VoicemoveCmd extends ModCommand
         this.aliases = new String[]{"magnet"};
         this.help = "mass-moves voice channel users";
         this.arguments = "[channel]";
+        this.cooldown = 20;
+        this.cooldownScope = CooldownScope.GUILD;
     }
     
     @Override
@@ -91,6 +93,7 @@ public class VoicemoveCmd extends ModCommand
         catch(Exception e) 
         {
             event.replyWarning(FormatUtil.filterEveryone("I could not connect to **"+vc.getName()+"**"));
+            event.getGuild().getAudioManager().closeAudioConnection();
             return;
         }
         vortex.getEventWaiter().waitForEvent(GuildVoiceMoveEvent.class,
@@ -104,6 +107,8 @@ public class VoicemoveCmd extends ModCommand
                     event.replyWarning("You waited too long, "+event.getMember().getAsMention());
                 });
         event.reply("\uD83C\uDF9B Now, move me and I'll drag users to a new voice channel."); // 🎛
+        // failsafe to leave voice channel
+        event.getClient().getScheduleExecutor().schedule(() -> event.getGuild().getAudioManager().closeAudioConnection(), 2, TimeUnit.MINUTES);
     }
     
 }

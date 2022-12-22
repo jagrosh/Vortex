@@ -80,7 +80,7 @@ public class Vortex
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
         config = ConfigFactory.load();
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
-        threadpool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "vortex"));
+        threadpool = Executors.newScheduledThreadPool(400, r -> new Thread(r, "vortex"));
         database = new Database(config.getString("database.host"), 
                                        config.getString("database.username"), 
                                        config.getString("database.password"));
@@ -109,7 +109,7 @@ public class Vortex
                             new InviteCmd(),
                             new PingCommand(),
                             new RoleinfoCommand(),
-                            new ServerinfoCommand(),
+                            new ServerinfoCmd(),
                             new UserinfoCmd(),
 
                             // Moderation
@@ -140,6 +140,7 @@ public class Vortex
                             new AvatarlogCmd(this),
                             new TimezoneCmd(this),
                             new ModroleCmd(this),
+                            new MuteroleCmd(this),
                             new PrefixCmd(this),
                             new SettingsCmd(this),
 
@@ -203,6 +204,7 @@ public class Vortex
         threadpool.scheduleWithFixedDelay(() -> database.tempbans.checkUnbans(shards), 0, 2, TimeUnit.MINUTES);
         threadpool.scheduleWithFixedDelay(() -> database.tempmutes.checkUnmutes(shards, database.settings), 0, 45, TimeUnit.SECONDS);
         threadpool.scheduleWithFixedDelay(() -> database.tempslowmodes.checkSlowmode(shards), 0, 45, TimeUnit.SECONDS);
+        threadpool.scheduleWithFixedDelay(() -> database.premium.checkPremiumSubscriptions(shards), 5, 10, TimeUnit.HOURS);
     }
     
     

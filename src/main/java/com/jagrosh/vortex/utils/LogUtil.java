@@ -20,11 +20,9 @@ import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayDeque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -67,7 +65,7 @@ public class LogUtil
                 reasonF(reason));
     }
     
-    public static String modlogTimeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, Action action, int minutes, User target, String reason)
+    public static String modlogTimeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, Action action, long minutes, User target, String reason)
     {
         return String.format(MODLOG_TIME_FORMAT, timeF(time, zone), caseNum, action.getEmoji(), moderator.getName(), 
                 moderator.getDiscriminator(), action.getVerb(), target.getName(), target.getDiscriminator(), target.getId(), 

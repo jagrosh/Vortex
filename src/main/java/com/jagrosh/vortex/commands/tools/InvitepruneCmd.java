@@ -21,6 +21,7 @@ import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
+import com.jagrosh.vortex.database.managers.PremiumManager;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -48,12 +49,19 @@ public class InvitepruneCmd extends Command
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.guildOnly = true;
-        this.cooldown = 60*5; // 5 minute cooldown for safety
+        this.cooldown = 60*10; // 10 minute cooldown for safety
     }
     
     @Override
     protected void execute(CommandEvent event)
     {
+        // require Vortex Plus for invite pruning
+        if(!vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PLUS))
+        {
+            event.reply(PremiumManager.Level.PLUS.getRequirementMessage());
+            return;
+        }
+        
         int uses;
         if(event.getArgs().isEmpty())
             uses = 1;

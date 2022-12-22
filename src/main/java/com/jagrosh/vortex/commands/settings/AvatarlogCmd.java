@@ -38,12 +38,17 @@ public class AvatarlogCmd extends LogCommand
     @Override
     protected void showCurrentChannel(CommandEvent event)
     {
-        TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getAvatarLogChannel(event.getGuild());
-        if(tc==null)
-            event.replyWarning("Avatar Logs are not currently enabled on the server. Please include a channel name.");
+        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.ULTRA))
+        {
+            TextChannel tc = vortex.getDatabase().settings.getSettings(event.getGuild()).getAvatarLogChannel(event.getGuild());
+            if(tc==null)
+                event.replyWarning("Avatar Logs are not currently enabled on the server. Please include a channel name.");
+            else
+                event.replySuccess("Avatar Logs are currently being sent in "+tc.getAsMention()
+                        +(event.getSelfMember().hasPermission(tc, REQUIRED_PERMS) ? "" : "\n"+event.getClient().getWarning()+String.format(REQUIRED_ERROR, tc.getAsMention())));
+        }
         else
-            event.replySuccess("Avatar Logs are currently being sent in "+tc.getAsMention()
-                    +(event.getSelfMember().hasPermission(tc, REQUIRED_PERMS) ? "" : "\n"+event.getClient().getWarning()+String.format(REQUIRED_ERROR, tc.getAsMention())));
+            event.reply(PremiumManager.Level.ULTRA.getRequirementMessage());
     }
 
     @Override

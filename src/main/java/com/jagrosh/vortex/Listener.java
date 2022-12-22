@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateTimeOutEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
@@ -214,6 +215,11 @@ public class Listener implements EventListener
         else if (event instanceof TextChannelUpdateSlowmodeEvent)
         {
             vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
+        }
+        else if (event instanceof GuildMemberUpdateTimeOutEvent)
+        {
+            // Signal the modlogger because someone was timed out
+            vortex.getModLogger().setNeedUpdate(((GuildMemberUpdateTimeOutEvent) event).getGuild());
         }
         else if (event instanceof GuildJoinEvent)
         {
