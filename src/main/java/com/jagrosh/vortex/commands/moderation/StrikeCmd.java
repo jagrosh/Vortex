@@ -24,14 +24,15 @@ import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class StrikeCmd extends ModCommand
 {
     public StrikeCmd(Vortex vortex)
@@ -46,7 +47,7 @@ public class StrikeCmd extends ModCommand
     @Override
     protected void execute(CommandEvent event)
     {
-        int numstrikes;
+    /*    int numstrikes;
         String[] parts = event.getArgs().split("\\s+", 2);
         String str;
         try
@@ -126,21 +127,22 @@ public class StrikeCmd extends ModCommand
                 });
                 strikeAll(args.users, fnumstrikes, args.reason, builder, event);
             });
+            */
     }
     
     private void strikeAll(Set<User> users, int numstrikes, String reason, StringBuilder builder, CommandEvent event)
     {
-        users.forEach(u -> 
+        /*users.forEach(u ->
         {
             if(u.isBot())
                 builder.append("\n").append(event.getClient().getError()).append(" Strikes cannot be given to bots (").append(FormatUtil.formatFullUser(u)).append(")");
             else
             {
-                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getCreationTime(), u, numstrikes, reason);
+                vortex.getStrikeHandler().applyStrikes(event.getMember(), event.getMessage().getTimeCreated(), u, numstrikes, reason);
                 builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully gave `").append(numstrikes)
                         .append("` strikes to ").append(FormatUtil.formatUser(u));
             }
         });
-        event.reply(builder.toString());
+        event.reply(builder.toString());*/
     }
 }

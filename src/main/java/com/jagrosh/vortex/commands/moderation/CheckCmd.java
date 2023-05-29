@@ -22,11 +22,11 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild.Ban;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild.Ban;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -49,7 +49,7 @@ public class CheckCmd extends ModCommand
     {
         if(event.getArgs().isEmpty() || event.getArgs().equalsIgnoreCase("help"))
         {
-            event.replySuccess("This command is used to see a user's strikes and mute/ban status for the current server. Please include a user or user ID to check.");
+            event.replySuccess("This command is used to see a user's strikes and mute/gravel/ban status for the current server. Please include a user or user ID to check.");
             return;
         }
         event.getChannel().sendTyping().queue();
@@ -87,21 +87,27 @@ public class CheckCmd extends ModCommand
         if(event.getGuild().isMember(user))
             check(event, user, null);
         else
-            event.getGuild().getBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
+            event.getGuild().retrieveBan(user).queue(ban -> check(event, user, ban), t -> check(event, user, null));
     }
     
     private void check(CommandEvent event, User user, Ban ban)
     {
         int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), user.getIdLong());
         int minutesMuted = vortex.getDatabase().tempmutes.timeUntilUnmute(event.getGuild(), user.getIdLong());
+        int minutesGraveled = vortex.getDatabase().gravels.timeUntilGravel(event.getGuild(), user.getIdLong());
         Role mRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
+        Role gRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild());
         int minutesBanned = vortex.getDatabase().tempbans.timeUntilUnban(event.getGuild(), user.getIdLong());
         String str = "Moderation Information for "+FormatUtil.formatFullUser(user)+":\n"
                 + Action.STRIKE.getEmoji() + " Strikes: **"+strikes+"**\n"
                 + Action.MUTE.getEmoji() + " Muted: **" + (event.getGuild().isMember(user) 
                         ? (event.getGuild().getMember(user).getRoles().contains(mRole) ? "Yes" : "No") 
                         : "Not In Server") + "**\n"
+                + Action.GRAVEL.getEmoji() + " Graveled: **" + (event.getGuild().isMember(user)
+                        ? (event.getGuild().getMember(user).getRoles().contains(gRole) ? "Yes" : "No")
+                        : "Not In Server") + "**\n"
                 + Action.TEMPMUTE.getEmoji() + " Mute Time Remaining: " + (minutesMuted <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesMuted * 60)) + "\n"
+                + Action.TEMPGRAVEL.getEmoji() + " Gravel Time Remaining: " + (minutesGraveled <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesGraveled * 60)) + "\n"
                 + Action.BAN.getEmoji() + " Banned: **" + (ban==null ? "No**" : "Yes** (`" + ban.getReason() + "`)") + "\n"
                 + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (minutesBanned <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesBanned * 60));
         event.replySuccess(str);

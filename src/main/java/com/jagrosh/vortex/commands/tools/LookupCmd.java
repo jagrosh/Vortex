@@ -21,17 +21,15 @@ import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
-import java.time.format.DateTimeFormatter;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Invite;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.utils.MiscUtil;
-import net.dv8tion.jda.core.utils.WidgetUtil;
-import net.dv8tion.jda.core.utils.WidgetUtil.Widget;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.utils.TimeFormat;
+import net.dv8tion.jda.api.utils.TimeUtil;
+import net.dv8tion.jda.api.utils.WidgetUtil;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 /**
  *
@@ -127,9 +125,9 @@ public class LookupCmd extends Command
         String str = LINESTART + "Discord ID: **" + u.getId() + "**";
         if(u.getAvatarId() != null && u.getAvatarId().startsWith("a_"))
             str+= " <:nitro:314068430611415041>";
-        str += "\n" + LINESTART + "Account Creation: **" + MiscUtil.getDateTimeString(u.getCreationTime()) + "**";
+        str += "\n" + LINESTART + "Account Creation: " + TimeFormat.DATE_TIME_SHORT.format(u.getTimeCreated());
         eb.setDescription(str);
-        event.reply(new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build());
+        event.reply(new MessageCreateBuilder().setContent(FormatUtil.filterEveryone(text)).setEmbeds(eb.build()).build());
         return true;
     }
     
@@ -183,7 +181,7 @@ public class LookupCmd extends Command
         event.reply(constructMessage(invite, widget));
     }
     
-    private Message constructMessage(Invite invite, Widget widget)
+    private MessageCreateData constructMessage(Invite invite, Widget widget)
     {
         String gname;
         long gid;
@@ -191,9 +189,9 @@ public class LookupCmd extends Command
         if(invite == null)
         {
             if(widget == null)
-                return new MessageBuilder().append(Constants.ERROR + " No users, guilds, or invites found.").build();
+                return new MessageCreateBuilder().setContent(Constants.ERROR + " No users, guilds, or invites found.").build();
             else if (!widget.isAvailable())
-                return new MessageBuilder().append(Constants.SUCCESS + " Guild with ID `" + widget.getId() + "` found; no further information found.").build();
+                return new MessageCreateBuilder().setContent(Constants.SUCCESS + " Guild with ID `" + widget.getId() + "` found; no further information found.").build();
             gid = widget.getIdLong();
             gname = widget.getName();
             users = widget.getMembers().size();
@@ -204,11 +202,11 @@ public class LookupCmd extends Command
             gname = invite.getGuild().getName();
             users = invite.getGuild().getOnlineCount();
         }
-        
+
         String text = GUILD_EMOJI + " Information about **" + gname + "**:";
         EmbedBuilder eb = new EmbedBuilder();
         eb.appendDescription(LINESTART + "ID: **" + gid + "**"
-                + "\n" + LINESTART + "Creation: **" + MiscUtil.getCreationTime(gid).format(DateTimeFormatter.RFC_1123_DATE_TIME) + "**"
+                + "\n" + LINESTART + "Creation: " + TimeFormat.DATE_TIME_SHORT.format(TimeUtil.getTimeCreated(gid))
                 + "\n" + LINESTART + "Users: " + (users == -1 ? "N/A" : "**" + users + "** online")
                 + (widget != null && widget.isAvailable() ? "\n" + LINESTART + "Channels: **" + widget.getVoiceChannels().size() + "** voice" : ""));
         if(invite != null)
@@ -220,6 +218,6 @@ public class LookupCmd extends Command
                     + "\n" + LINESTART + "Inviter: " + (invite.getInviter() == null ? "N/A" : FormatUtil.formatFullUser(invite.getInviter()))
                     + (invite.getGuild().getSplashId() == null ? "" : "\n" + LINESTART + "Splash: "), false);
         }
-        return new MessageBuilder().append(FormatUtil.filterEveryone(text)).setEmbed(eb.build()).build();
+        return new MessageCreateBuilder().setContent(FormatUtil.filterEveryone(text)).setEmbeds(eb.build()).build();
     }
 }

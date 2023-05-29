@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import javax.imageio.ImageIO;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -125,7 +125,7 @@ public class AvatarSaver
             ImageIO.write(buf, "jpg", location(id, avyId));
             buf.getGraphics().dispose();
         }
-        catch(IOException ex) {}
+        catch(IOException ignore) {}
     }
     
     private File location(long id, String avyId)

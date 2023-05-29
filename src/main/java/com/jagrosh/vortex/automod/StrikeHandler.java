@@ -27,16 +27,17 @@ import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class StrikeHandler
 {
     private final static String STRIKE_FORMAT = Constants.WARNING+" You have received `%d` strikes in **%s** for: `%s`";
@@ -53,8 +54,8 @@ public class StrikeHandler
     
     public void pardonStrikes(Member moderator, OffsetDateTime nowo, long targetId, int number, String reason)
     {
-        int[] counts = vortex.getDatabase().strikes.removeStrikes(moderator.getGuild(), targetId, number);
-        User user = vortex.getShardManager().getUserById(targetId);
+        /*int[] counts = vortex.getDatabase().strikes.removeStrikes(moderator.getGuild(), targetId, number);
+        User user = vortex.getShardManager().get(targetId);
         if(user==null)
         {
             moderator.getJDA().retrieveUserById(targetId).queue(u -> vortex.getModLogger().postPardonCase(moderator, nowo, number, counts[0], counts[1], u, reason));
@@ -64,12 +65,13 @@ public class StrikeHandler
             String dmmsg = String.format(PARDON_FORMAT, number, moderator.getGuild().getName(), reason);
             vortex.getModLogger().postPardonCase(moderator, nowo, number, counts[0], counts[1], user, reason);
             OtherUtil.safeDM(user, dmmsg, moderator.getGuild().getMemberById(targetId)!=null, ()->{});
-        }
+        }*/
     }
-    
+
+    @Deprecated
     public void applyStrikes(Member moderator, OffsetDateTime nowo, User target, int number, String reason)
     {
-        boolean isMember = moderator.getGuild().getMemberById(target.getIdLong())!=null;
+       /* boolean isMember = moderator.getGuild().getMemberById(target.getIdLong())!=null;
         Instant now = nowo.toInstant();
         int[] counts = vortex.getDatabase().strikes.addStrikes(moderator.getGuild(), target.getIdLong(), number);
         if(counts[0]>110 && counts[1]>110)
@@ -87,30 +89,38 @@ public class StrikeHandler
             boolean canBan = moderator.getGuild().getSelfMember().hasPermission(Permission.BAN_MEMBERS);
             if(punishments.stream().anyMatch(p -> p.action==Action.BAN) && canBan)
             {
-                OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), isMember, 
-                        () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue());
-                vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong());
+                // TODO: OtherUtil.safeDM(target, dmmsg + punish(Action.BAN, moderator.getGuild()), isMember,
+                        //() -> moderator.getGuild().ban(target, 7, notimeaudit).queue());
+                //TODO: vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong(), 0, 0);
                 return;
             }
             int muteDuration = 0;
+            int gravelDuration = 0;
             int banDuration = 0;
             for(Punishment p: punishments)
             {
                 if(p.action==Action.MUTE)
                     muteDuration = Integer.MAX_VALUE;
+                else if (p.action==Action.GRAVEL)
+                    gravelDuration = Integer.MAX_VALUE;
                 else if(p.action==Action.TEMPMUTE && p.time>muteDuration)
                     muteDuration = p.time;
+                else if(p.action==Action.TEMPGRAVEL && p.time>gravelDuration)
+                    gravelDuration = p.time;
                 else if(p.action==Action.TEMPBAN && p.time>banDuration)
                     banDuration = p.time;
             }
+
             if(banDuration>0 && canBan)
             {
                 int finalBanDuration = banDuration;
                 OtherUtil.safeDM(target, dmmsg + punishTime(Action.TEMPBAN, moderator.getGuild(), banDuration), isMember, 
                         () -> moderator.getGuild().getController().ban(target, 7, LogUtil.auditStrikeReasonFormat(moderator, finalBanDuration, counts[0], counts[1], reason)).queue());
-                vortex.getDatabase().tempbans.setBan(moderator.getGuild(), target.getIdLong(), now.plus(banDuration, ChronoUnit.MINUTES));
+                vortex.getDatabase().tempbans.setBan(vortex, moderator.getGuild(), target.getIdLong(), 0, now.plus(banDuration, ChronoUnit.MINUTES), "");
                 if(muteDuration>0)
-                    vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                    vortex.getDatabase().tempmutes.setMute(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                if(gravelDuration>0)
+                    vortex.getDatabase().gravels.setGravel(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, gravelDuration));
                 return;
             }
             if(punishments.stream().anyMatch(p -> p.action==Action.SOFTBAN) && canBan)
@@ -119,7 +129,9 @@ public class StrikeHandler
                         () -> moderator.getGuild().getController().ban(target, 7, notimeaudit).queue(
                                 s -> moderator.getGuild().getController().unban(target).reason(notimeaudit).queueAfter(4, TimeUnit.SECONDS)));
                 if(muteDuration>0)
-                    vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                    //TODO: vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                if(gravelDuration>0)
+                    vortex.getDatabase().gravels.setGravel(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, gravelDuration));
                 return;
             }
             boolean canKick = moderator.getGuild().getSelfMember().hasPermission(Permission.KICK_MEMBERS);
@@ -135,13 +147,15 @@ public class StrikeHandler
                     vortex.getModLogger().postStrikeCase(moderator, nowo, number, counts[0], counts[1], target, reason);
                 }
                 if(muteDuration>0)
-                    vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                    vortex.getDatabase().tempmutes.setMute(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                if(gravelDuration>0)
+                    vortex.getDatabase().gravels.setGravel(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, gravelDuration));
                 return;
             }
             boolean canMute = moderator.getGuild().getSelfMember().hasPermission(Permission.MANAGE_ROLES);
             if(muteDuration>0 && canMute)
             {
-                vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
+                //TODO: vortex.getDatabase().tempmutes.setMute(moderator.getGuild(), target.getIdLong(), muteTime(now, muteDuration));
                 Role muted = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getMutedRole(moderator.getGuild());
                 Member mem = moderator.getGuild().getMember(target);
                 if(muted==null || mem==null || !moderator.getGuild().getSelfMember().canInteract(muted))
@@ -165,7 +179,35 @@ public class StrikeHandler
                 OtherUtil.safeDM(target, dmmsg + (muteDuration==Integer.MAX_VALUE ? punish(Action.MUTE, moderator.getGuild()) 
                         : punishTime(Action.TEMPMUTE, moderator.getGuild(), muteDuration)), isMember, ()->{});
             }
-        }
+
+            boolean canGravel = moderator.getGuild().getSelfMember().hasPermission(Permission.MANAGE_ROLES);
+            if(gravelDuration>0 && canGravel)
+            {
+                vortex.getDatabase().gravels.setGravel(vortex, moderator.getGuild(), target.getIdLong(), muteTime(now, gravelDuration));
+                Role graveled = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getGravelRole(moderator.getGuild());
+                Member mem = moderator.getGuild().getMember(target);
+                if(graveled==null || mem==null || !moderator.getGuild().getSelfMember().canInteract(graveled))
+                {
+                    vortex.getModLogger().postStrikeCase(moderator, nowo, number, counts[0], counts[1], target, reason);
+                    OtherUtil.safeDM(target, dmmsg, isMember, ()->{});
+                    return;
+                }
+                if(mem.getRoles().contains(graveled))
+                {
+                    vortex.getModLogger().postPseudoCase(moderator, nowo,
+                            gravelDuration==Integer.MAX_VALUE ? Action.GRAVEL : Action.TEMPGRAVEL, target,
+                            gravelDuration==Integer.MAX_VALUE ? 0 : gravelDuration, "["+counts[1]+" strikes] "+reason);
+                }
+                else
+                {
+                    moderator.getGuild().getController().addSingleRoleToMember(mem, graveled)
+                            .reason(gravelDuration==Integer.MAX_VALUE ? notimeaudit : LogUtil.auditStrikeReasonFormat(moderator, gravelDuration, counts[0], counts[1], reason))
+                            .queue();
+                }
+                OtherUtil.safeDM(target, dmmsg + (gravelDuration==Integer.MAX_VALUE ? punish(Action.GRAVEL, moderator.getGuild())
+                        : punishTime(Action.TEMPGRAVEL, moderator.getGuild(), gravelDuration)), isMember, ()->{});
+            }
+        }*/
     }
     
     private static String punish(Action action, Guild guild)

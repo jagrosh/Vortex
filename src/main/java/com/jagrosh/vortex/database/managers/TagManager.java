@@ -6,7 +6,7 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.LongColumn;
 import com.jagrosh.easysql.columns.StringColumn;
 import com.jagrosh.vortex.database.Database;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.ArrayList;
 import java.util.List;

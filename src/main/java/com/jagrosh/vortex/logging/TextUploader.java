@@ -15,13 +15,15 @@
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.Vortex;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Category;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.TextChannel;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,15 +51,26 @@ public class TextUploader
         this.guildId = guildId;
         this.categoryId = categoryId;
     }
-    
-    public void upload(String content, String filename, Result done)
+
+    public synchronized void upload(String content, String filename, Result done)
     {
         Guild guild = altBot.getGuildById(guildId);
         if(guild==null)
             return;
         Category category = guild.getCategoryById(categoryId);
         List<TextChannel> list = category.getTextChannels();
-        list.get(index % list.size()).sendFile(content.getBytes(StandardCharsets.UTF_8), filename+".txt", null).queue(
+        AtomicBoolean failed = new AtomicBoolean();
+        if (list.size() == 0)
+        {
+            category.createTextChannel("uploader").queue(s -> {}, f -> {
+                LOG.error("Failed to create text channel: " + f);
+                failed.set(true);
+            });
+        }
+        if (failed.get())
+            return;
+
+        list.get(index % list.size()).sendFiles(FileUpload.fromData(content.getBytes(StandardCharsets.UTF_8), filename+".txt")).queue(
                 m -> done.consume(
                         "https://txt.discord.website?txt="+m.getAttachments().get(0).getUrl().substring(m.getAttachments().get(0).getUrl().indexOf("s/")+2, m.getAttachments().get(0).getUrl().length()-4), 
                         m.getAttachments().get(0).getUrl()), 
@@ -65,9 +78,8 @@ public class TextUploader
         index++;
     }
     
-    
-    public static interface Result
+    public interface Result
     {
-        public abstract void consume(String view, String download);
+        void consume(String view, String download);
     }
 }

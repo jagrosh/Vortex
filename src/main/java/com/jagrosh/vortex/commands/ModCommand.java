@@ -18,8 +18,9 @@ package com.jagrosh.vortex.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 /**
  *
@@ -60,7 +61,7 @@ public abstract class ModCommand extends Command
             if(!missingPerms)
                 return true;
             if(event.getMember().getRoles().isEmpty())
-                event.getMessage().addReaction(Constants.ERROR_REACTION).queue();
+                event.getMessage().addReaction(Emoji.fromFormatted(Constants.ERROR_REACTION)).queue();
             else
                 event.replyError("You must have the following permissions to use that: "+listPerms(altPerms));
             return false;

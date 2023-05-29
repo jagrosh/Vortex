@@ -18,15 +18,16 @@ package com.jagrosh.vortex.commands.settings;
 import java.util.concurrent.TimeUnit;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.CooldownScope;
 import com.jagrosh.jdautilities.menu.ButtonMenu;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.AutomodManager.AutomodSettings;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.PermissionOverride;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.PermissionOverride;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 /**
  *
@@ -48,7 +49,7 @@ public class SetupCmd extends Command
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
-        this.children = new Command[]{new MuteSetupCmd(), new AutomodSetupCmd()};
+        this.children = new Command[]{new MuteSetupCmd(), new GravelSetupCmd(), new AutomodSetupCmd()};
     }
     
     @Override
@@ -176,7 +177,47 @@ public class SetupCmd extends Command
             waitForConfirmation(event, confirmation, () -> setUpMutedRole(event, muted));
         }
     }
-    
+
+    private class GravelSetupCmd extends Command
+    {
+        private GravelSetupCmd()
+        {
+            this.name = "gravelrole";
+            this.aliases = new String[]{"graveled","gravel","graveledrole"};
+            this.category = new Category("Settings");
+            this.help = "sets up the 'Graveled' role";
+            this.guildOnly = true;
+            this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
+            this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
+            this.cooldown = 20;
+            this.cooldownScope = CooldownScope.GUILD;
+        }
+
+        @Override
+        protected void execute(CommandEvent event)
+        {
+            Role graveled = vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild());
+            String confirmation;
+            if(graveled!=null)
+            {
+                if(!event.getSelfMember().canInteract(graveled))
+                {
+                    event.replyError("I cannot interact with the existing '"+graveled.getName()+"' role. Please move my role(s) higher and then try again.");
+                    return;
+                }
+                if(!event.getMember().canInteract(graveled))
+                {
+                    event.replyError("You do not have permission to interact with the existing '"+graveled.getName()+"' role.");
+                    return;
+                }
+                confirmation = "This will modify the existing '"+graveled.getName()+"' role and assign it overrides in every channel.";
+            }
+            else
+                confirmation = "This will create a role called 'Graveled' and assign it overrides in every channel.";
+            waitForConfirmation(event, confirmation, () -> setUpGraveledRole(event, graveled));
+        }
+    }
+
     private void setUpMutedRole(CommandEvent event, Role role)
     {
         StringBuilder sb = new StringBuilder(event.getClient().getSuccess()+" Muted role setup started!\n");
@@ -187,7 +228,7 @@ public class SetupCmd extends Command
                 Role mutedRole;
                 if(role==null)
                 {
-                    mutedRole = event.getGuild().getController().createRole().setName("Muted").setPermissions().setColor(1).complete();
+                    mutedRole = event.getGuild().createRole().setName("Muted").setPermissions().setColor(1).complete();
                 }
                 else
                 {
@@ -197,23 +238,25 @@ public class SetupCmd extends Command
                 sb.append(event.getClient().getSuccess()).append(" Role initialized!\n");
                 m.editMessage(sb + Constants.LOADING+" Making Category overrides...").complete();
                 PermissionOverride po;
-                for(net.dv8tion.jda.core.entities.Category cat: event.getGuild().getCategories())
+                for(net.dv8tion.jda.api.entities.channel.concrete.Category cat: event.getGuild().getCategories())
                 {
                     po = cat.getPermissionOverride(mutedRole);
+                    Permission[] deniedMutePerms = {Permission.MESSAGE_SEND, Permission.CREATE_PUBLIC_THREADS, Permission.CREATE_PRIVATE_THREADS, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK};
                     if(po==null)
-                        cat.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        cat.upsertPermissionOverride(mutedRole).deny(deniedMutePerms).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        po.getManager().deny(deniedMutePerms).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Category overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Text Channel overrides...").complete();
                 for(TextChannel tc: event.getGuild().getTextChannels())
                 {
                     po = tc.getPermissionOverride(mutedRole);
+                    Permission[] deniedMutePerms = {Permission.MESSAGE_SEND, Permission.CREATE_PUBLIC_THREADS, Permission.CREATE_PRIVATE_THREADS, Permission.MESSAGE_ADD_REACTION};
                     if(po==null)
-                        tc.createPermissionOverride(mutedRole).setDeny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        tc.upsertPermissionOverride(mutedRole).deny(deniedMutePerms).complete();
                     else
-                        po.getManager().deny(Permission.MESSAGE_WRITE, Permission.MESSAGE_ADD_REACTION).complete();
+                        po.getManager().deny(deniedMutePerms).complete();
                 }
                 sb.append(event.getClient().getSuccess()).append(" Text Channel overrides complete!\n");
                 m.editMessage(sb + Constants.LOADING + " Making Voice Channel overrides...").complete();
@@ -221,7 +264,7 @@ public class SetupCmd extends Command
                 {
                     po = vc.getPermissionOverride(mutedRole);
                     if(po==null)
-                        vc.createPermissionOverride(mutedRole).setDeny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                        vc.upsertPermissionOverride(mutedRole).deny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
                     else
                         po.getManager().deny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
                 }
@@ -233,7 +276,66 @@ public class SetupCmd extends Command
             }
         }));
     }
-    
+
+    private void setUpGraveledRole(CommandEvent event, Role role)
+    {
+        StringBuilder sb = new StringBuilder(event.getClient().getSuccess()+" Graveled role setup started!\n");
+        event.reply(sb + Constants.LOADING+" Initializing role...", m -> event.async(() ->
+        {
+            try
+            {
+                Role graveledRole;
+                if(role==null)
+                {
+                    graveledRole = event.getGuild().createRole().setName("Graveled").setPermissions().setColor(1).complete();
+                }
+                else
+                {
+                    role.getManager().setPermissions().complete();
+                    graveledRole = role;
+                }
+                sb.append(event.getClient().getSuccess()).append(" Role initialized!\n");
+                m.editMessage(sb + Constants.LOADING+" Making Category overrides...").complete();
+                PermissionOverride po;
+                for(net.dv8tion.jda.api.entities.channel.concrete.Category cat: event.getGuild().getCategories())
+                {
+                    po = cat.getPermissionOverride(graveledRole);
+                    Permission[] deniedGravelPerms = {Permission.MESSAGE_SEND, Permission.VIEW_CHANNEL, Permission.VIEW_CHANNEL, Permission.CREATE_PRIVATE_THREADS, Permission.CREATE_PUBLIC_THREADS, Permission.VOICE_CONNECT, Permission.VOICE_SPEAK};
+                    if(po==null)
+                        cat.upsertPermissionOverride(graveledRole).deny().complete();
+                    else
+                        po.getManager().deny(deniedGravelPerms).complete();
+                }
+                sb.append(event.getClient().getSuccess()).append(" Category overrides complete!\n");
+                m.editMessage(sb + Constants.LOADING + " Making Text Channel overrides...").complete();
+                for(TextChannel tc: event.getGuild().getTextChannels())
+                {
+                    po = tc.getPermissionOverride(graveledRole);
+                    Permission[] deniedGravelPerms = {Permission.MESSAGE_SEND, Permission.VIEW_CHANNEL, Permission.VIEW_CHANNEL, Permission.CREATE_PRIVATE_THREADS, Permission.CREATE_PUBLIC_THREADS};
+                    if(po==null)
+                        tc.upsertPermissionOverride(graveledRole).deny(deniedGravelPerms).complete();
+                    else
+                        po.getManager().deny(deniedGravelPerms).complete();
+                }
+                sb.append(event.getClient().getSuccess()).append(" Text Channel overrides complete!\n");
+                m.editMessage(sb + Constants.LOADING + " Making Voice Channel overrides...").complete();
+                for(VoiceChannel vc: event.getGuild().getVoiceChannels())
+                {
+                    po = vc.getPermissionOverride(graveledRole);
+                    if(po==null)
+                        vc.upsertPermissionOverride(graveledRole).deny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                    else
+                        po.getManager().deny(Permission.VOICE_CONNECT, Permission.VOICE_SPEAK).complete();
+                }
+                m.editMessage(sb + event.getClient().getSuccess()+" Voice Channel overrides complete!\n\n" + event.getClient().getSuccess()+" Graveled role setup has completed!").queue();
+            }
+            catch(Exception ex)
+            {
+                m.editMessage(sb + event.getClient().getError()+" An error occurred setting up the Graveled role. Please check that I have the Administrator permission and that the Gravel role is below my roles.").queue();
+            }
+        }));
+    }
+
     private void waitForConfirmation(CommandEvent event, String message, Runnable confirm)
     {
         new ButtonMenu.Builder()

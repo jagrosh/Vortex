@@ -21,8 +21,8 @@ import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.util.List;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 /**
  *
@@ -30,7 +30,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public abstract class LogCommand extends Command
 {
-    public static Permission[] REQUIRED_PERMS = {Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY};
+    public static Permission[] REQUIRED_PERMS = {Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_HISTORY};
     public static String REQUIRED_ERROR = "I am missing the necessary permissions (Read Messages, Send Messages, Read Message History, and Embed Links) in %s!";
     protected final Vortex vortex;
     

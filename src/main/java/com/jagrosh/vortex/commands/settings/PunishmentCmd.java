@@ -24,9 +24,9 @@ import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.database.managers.PunishmentManager;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.OtherUtil;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 /**
  *
@@ -36,8 +36,8 @@ public class PunishmentCmd extends Command
 {
     private final static String SETTING_STRIKES = "\n\nUsage: `"+Constants.PREFIX+"punishment <number> <action> [time]`\n"
             + "`<number>` - the number of strikes at which to perform the action\n"
-            + "`<action>` - the action, such as `None`, `Kick`, `Mute`, `Softban`, or `Ban`\n"
-            + "`[time]` - optional, the amount of time to keep the user muted or banned\n"
+            + "`<action>` - the action, such as `None`, `Kick`, `Mute`, `Gravel`, `Softban`, or `Ban`\n"
+            + "`[time]` - optional, the amount of time to keep the user muted, graveled, or banned\n"
             + "Do not include <> nor [] in your commands!\n\n"
             + "The `"+Constants.PREFIX+"settings` command can be used to view current punishments.";
     private final Vortex vortex;
@@ -104,6 +104,22 @@ public class PunishmentCmd extends Command
                     successMessage += event.getClient().getWarning()+" No muted role currently exists!";
                 break;
             }
+            case "tempgravel":
+            case "temp-gravel":
+            case "gravel":
+            {
+                int minutes = parts.length>2 ? OtherUtil.parseTime(parts[2])/60 : 0;
+                if(minutes<0)
+                {
+                    event.replyError("Temp-Gravel time cannot be negative!");
+                    return;
+                }
+                vortex.getDatabase().actions.setAction(event.getGuild(), numstrikes, Action.GRAVEL, minutes);
+                successMessage = "Users will now be `graveled` "+(minutes>0 ? "for "+FormatUtil.secondsToTime(minutes*60)+" " : "")+"upon reaching `"+numstrikes+"` strikes.";
+                if(vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild())==null)
+                    successMessage += event.getClient().getWarning()+" No graveled role currently exists!";
+                break;
+            }
             case "kick":
             {
                 vortex.getDatabase().actions.setAction(event.getGuild(), numstrikes, Action.KICK);
@@ -136,10 +152,10 @@ public class PunishmentCmd extends Command
                 return;
             }
         }
-        event.reply(new MessageBuilder()
-                .append(event.getClient().getSuccess())
-                .append(" ").append(FormatUtil.filterEveryone(successMessage))
-                .setEmbed(new EmbedBuilder().setColor(event.getSelfMember().getColor())
+        event.reply(new MessageCreateBuilder()
+                .setContent(event.getClient().getSuccess())
+                .addContent(" ").addContent(FormatUtil.filterEveryone(successMessage))
+                .addEmbeds(new EmbedBuilder().setColor(event.getSelfMember().getColor())
                         .addField(vortex.getDatabase().actions.getAllPunishmentsDisplay(event.getGuild()))
                         .build())
                 .build());

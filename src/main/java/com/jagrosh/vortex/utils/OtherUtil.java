@@ -19,10 +19,16 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
+
+import com.jagrosh.jdautilities.command.CommandEvent;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +62,21 @@ public class OtherUtil
                 break;
             }
         }
-        m.getGuild().getController().setNickname(m, newname).reason("Dehoisting").queue();
+        m.getGuild().modifyNickname(m, newname).reason("Dehoisting").queue();
         return true;
     }
-    
+
+    // TODO: Potentially add CommandEvent#replyInDm(MessageCreateData,Consumer<Message>,Consumer<Throwable>) to chewtills
+    public static void commandEventReplyDm(CommandEvent commandEvent, MessageCreateData message, Consumer<Message> success, Consumer<Throwable> failure) {
+        if (commandEvent.isFromType(ChannelType.PRIVATE)) {
+            commandEvent.getPrivateChannel().sendMessage(message).queue(success, failure);
+        } else {
+            commandEvent.getAuthor().openPrivateChannel().queue((pc) -> {
+                pc.sendMessage(message).queue(success, failure);
+            }, failure);
+        }
+    }
+
     public static void safeDM(User user, String message, boolean shouldDM, Runnable then)
     {
         if(user==null || !shouldDM)

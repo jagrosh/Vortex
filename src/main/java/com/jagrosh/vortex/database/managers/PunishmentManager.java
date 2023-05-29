@@ -28,8 +28,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 
 /**
  *
@@ -105,6 +105,10 @@ public class PunishmentManager extends DataManager
             act = Action.TEMPMUTE;
         else if(action==Action.TEMPMUTE && time==0)
             act = Action.MUTE;
+        else if(action==Action.GRAVEL && time>0)
+            act = Action.TEMPGRAVEL;
+        else if(action==Action.TEMPGRAVEL && time==0)
+            act = Action.GRAVEL;
         else if(action==Action.BAN && time>0)
             act = Action.TEMPBAN;
         else if(action==Action.TEMPBAN && time==0)

@@ -16,11 +16,23 @@
 package com.jagrosh.vortex.utils;
 
 import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandEvent;
+
+import java.lang.reflect.Array;
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalAmount;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+
+import com.jagrosh.vortex.database.Database;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.*;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
@@ -28,11 +40,13 @@ import java.awt.Color;
 import java.util.Collections;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.utils.TimeFormat;
+import net.dv8tion.jda.api.utils.TimeUtil;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 /**
  *
@@ -42,7 +56,39 @@ public class FormatUtil {
     
     private final static String MULTIPLE_FOUND = "**Multiple %s found matching \"%s\":**";
     private final static String CMD_EMOJI = "\uD83D\uDCDC"; // 📜
-    
+
+    public static String formatRoleColor(Role role) {
+        Color color = role == null || role.getColor() == null ? ToycatPallete.DEFAULT_ROLE_WHITE : role.getColor();
+        return formatColor(color.getRGB());
+    }
+
+    public static String formatColor(int rgb) {
+        return String.format("#%06X", rgb);
+    }
+
+    public static String formatRolePermissions(Role role) {
+        if (role == null) {
+            return "";
+        }
+
+        if (role.getPermissions().isEmpty()) {
+            return "None";
+        }
+
+        if (role.getPermissions().contains(Permission.ADMINISTRATOR)) {
+            return "Administrator";
+        }
+
+        String seperator = ", ";
+        StringBuilder str = new StringBuilder();
+        role.getPermissions()
+            .stream()
+            .filter(p -> p != Permission.UNKNOWN)
+            .forEach(p -> str.append(p).append(seperator));
+
+        str.deleteCharAt(str.length() - seperator.length());
+        return str.toString();
+    }
     public static String filterEveryone(String input)
     {
         return input.replace("\u202E","") // RTL override
@@ -103,7 +149,7 @@ public class FormatUtil {
             sb.append(delimiter).append(items[i]);
         return sb.toString();
     }
-    
+
     public static <T> String join(String delimiter, Function<T,String> function, T... items)
     {
         if(items==null || items.length==0)
@@ -133,6 +179,10 @@ public class FormatUtil {
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
     }
+
+    public static String listOfRolesMention(List<Role> roles) {
+        return formatList(" ", roles.stream().map(Role::getAsMention).toArray(String[]::new));
+    }
     
     public static String listOfText(List<TextChannel> list, String query)
     {
@@ -146,24 +196,43 @@ public class FormatUtil {
     
     public static String listOfUser(List<User> list, String query)
     {
-        String out = String.format(MULTIPLE_FOUND, "users", query);
+        StringBuilder out = new StringBuilder(String.format(MULTIPLE_FOUND, "users", query));
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - **"+list.get(i).getName()+"**#"+list.get(i).getDiscriminator()+" (ID:"+list.get(i).getId()+")";
+            out.append("\n - **").append(list.get(i).getName()).append("**#").append(list.get(i).getDiscriminator()).append(" (ID:").append(list.get(i).getId()).append(")");
         if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
+            out.append("\n**And ").append(list.size() - 6).append(" more...**");
+        return out.toString();
     }
     
     public static String listOfMember(List<Member> list, String query)
     {
-        String out = String.format(MULTIPLE_FOUND, "members", query);
+        StringBuilder out = new StringBuilder(String.format(MULTIPLE_FOUND, "members", query));
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - **"+list.get(i).getUser().getName()+"**#"+list.get(i).getUser().getDiscriminator()+" (ID:"+list.get(i).getUser().getId()+")";
+            out.append("\n - **").append(list.get(i).getUser().getName()).append("**#").append(list.get(i).getUser().getDiscriminator()).append(" (ID:").append(list.get(i).getUser().getId()).append(")");
         if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
+            out.append("\n**And ").append(list.size() - 6).append(" more...**");
+        return out.toString();
     }
-    
+
+    public static String formatList(Iterable<String> list, String seperator) {
+        StringBuilder builder = new StringBuilder();
+        for (String str : list) {
+            builder.append(str).append(seperator);
+        }
+
+        if (builder.length() == 0) {
+            return "";
+        }
+
+        builder.delete(builder.length() - seperator.length(), builder.length());
+        return builder.toString();
+    }
+
+    public static String formatList(String seperator, String... items) {
+        return formatList(Arrays.asList(items), seperator);
+    }
+
+    @Deprecated
     public static String secondsToTime(long timeseconds)
     {
         StringBuilder builder = new StringBuilder();
@@ -206,7 +275,8 @@ public class FormatUtil {
             str="**No time**";
         return str;
     }
-    
+
+    @Deprecated
     public static String secondsToTimeCompact(long timeseconds)
     {
         StringBuilder builder = new StringBuilder();
@@ -250,7 +320,7 @@ public class FormatUtil {
         return str;
     }
     
-    public static Message formatHelp(CommandEvent event, Vortex vortex)
+    public static MessageCreateData formatHelp(CommandEvent event, Vortex vortex)
     {
         EmbedBuilder builder = new EmbedBuilder()
             .setColor(event.getGuild()==null ? Color.LIGHT_GRAY : event.getSelfMember().getColor());
@@ -293,16 +363,170 @@ public class FormatUtil {
                     "[**"+cmd.getHelp()+"**]("+Constants.Wiki.COMMANDS+"#-"+(cmd.getCategory()==null?"general":cmd.getCategory().getName().toLowerCase())+"-commands)\n\u200B", false));
         }
         
-        builder.addField("Additional Help", helpLinks(event), false);
-        
-        return new MessageBuilder().append(filterEveryone(content)).setEmbed(builder.build()).build();
+        builder.addField("Additional Help", helpLinks(event.getJDA(), event.getClient()), false);
+        return new MessageCreateBuilder().addContent(filterEveryone(content)).setEmbeds(builder.build()).build();
     }
     
-    public static String helpLinks(CommandEvent event)
+    public static String helpLinks(JDA jda, CommandClient commandClient)
     {
-        return "\uD83D\uDD17 ["+event.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n" // 🔗
-                + "<:discord:314003252830011395> [Support Server]("+event.getClient().getServerInvite()+")\n"
+        return "\uD83D\uDD17 ["+jda.getSelfUser().getName()+" Wiki]("+Constants.Wiki.WIKI_BASE+")\n" // 🔗
+                + "<:discord:314003252830011395> [Support Server]("+commandClient.getServerInvite()+")\n"
                 +  CMD_EMOJI + " [Full Command Reference]("+Constants.Wiki.COMMANDS+")\n"
                 + "<:patreon:417455429145329665> [Donations]("+Constants.DONATION_LINK+")";
+    }
+
+    public static String formatModlogCase(Vortex vortex, Guild guild, Database.Modlog modlog)
+    {
+        String type = "", punisher = "", savior = "";
+
+        switch (modlog.getType()) {
+            case GRAVEL:
+                type = "Gravel";
+                punisher = "Graveler";
+                savior = "Ungraveler";
+                break;
+            case MUTE:
+                type = "Mute";
+                punisher = "Muter";
+                savior = "Unmuter";
+                break;
+            case WARN:
+                type = "Warning";
+                punisher = "Warner";
+                break;
+            case BAN:
+                type = "Ban";
+                punisher = "Banner";
+                savior = "Unbanner";
+                break;
+            case SOFTBAN:
+                type = "Softban";
+                punisher = "Banner";
+                savior = "Unbanner";
+                break;
+            case KICK:
+                type = "Kick";
+                punisher = "Kicker";
+        }
+
+        String value = "Type: "+type;
+        if (modlog.getModId() > 0)
+            value += "\n"+punisher+": <@"+modlog.getModId()+">";
+        else
+            value += "\n"+punisher+": _Automod_";
+        if (modlog.getSaviorId() > 0)
+            value += "\n"+savior+": <@"+modlog.getSaviorId()+">";
+        else if (modlog.getSaviorId() == 0)
+            value += "\n"+savior+": _Automod_";
+        if (modlog.getReason() != null && !modlog.getReason().trim().isEmpty())
+            value += "\nReason: "+modlog.getReason().trim();
+        if (modlog.getStart() != null) {
+            String label;
+
+            switch (modlog.getType()) {
+                case WARN:
+                case KICK:
+                case SOFTBAN:
+                    label = "Time";
+                    break;
+                default:
+                    label = "Started ";
+            }
+
+            value += "\n" + FormatUtil.formatModlogTime(label, modlog.getStart());
+        }
+        if (modlog.getFinnish() != null)
+        {
+            if (modlog.getFinnish().getEpochSecond() == Instant.MAX.getEpochSecond())
+            {
+                value += "\nFinishes: Never";
+            }
+            else
+            {
+                String label = "Finishe" + (modlog.getFinnish().compareTo(Instant.now()) <= 0 ? "d" : "s");
+                value += "\n" + FormatUtil.formatModlogTime(label, modlog.getFinnish());
+            }
+        }
+
+        return value;
+    }
+
+    @Deprecated
+    public static String formatModlogTime(Vortex vortex, Guild guild, Instant instant, String label) {
+        ZonedDateTime zdt = instant.atZone(vortex.getDatabase().settings.getSettings(guild).getTimezone());
+        return String.format("\n%s: %d/%d/%s at %d:%s %s",
+                label,
+                zdt.getDayOfMonth(),
+                zdt.getMonthValue(),
+                Integer.valueOf(zdt.getYear()).toString().substring(2),
+                zdt.getHour() % 12 == 0 ? 12 : zdt.getHour() % 12,
+                zdt.getMinute() < 10 ? "0" + zdt.getMinute() : zdt.getMinute(),
+                zdt.getHour() < 12 ? "AM" : "PM"
+        );
+    }
+
+    public static String formatModlogTime(String label, TemporalAccessor temporalAccessor) {
+        return label + ": " + TimeFormat.DATE_TIME_SHORT.format(temporalAccessor);
+    }
+
+    public static String formatCreationTime(TemporalAccessor temporal) {
+        Instant creationTime = Instant.from(temporal);
+        boolean recent = Instant.now().minusSeconds(creationTime.getEpochSecond()).getEpochSecond() < 60 * 60 * 24 * 31; // ~1 month
+        return (recent ? TimeFormat.DATE_TIME_SHORT : TimeFormat.DATE_SHORT).format(temporal);
+    }
+
+    public static String toMentionableRoles(String[] roles) {
+        StringBuilder str = new StringBuilder();
+
+        if (roles == null || roles.length == 0)
+            return "nothing";
+
+        for (int i = 0; i < roles.length; i++)
+        {
+            String afterRoleChars;
+            if (i != roles.length - 1)
+            {
+                if (i == roles.length - 2)
+                {
+                    if (roles.length > 2)
+                        afterRoleChars = ", and ";
+                    else
+                        afterRoleChars = " and ";
+                }
+                else
+                    afterRoleChars = ", ";
+            }
+            else
+                afterRoleChars = "";
+
+            str.append("<@&").append(roles[i]).append(">").append(afterRoleChars);
+        }
+
+        return str.toString();
+    }
+
+    public static class IconURLFieldBuilder {
+        private final List<String> formattedIconUrls = new LinkedList<>();
+
+        public IconURLFieldBuilder add(String name, String url) {
+            if (url != null) {
+                formattedIconUrls.add(String.format("[%s](%s)", name, url));
+            }
+
+            return this;
+        }
+
+        public boolean isEmpty() {
+            return formattedIconUrls.isEmpty();
+        }
+
+        public int size() {
+            return formattedIconUrls.size();
+        }
+
+        @Override
+        public String toString() {
+            return formatList(formattedIconUrls, ", ");
+        }
     }
 }

@@ -1,18 +1,36 @@
+/*
+ * Copyright 2016 John Grosh (jagrosh).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.jagrosh.vortex.commands.moderation;
 
 import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.LinkedList;
 
-
+/**
+ *
+ * @author John Grosh (jagrosh)
+ */
 public class UngravelCmd extends ModCommand
 {
     public UngravelCmd(Vortex vortex)
@@ -20,7 +38,7 @@ public class UngravelCmd extends ModCommand
         super(vortex, Permission.MANAGE_ROLES);
         this.name = "ungravel";
         this.arguments = "<@users> [reason]";
-        this.help = "ungravels users";
+        this.help = "removes graveled role from users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
     }
@@ -31,31 +49,29 @@ public class UngravelCmd extends ModCommand
         Role gravelRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild());
         if(gravelRole == null)
         {
-            event.replyError("No Gravel role exists!");
+            event.replyError("No Graveled role exists!");
             return;
         }
         if(!event.getMember().canInteract(gravelRole))
         {
-            event.replyError("You do not have permission to ungravel people!");
+            event.replyError("You do not have permissions to assign the '"+gravelRole.getName()+"' role!");
             return;
         }
         if(!event.getSelfMember().canInteract(gravelRole))
         {
-            event.reply(event.getClient().getError()+" I do not have permissions to unassign the '"+gravelRole.getName()+"' role!");
+            event.reply(event.getClient().getError()+" I do not have permissions to assign the '"+gravelRole.getName()+"' role!");
             return;
         }
 
-        ArgsUtil.ResolvedArgs args = ArgsUtil.resolve(event.getArgs(), false, event.getGuild());
+        ArgsUtil.ResolvedArgs args = ArgsUtil.resolve(event.getArgs(), event.getGuild());
         if(args.isEmpty())
         {
             event.replyError("Please include at least one user to ungravel (@mention or ID)!");
             return;
         }
-
         String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
-        Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
-        List<Member> toGravel = new LinkedList<>();
+        List<Member> toUngravel = new LinkedList<>();
 
         args.members.forEach(m ->
         {
@@ -64,43 +80,39 @@ public class UngravelCmd extends ModCommand
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to ungravel ").append(FormatUtil.formatUser(m.getUser()));
             else if(!m.getRoles().contains(gravelRole))
-                builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(m.getUser())).append(" isn't graveled");
-            else if(modrole!=null && m.getRoles().contains(modrole))
-                builder.append("\n").append(event.getClient().getError()).append(" I won't ungravel ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
+                builder.append("\n").append(event.getClient().getError()).append(" ").append(FormatUtil.formatUser(m.getUser())).append(" is not graveled!");
             else
-                toGravel.add(m);
+                toUngravel.add(m);
         });
 
         args.unresolved.forEach(un -> builder.append("\n").append(event.getClient().getWarning()).append(" Could not resolve `").append(un).append("` to a member"));
 
-        args.users.forEach(u -> builder.append("\n").append(event.getClient().getWarning()).append(" The user ").append(u.getAsMention()).append(" is not in this server."));
+        args.users.forEach(u -> builder.append("\n").append(event.getClient().getWarning()).append("The user ").append(u.getAsMention()).append(" is not in this server."));
 
-        args.ids.forEach(id -> builder.append("\n").append(event.getClient().getWarning()).append(" The user <@").append(id).append("> is not in this server."));
+        args.ids.forEach(id -> builder.append("\n").append(event.getClient().getWarning()).append("The user <@").append(id).append("> is not in this server."));
 
-        if(toGravel.isEmpty())
+        if(toUngravel.isEmpty())
         {
             event.reply(builder.toString());
             return;
         }
 
-        if(toGravel.size() > 5)
+        if(toUngravel.size() > 5)
             event.reactSuccess();
 
-        for(int i=0; i<toGravel.size(); i++)
+        for(int i=0; i<toUngravel.size(); i++)
         {
-            Member m = toGravel.get(i);
-            boolean last = i+1 == toGravel.size();
-            event.getGuild().getController().removeSingleRoleFromMember(m, gravelRole).reason(reason).queue(success ->
+            Member m = toUngravel.get(i);
+            boolean last = i+1 == toUngravel.size();
+            event.getGuild().removeRoleFromMember(m, gravelRole).reason(reason).queue(success ->
             {
-                vortex.getDatabase().gravels.ungravel(event.getGuild(), m.getUser().getIdLong());
-                String user = FormatUtil.formatUser(m.getUser());
-
-                builder.append("\n").append(event.getClient().getSuccess()).append(" "+user+" was ungraveled");
+                vortex.getDatabase().gravels.removeGravel(event.getGuild(), m.getUser().getIdLong(), event.getAuthor().getIdLong());
+                builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully ungraveled ").append(FormatUtil.formatUser(m.getUser()));
                 if(last)
                     event.reply(builder.toString());
             }, failure ->
             {
-                builder.append("\n").append(event.getClient().getError()).append(" Failed to gravel ").append(m.getUser().getAsMention());
+                builder.append("\n").append(event.getClient().getError()).append(" Failed to ungravel ").append(m.getUser().getAsMention());
                 if(last)
                     event.reply(builder.toString());
             });

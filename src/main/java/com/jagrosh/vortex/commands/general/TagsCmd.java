@@ -1,14 +1,17 @@
 package com.jagrosh.vortex.commands.general;
 
-import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandTools;
-import net.dv8tion.jda.core.Permission;
+import com.jagrosh.vortex.utils.FormatUtil;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.List;
 
-public class TagsCmd extends Command
+public class TagsCmd extends SlashCommand
 {
     private final Vortex vortex;
 
@@ -22,25 +25,30 @@ public class TagsCmd extends Command
     }
 
     @Override
-    public void execute(CommandEvent event)
-    {
-        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE))
-            return;
+    protected void execute(SlashCommandEvent event) {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE)) {
+            event.reply(CommandTools.COMMAND_NO_PERMS).setEphemeral(true).queue();
+        } else {
+            event.reply(getTags(event.getGuild())).queue();
+        }
+    }
 
-        List<String> tags = vortex.getDatabase().tags.getTagNames(event.getGuild());
-
-        if (tags.isEmpty())
-        {
-            event.reply("There are no tags on this server");
+    @Override
+    public void execute(CommandEvent event) {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE)) {
             return;
         }
 
-        String response = tags.get(0).toUpperCase().substring(0,1) + tags.get(0).substring(1) + (tags.size() != 1 ? ", " : ".");
-        for (int i = 1; i < tags.size(); i++)
-        {
-            response += tags.get(i) + (i == tags.size() - 1 ? "." : ", ");
+        event.reply(getTags(event.getGuild()));
+    }
+
+    private String getTags(Guild g) {
+        List<String> tags = vortex.getDatabase().tags.getTagNames(g);
+        tags.sort(String::compareTo);
+        if (tags.isEmpty()) {
+            return "There are no tags on this server";
         }
 
-        event.reply(response);
+        return FormatUtil.capitalize(FormatUtil.formatList(tags, ", "));
     }
 }

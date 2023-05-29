@@ -3,7 +3,7 @@ package com.jagrosh.vortex.commands.moderation;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
+import net.dv8tion.jda.api.Permission;
 
 public class AddTagCmd extends ModCommand
 {
@@ -11,7 +11,8 @@ public class AddTagCmd extends ModCommand
     {
         super(vortex, Permission.MESSAGE_MANAGE);
         this.name = "addtag";
-        this.arguments = "<tagName> [tagValue]";
+        this.aliases = new String[] {"edittag"};
+        this.arguments = "<tagName> <tagValue>";
         this.help = "adds a tag";
         this.guildOnly = true;
     }

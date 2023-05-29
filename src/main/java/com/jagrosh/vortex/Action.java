@@ -21,6 +21,9 @@ package com.jagrosh.vortex;
  */
 public enum Action
 {
+    GRAVEL(    "graveled",    "\uD83E\uDD10", 18), // 🔇
+    TEMPGRAVEL("tempgraveled","\u23F2",       17), // ⏲
+    UNGRAVEL(  "ungraveled",  "\uD83D\uDD0A", 16), // 🔊
     NORAIDMODE("",            "\uD83D\uDD13", 15), // 🔓
     PARDON(    "pardoned",    "\uD83C\uDFF3", 14), // 🏳
     RAIDMODE(  "",            "\uD83D\uDD12", 13), // 🔒
@@ -42,7 +45,7 @@ public enum Action
     private final String emoji;
     private final int bit;
     
-    private Action(String verb, String emoji, int bit)
+    Action(String verb, String emoji, int bit)
     {
         this.verb = verb;
         this.emoji = emoji;

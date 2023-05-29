@@ -29,12 +29,11 @@ import java.time.ZoneId;
 import java.time.zone.ZoneRulesException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Guild.VerificationLevel;
-import net.dv8tion.jda.core.entities.MessageEmbed.Field;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
+import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 /**
  *
@@ -56,6 +55,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     public final static SQLColumn<Long> AVATARLOG_ID = new LongColumn("AVATARLOG_ID",false,0L);
     
     public final static SQLColumn<String> PREFIX = new StringColumn("PREFIX", true, null, PREFIX_MAX_LENGTH);
+    public final static SQLColumn<Integer> MAX_LOGGED_CASE = new IntegerColumn("MAX_LOGGED_CASE", false, -1);
     public final static SQLColumn<String> TIMEZONE = new StringColumn("TIMEZONE",true,null,32);
 
     public final static SQLColumn<Integer> RAIDMODE = new IntegerColumn("RAIDMODE",false,-2); 
@@ -221,7 +221,26 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             }
         });
     }
-    
+
+    public synchronized void setMaxLoggedCase(Guild guild, int id) {
+        invalidateCache(guild);
+        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, MAX_LOGGED_CASE), rs ->
+        {
+            if(rs.next())
+            {
+                MAX_LOGGED_CASE.updateValue(rs, Math.max(MAX_LOGGED_CASE.getValue(rs), id));
+                rs.updateRow();
+            }
+            else
+            {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guild.getIdLong());
+                MAX_LOGGED_CASE.updateValue(rs, id);
+                rs.insertRow();
+            }
+        });
+    }
+
     public void setModeratorRole(Guild guild, Role role)
     {
         invalidateCache(guild);
@@ -340,7 +359,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         private final long rtcRole, modRole, muteRole, gravelRole, modlog, serverlog, messagelog, voicelog, avatarlog;
         private final String prefix;
         private final ZoneId timezone;
-        private final int raidMode;
+        private final int raidMode, maxLoggedCase;
         
         private GuildSettings()
         {
@@ -356,6 +375,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.prefix = null;
             this.timezone = DEFAULT_TIMEZONE;
             this.raidMode = -2;
+            this.maxLoggedCase = -1;
         }
         
         private GuildSettings(ResultSet rs) throws SQLException
@@ -370,6 +390,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             this.voicelog = VOICELOG_ID.getValue(rs);
             this.avatarlog = AVATARLOG_ID.getValue(rs);
             this.prefix = PREFIX.getValue(rs);
+            this.maxLoggedCase = MAX_LOGGED_CASE.getValue(rs);
             String str = TIMEZONE.getValue(rs);
             ZoneId zid;
             if(str == null)
@@ -399,6 +420,10 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             return guild.getRoles().stream().filter(r -> r.getName().equalsIgnoreCase("Muted")).findFirst().orElse(null);
         }
 
+        public int getMaxLoggedCase() {
+            return maxLoggedCase;
+        }
+
         public Role getGravelRole(Guild guild)
         {
             Role rid = guild.getRoleById(gravelRole);
@@ -422,22 +447,22 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
         
         public TextChannel getServerLogChannel(Guild guild)
         {
-            return guild.getTextChannelById(serverlog);
+            return guild.getTextChannelById(modlog);
         }
         
         public TextChannel getMessageLogChannel(Guild guild)
         {
-            return guild.getTextChannelById(messagelog);
+            return guild.getTextChannelById(modlog);
         }
         
         public TextChannel getVoiceLogChannel(Guild guild)
         {
-            return guild.getTextChannelById(voicelog);
+            return guild.getTextChannelById(modlog);
         }
         
         public TextChannel getAvatarLogChannel(Guild guild)
         {
-            return guild.getTextChannelById(avatarlog);
+            return guild.getTextChannelById(modlog);
         }
         
         public ZoneId getTimezone()

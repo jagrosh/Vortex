@@ -19,61 +19,111 @@ import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.database.managers.GuildSettingsDataManager.GuildSettings;
-import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.LogUtil.ParsedAuditReason;
+
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.audit.AuditLogChange;
-import net.dv8tion.jda.core.audit.AuditLogEntry;
-import net.dv8tion.jda.core.audit.AuditLogKey;
-import net.dv8tion.jda.core.entities.*;
-import net.dv8tion.jda.core.exceptions.PermissionException;
+
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.AuditLogChange;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogKey;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * The ModLogger's primary use is to log stuff from the Audit Log to a users or to a servers modlogs
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class ModLogger
 {
+    private final static int LIMIT = 40;
     private final static Logger LOG = LoggerFactory.getLogger(ModLogger.class);
     private final HashMap<Long,Integer> caseNum = new HashMap<>();
     private final HashSet<Long> needsUpdate = new HashSet<>();
-    private final FixedCache<String, Message> banLogCache = new FixedCache<>(1000);
     private final Vortex vortex;
-    private boolean isStarted = false;
-    
+    private volatile AtomicBoolean isStarted = new AtomicBoolean();
+    private final Map<Long, List<Long>> beginningCache = new HashMap<>(LIMIT);
+
     public ModLogger(Vortex vortex)
     {
         this.vortex = vortex;
     }
-    
-    public void start()
+
+    /**
+     * Method for interacting with the beginningCache map in a thread-safe and synchronous manner
+     * @param method The name of the method to invoke.
+     *               Currently only supports containsKey(Long), get(Long), put(Long, List<​Long>), and putIfAbsent(Long, List<​Long>)
+     * @param args The arguments of the specific method.
+     * @see HashMap
+     * @return
+     */
+    private synchronized Object beginningCache(String method, Object... args) {
+        switch (method) {
+            case "containsKey":
+                // Checks if arguments can be beginningCache(String, Object (preferably of type Long), Long), will ignore extra arguments
+                if (args.length == 0 || !(args[0] instanceof Long))
+                    return false;
+                return beginningCache.containsKey(args[0]);
+            case "get":
+                // Checks if arguments can be beginningCache(String, Object, Long)
+                if (args.length == 0 || !(args[0] instanceof Long))
+                    return false;
+                return beginningCache.get(args[0]);
+            case "put":
+                // Checks if arguments can be beginningCache(String, Long, List (preferably of type List<Long>)), will ignore extra arguments
+                if (args.length < 2 || !(args[0] instanceof Long) || !(args[1] instanceof List))
+                    return null;
+
+                try {
+                    return beginningCache.put((Long) args[0], (List<Long>) args[1]);
+                } catch (Exception e) {
+                    LOG.error("Exception while updating auditlog cache: " + e.toString());
+                    return null;
+                }
+            case "putIfAbsent":
+                // Checks if arguments can be beginningCache(String, Long, List)
+                if (args.length < 2 || !(args[0] instanceof Long) || !(args[1] == null || args[1] instanceof List))
+                    return null;
+
+                try {
+                    return beginningCache.putIfAbsent((Long) args[0], (List<Long>) args[1]);
+                } catch (Exception e) {
+                    LOG.error("Exception while updating auditlog cache: " + e.toString());
+                    return null;
+                }
+        }
+
+        return null;
+    }
+
+    /**
+     * Starts the thread that executes every 3 seconds to check for new audit log entries
+     */
+    public synchronized void start()
     {
-        if(isStarted)
+        if(isStarted.getAndSet(true))
             return;
-        isStarted=true;
-        
+
         vortex.getThreadpool().scheduleWithFixedDelay(()->
         {
             Set<Long> toUpdate;
             synchronized(needsUpdate)
             {
                 toUpdate = new HashSet<>(needsUpdate);
-                needsUpdate.clear();
+                modifyUpdate();
             }
             if(!toUpdate.isEmpty())
             {
@@ -84,7 +134,7 @@ public class ModLogger
                     for(long gid: toUpdate)
                     {
                         time = System.currentTimeMillis();
-                        update(vortex.getShardManager().getGuildById(gid), 40);
+                        update(vortex.getShardManager().getGuildById(gid));
                         diff = System.currentTimeMillis() - time;
                         if(diff > 10000)
                             LOG.warn("Took " + diff + "ms to update " + gid);
@@ -97,65 +147,90 @@ public class ModLogger
             }
         }, 0, 3, TimeUnit.SECONDS);
     }
-    
+
+    /**
+     * Method for interacting with the needsUpdate map in a thread-safe manner
+     * @param guild If none are passed in, the clear() method will be invoked. If a (or multiple) guild's IDs are passed in,
+     *              it will add the first one to the needsUpdate list.
+     */
+    private synchronized void modifyUpdate(long... guild) {
+        if (guild.length > 0)
+            needsUpdate.add(guild[0]);
+        else
+            needsUpdate.clear();
+    }
+
+    public void addNewGuild(Guild guild)
+    {
+        if (guild == null)
+            return;
+
+        beginningCache("putIfAbsent", guild.getIdLong(), null);
+        setNeedUpdate(guild);
+    }
+
+    /**
+     * Filters the audit log entries to get rid of the ones from before the bot has joined the server, or if in
+     * first-run mode, will also filter logs from before the bot has turned on.
+     * @param entries The list of entries to filter
+     */
+    @SuppressWarnings("unchecked")
+    private synchronized void filterEntries(List<AuditLogEntry> entries)
+    {
+        if (entries == null || entries.isEmpty())
+            return;
+
+        try
+        { //TODO: Figure out why I even put first run and why is it tied to developer mode
+            if (!vortex.developerMode && !((boolean) beginningCache("containsKey", entries.get(0).getGuild().getIdLong())))
+                return;
+        }
+        catch (NullPointerException e)
+        {
+            return;
+        }
+
+        List<Long> aleIds = (List<Long>) beginningCache("get", entries.get(0).getGuild().getIdLong());
+        if (aleIds == null)
+        {
+            List<Long> newAleIds = new ArrayList<>(entries.size());
+            for (AuditLogEntry ale : entries)
+                newAleIds.add(ale.getIdLong());
+            beginningCache.put(entries.get(0).getGuild().getIdLong(), newAleIds);
+            entries.clear();
+        }
+        else
+        {
+            if (aleIds.isEmpty())
+                return;
+
+            boolean shouldClearCache = true;
+            for (int i = 0; i < entries.size(); i++)
+            {
+                if (aleIds.contains(entries.get(i).getIdLong()))
+                {
+                    entries.remove(i--);
+                    shouldClearCache = false;
+                }
+            }
+
+            if (shouldClearCache)
+                aleIds.clear();
+        }
+    }
+
+
+
+    /**
+     * Sets that a guild might have new audit logs that would interest the bot, and that it should retrive and work with them.
+     * @param guild The guild to update
+     */
     public void setNeedUpdate(Guild guild)
     {
-        if(vortex.getDatabase().settings.getSettings(guild).getModLogChannel(guild)==null)
-            return;
-        vortex.getThreadpool().schedule(() -> 
-        {
-            synchronized(needsUpdate)
-            {
-                needsUpdate.add(guild.getIdLong());
-            }
-        }, 2, TimeUnit.SECONDS);
+        vortex.getThreadpool().schedule(() -> modifyUpdate(guild.getIdLong()), 2, TimeUnit.SECONDS);
     }
-    
-    public int updateCase(Guild guild, int num, String reason)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(guild).getModLogChannel(guild);
-        if(modlog==null)
-            return -1;
-        else if(!modlog.canTalk() || !guild.getSelfMember().hasPermission(modlog, Permission.MESSAGE_HISTORY))
-            return -2;
-        List<Message> list = modlog.getHistory().retrievePast(100).complete();
-        Message m = null;
-        int thiscase = 0;
-        for(Message msg: list)
-        {
-            thiscase = LogUtil.isCase(msg, num);
-            if(thiscase!=0)
-            {
-                m = msg;
-                break;
-            }
-        }
-        if(m==null)
-            return num==-1 ? -4 : -3;
-        m.editMessage(m.getContentRaw().replaceAll("(?is)\n`\\[ Reason \\]` .+", "\n`[ Reason ]` "+FormatUtil.filterEveryone(reason))).queue();
-        return thiscase;
-    }
-    
-    public void postCleanCase(Member moderator, OffsetDateTime now, int numMessages, TextChannel target, String criteria, String reason, MessageEmbed embed)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
-        if(modlog==null || !modlog.canTalk())
-            return;
-        getCaseNumberAsync(modlog, i ->
-        {
-            try
-            {
-                modlog.sendMessage(new MessageBuilder()
-                        .setEmbed(embed)
-                        .append(FormatUtil.filterEveryone(LogUtil.modlogCleanFormat(now, 
-                                vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone(), 
-                                i, moderator.getUser(), numMessages, target, criteria, reason)))
-                        .build()).queue();
-            }
-            catch(PermissionException ignore) {}
-        });
-    }
-    
+
+    @Deprecated
     public void postStrikeCase(Member moderator, OffsetDateTime now, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
     {
         TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
@@ -168,7 +243,8 @@ public class ModLogger
                     moderator.getUser(), givenStrikes, oldStrikes, newStrikes, target, reason))).queue();
         });
     }
-    
+
+    @Deprecated
     public void postPardonCase(Member moderator, OffsetDateTime now, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
     {
         TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
@@ -181,7 +257,8 @@ public class ModLogger
                     moderator.getUser(), pardonedStrikes, oldStrikes, newStrikes, target, reason))).queue();
         });
     }
-    
+
+    @Deprecated
     public void postRaidmodeCase(Member moderator, OffsetDateTime now, boolean enabled, String reason)
     {
         TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
@@ -195,59 +272,74 @@ public class ModLogger
                     moderator.getUser(), enabled, reason))).queue();
         });
     }
-    
+
+    @Deprecated
     public void postPseudoCase(Member moderator, OffsetDateTime now, Action act, User target, int minutes, String reason)
     {
         TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
         if(modlog==null || !modlog.canTalk())
             return;
         ZoneId timezone = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone();
-        getCaseNumberAsync(modlog, i -> 
+        getCaseNumberAsync(modlog, i ->
         {
-            modlog.sendMessage(FormatUtil.filterEveryone(minutes > 0 ? 
+            modlog.sendMessage(FormatUtil.filterEveryone(minutes > 0 ?
                             LogUtil.modlogTimeFormat(now, timezone, i, moderator.getUser(), act, minutes, target, reason) :
                             LogUtil.modlogUserFormat(now, timezone, i, moderator.getUser(), act, target, reason))).queue();
         });
     }
-    
+
     // private methods
-    
-    private void update(Guild guild, int limit) // not async
+
+    /**
+     * Updates a specific guild's modlogs
+     * @param guild The guild to update
+     */
+    private void update(Guild guild) // not async
     {
         if(guild==null)
             return;
         GuildSettings gs = vortex.getDatabase().settings.getSettings(guild);
         TextChannel modlog = gs.getModLogChannel(guild);
-        if(modlog==null || !modlog.canTalk() || !modlog.getGuild().getSelfMember().hasPermission(Permission.VIEW_AUDIT_LOGS))
+        if(!guild.getSelfMember().hasPermission(Permission.VIEW_AUDIT_LOGS))
             return;
         Role mRole = gs.getMutedRole(guild);
+        Role gRole = gs.getGravelRole(guild);
         try
         {
-            List<AuditLogEntry> list = guild.getAuditLogs().cache(false).limit(limit).submit().get(30, TimeUnit.SECONDS);
-            for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list)) 
+            List<AuditLogEntry> list = guild.retrieveAuditLogs().cache(false).limit(LIMIT).submit().get(30, TimeUnit.SECONDS);
+            filterEntries(list);
+            for(AuditLogEntry ale: vortex.getDatabase().auditcache.filterUncheckedEntries(list))
             {
                 Action act = null;
                 switch(ale.getType())
                 {
-                    case BAN: 
-                        act = Action.BAN; 
+                    case BAN:
+                        act = Action.BAN;
                         break;
-                    case KICK: 
-                        act = Action.KICK; 
+                    case KICK:
+                        act = Action.KICK;
                         break;
-                    case UNBAN: 
-                        act = Action.UNBAN; 
+                    case UNBAN:
+                        act = Action.UNBAN;
                         break;
                     case MEMBER_ROLE_UPDATE:
-                        if(mRole==null)
-                            break;
                         AuditLogChange added = ale.getChangeByKey(AuditLogKey.MEMBER_ROLES_ADD);
                         if(added!=null)
                         {
-                            if (((ArrayList<HashMap<String,String>>)added.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(mRole.getId())))
+                            if (mRole !=null && ((ArrayList<HashMap<String,String>>)added.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(mRole.getId())))
                             {
                                 act = Action.MUTE;
                                 break;
+                            }
+                            else if (gRole !=null && ((ArrayList<HashMap<String,String>>)added.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(gRole.getId())))
+                            {
+                                act = Action.GRAVEL;
+                                break;
+                            }
+                            else
+                            {
+                                vortex.getBasicLogger().logAuditLogEntry(ale);
+                                continue;
                             }
                         }
                         AuditLogChange removed = ale.getChangeByKey(AuditLogKey.MEMBER_ROLES_REMOVE);
@@ -258,6 +350,16 @@ public class ModLogger
                                 act = Action.UNMUTE;
                                 break;
                             }
+                            else if (((ArrayList<HashMap<String,String>>)removed.getNewValue()).stream().anyMatch(hm -> hm.get("id").equals(gRole.getId())))
+                            {
+                                act = Action.UNGRAVEL;
+                                break;
+                            }
+                            else
+                            {
+                                vortex.getBasicLogger().logAuditLogEntry(ale);
+                                continue;
+                            }
                         }
                         break;
                     default:
@@ -265,14 +367,10 @@ public class ModLogger
                 if(act!=null)
                 {
                     User mod = ale.getUser();
-                    if(ale.getJDA().getSelfUser().equals(mod) && act==Action.MUTE && (AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()) || AutoMod.RESTORE_GRAVEL_ROLE_AUDIT.equals(ale.getReason())))
+                    if(ale.getJDA().getSelfUser().equals(mod) && (act==Action.MUTE || act==Action.GRAVEL) && (AutoMod.RESTORE_MUTE_ROLE_AUDIT.equals(ale.getReason()) || AutoMod.RESTORE_GRAVEL_ROLE_AUDIT.equals(ale.getReason())))
                         continue; // restoring muted or gravel role (aka role persist) shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
-                    int minutes = 0;
-                    User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
-                    if(target==null)
-                        target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).complete();
-                    ZoneId timezone = vortex.getDatabase().settings.getSettings(guild).getTimezone();
+                    int minutes;
                     if(mod.isBot())
                     {
                         ParsedAuditReason parsed = LogUtil.parse(guild, reason);
@@ -287,36 +385,35 @@ public class ModLogger
                                     act = Action.TEMPBAN;
                                 else if(act==Action.MUTE)
                                     act = Action.TEMPMUTE;
+                                else if(act==Action.GRAVEL)
+                                    act = Action.TEMPGRAVEL;
                             }
                         }
                     }
-                    String banCacheKey = banCacheKey(ale, mod);
-                    if(act==Action.UNBAN) // check for softban
-                    {
-                        Message banMsg = banLogCache.get(banCacheKey);
-                        if(banMsg!=null && banMsg.getCreationTime().plusMinutes(2).isAfter(ale.getCreationTime()))
-                        {
-                            // This is a softban, because the user was banned by the same mod within the past 2 minutes
-                            // We need to edit the existing modlog entry instead of making a new one
-                            banMsg.editMessage(banMsg.getContentRaw()
-                                    .replaceFirst(Action.BAN.getEmoji(), Action.SOFTBAN.getEmoji())
-                                    .replaceFirst(Action.BAN.getVerb(), Action.SOFTBAN.getVerb())).queue();
-                            continue;
-                        }
-                        vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong());
-                    }
+                    if(act==Action.UNBAN)
+                        // vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong(), mod.getIdLong());
                     if(act==Action.UNMUTE)
+                        vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong(), ale.getUser().getIdLong());
+                    if(act==Action.UNGRAVEL)
+                        vortex.getDatabase().gravels.removeGravel(guild, ale.getTargetIdLong(), ale.getUser().getIdLong());
+                    if (guild.getJDA().getSelfUser().getIdLong()!=mod.getIdLong())
                     {
-                        vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong());
+                        if(act==Action.MUTE)
+                            vortex.getDatabase().tempmutes.overrideMute(guild, ale.getTargetIdLong(), mod.getIdLong(), Instant.MAX, "");
+                        else if(act==Action.GRAVEL)
+                            vortex.getDatabase().gravels.overrideGravel(guild, ale.getTargetIdLong(), mod.getIdLong(), Instant.MAX, "");
+                        else if(act==Action.BAN)
+                        ;// vortex.getDatabase().tempbans.setBan(guild, ale.getTargetIdLong(), mod.getIdLong(), Instant.MAX, reason);
+                        else if(act==Action.KICK)
+                            vortex.getDatabase().kicks.logCase(vortex, guild, mod.getIdLong(), ale.getTargetIdLong(), reason);
                     }
-                    String msg = FormatUtil.filterEveryone(minutes > 0 ? 
-                            LogUtil.modlogTimeFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, minutes, target, reason) :
-                            LogUtil.modlogUserFormat(ale.getCreationTime(), timezone, getCaseNumber(modlog), mod, act, target, reason));
-                    if(act==Action.BAN)
-                        banLogCache.put(banCacheKey, modlog.sendMessage(msg).complete());
-                    else
-                        modlog.sendMessage(msg).queue();
+                    else if(act==Action.KICK)
+                    {
+                        vortex.getDatabase().kicks.logCase(vortex, guild, getActualModId(ale), ale.getTargetIdLong(), getActualReason(ale));
+                    }
                 }
+                else
+                    vortex.getBasicLogger().logAuditLogEntry(ale);
             }
         }
         catch (TimeoutException ex)
@@ -329,32 +426,42 @@ public class ModLogger
             ex.printStackTrace();
         }
     }
-    
-    private int getCaseNumber(TextChannel tc) // not async
+
+    /**
+     * Gets the ID of the actual responsible moderator from an Audit Log entry. If this method is not then it would show
+     * that the bot is responsible for all kicks, manual bans, etc.
+     * @param ale The audit log entry
+     * @return -2 if this action has no moderator or the moderator's IDs
+     */
+    private static long getActualModId(AuditLogEntry ale)
     {
-        if(caseNum.containsKey(tc.getGuild().getIdLong()))
+        try
         {
-            int num = caseNum.get(tc.getGuild().getIdLong());
-            caseNum.put(tc.getGuild().getIdLong(), num+1);
-            return num;
+            if (ale.getReason() == null || !ale.getReason().contains(" "))
+                return -2;
+            return Long.parseLong(ale.getReason().substring(0, ale.getReason().indexOf(' ')));
         }
-        else
+        catch (NumberFormatException e)
         {
-            int num;
-            for(Message m: tc.getHistory().retrievePast(100).complete())
-            {
-                num = getCaseNumber(m);
-                if(num!=-1)
-                {
-                    caseNum.put(tc.getGuild().getIdLong(), num+2);
-                    return num+1;
-                }
-            }
-            caseNum.put(tc.getGuild().getIdLong(), 2);
-            return 1;
+            return -2;
         }
     }
-    
+
+    /**
+     * Gets the actual reason of an action, as this filters out any data that the bot would have put in a reason
+     * @param ale The audit log entry
+     * @return The reason
+     */
+    private static String getActualReason(AuditLogEntry ale)
+    {
+        if (ale.getReason() == null || ale.getReason().trim().isEmpty())
+            return "";
+        if (!ale.getReason().trim().contains(" "))
+            return ale.getReason();
+        return ale.getReason().trim().substring(ale.getReason().indexOf(' ') + 1);
+    }
+
+    @Deprecated
     private static int getCaseNumber(Message m)
     {
         if(m.getAuthor().getIdLong()!=m.getJDA().getSelfUser().getIdLong())
@@ -370,7 +477,8 @@ public class ModLogger
             return -1;
         }
     }
-    
+
+    @Deprecated
     private void getCaseNumberAsync(TextChannel tc, Consumer<Integer> result)
     {
         if(caseNum.containsKey(tc.getGuild().getIdLong()))
@@ -381,7 +489,7 @@ public class ModLogger
         }
         else
         {
-            tc.getHistory().retrievePast(100).queue(list -> 
+            tc.getHistory().retrievePast(100).queue(list ->
             {
                 int num;
                 for(Message m: list)
@@ -398,10 +506,5 @@ public class ModLogger
                 result.accept(1);
             });
         }
-    }
-    
-    private static String banCacheKey(AuditLogEntry ale, User mod)
-    {
-        return ale.getGuild().getId()+"|"+ale.getTargetId()+"|"+mod.getId();
     }
 }

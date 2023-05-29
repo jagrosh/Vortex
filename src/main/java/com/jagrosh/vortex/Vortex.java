@@ -15,6 +15,10 @@
  */
 package com.jagrosh.vortex;
 
+import club.minnced.discord.webhook.WebhookClient;
+import club.minnced.discord.webhook.WebhookClientBuilder;
+import com.jagrosh.jdautilities.command.Command;
+import com.jagrosh.jdautilities.command.SlashCommand;
 import com.jagrosh.vortex.commands.tools.LookupCmd;
 import com.jagrosh.vortex.commands.automod.*;
 import com.jagrosh.vortex.commands.general.*;
@@ -22,17 +26,20 @@ import com.jagrosh.vortex.commands.moderation.*;
 import com.jagrosh.vortex.commands.tools.*;
 import com.jagrosh.vortex.commands.owner.*;
 import com.jagrosh.vortex.commands.settings.*;
+
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.jdautilities.examples.command.*;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
-import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Game;
+
+import com.jagrosh.vortex.utils.OtherUtil;
+import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.entities.Activity;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
@@ -40,20 +47,20 @@ import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.BlockingSessionController;
 import com.jagrosh.vortex.utils.FormatUtil;
-import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
-import net.dv8tion.jda.bot.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.utils.cache.CacheFlag;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookClientBuilder;
+
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.utils.Compression;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
  *
@@ -61,7 +68,8 @@ import net.dv8tion.jda.webhook.WebhookClientBuilder;
  */
 public class Vortex
 {
-    public static final Config config;
+    public  static final Config config;
+    public  final boolean developerMode;
     private final EventWaiter waiter;
     private final ScheduledExecutorService threadpool;
     private final Database database;
@@ -74,6 +82,8 @@ public class Vortex
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
     private final CommandExceptionListener listener;
+    private final Command[] commands;
+    private final SlashCommand[] slashCommands;
 
 
     static {
@@ -84,7 +94,87 @@ public class Vortex
 
     public Vortex() throws Exception
     {
-        JDA altBot = new JDABuilder(config.getString("alt-token")).build();
+        commands = new Command[] {
+                // General
+                new AboutCmd(this),
+                new PingCmd(this),
+                new RoleinfoCmd(this),
+                new ServerinfoCmd(this),
+                new UserinfoCmd(this),
+
+                // Moderation
+                new KickCmd(this),
+                new BanCmd(this),
+                new SoftbanCmd(this),
+                new UnbanCmd(this),
+                new CleanCmd(this),
+                new VoicemoveCmd(this),
+                new VoicekickCmd(this),
+                new MuteCmd(this),
+                new GravelCmd(this),
+                new UngravelCmd(this),
+                new UnmuteCmd(this),
+                new RaidCmd(this),
+                // new StrikeCmd(this),
+                // new PardonCmd(this),
+                new CheckCmd(this),
+                new ModlogsCmd(this),
+                new WarnCmd(this),
+                new DelModlogCmd(this),
+                new UpdateCmd(this),
+
+                // Settings
+                new SetupCmd(this),
+                new PunishmentCmd(this),
+                new MessagelogCmd(this),
+                new ModlogCmd(this),
+                new ServerlogCmd(this),
+                new VoicelogCmd(this),
+                new AvatarlogCmd(this),
+                new TimezoneCmd(this),
+                new ModroleCmd(this),
+                new PrefixCmd(this),
+                new SettingsCmd(this),
+                new AddTagCmd(this),
+                new DelTagCmd(this),
+
+                // Automoderation
+                new AntiinviteCmd(this),
+                new AnticopypastaCmd(this),
+                new AntieveryoneCmd(this),
+                new AntirefCmd(this),
+                new MaxlinesCmd(this),
+                new MaxmentionsCmd(this),
+                new AntiduplicateCmd(this),
+                new AutodehoistCmd(this),
+                new FilterCmd(this),
+                new ResolvelinksCmd(this),
+                new AutoraidmodeCmd(this),
+                new IgnoreCmd(this),
+                new UnignoreCmd(this),
+
+                // Tools
+                new AnnounceCmd(),
+                new AuditCmd(),
+                new DehoistCmd(),
+                new InvitepruneCmd(this),
+                new LookupCmd(this),
+                new TagCmd(this),
+                new TagsCmd(this),
+
+                // Owner
+                new EvalCmd(this),
+                new DebugCmd(this),
+                // new PremiumCmd(this),
+                new ReloadCmd(this)
+                //new TransferCmd(this)
+        };
+
+        JDA altBot = JDABuilder.createLight(config.getString("alt-token")).build();
+        slashCommands = Arrays.stream(commands)
+                            .filter(command -> command instanceof SlashCommand)
+                            .toArray(SlashCommand[]::new);
+        developerMode = config.getBoolean("developer-mode");
         waiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(), false);
         threadpool = Executors.newScheduledThreadPool(100);
         database = new Database(config.getString("database.host"), 
@@ -100,117 +190,43 @@ public class Vortex
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
-                        .setGame(Game.playing(Constants.Wiki.PRIMARY_LINK))
+                        .setActivity(Activity.watching("Toycat"))
                         .setOwnerId(Constants.OWNER_ID)
-                        .setServerInvite(Constants.SERVER_INVITE)
+                        // .setServerInvite(Constants.SERVER_INVITE)
                         .setEmojis(Constants.SUCCESS, Constants.WARNING, Constants.ERROR)
                         .setLinkedCacheSize(0)
                         .setGuildSettingsManager(database.settings)
                         .setListener(listener)
                         .setScheduleExecutor(threadpool)
                         .setShutdownAutomatically(false)
-                        .addCommands(
-                            // General
-                            new AboutCmd(this),
-                            new PingCmd(this),
-                            new RoleinfoCmd(this),
-                            new ServerinfoCmd(this),
-                            new UserinfoCmd(this),
-
-                            // Moderation
-                            new KickCmd(this),
-                            new BanCmd(this),
-                            new SoftbanCmd(this),
-                            new SilentbanCmd(this),
-                            new UnbanCmd(this),
-                            new CleanCmd(this),
-                            new VoicemoveCmd(this),
-                            new VoicekickCmd(this),
-                            new MuteCmd(this),
-                            new GravelCmd(this),
-                            new UngravelCmd(this),
-                            new UnmuteCmd(this),
-                            new RaidCmd(this),
-                            new StrikeCmd(this),
-                            new PardonCmd(this),
-                            new CheckCmd(this),
-                            new ReasonCmd(this),
-
-
-                            // Settings
-                            new SetupCmd(this),
-                            new PunishmentCmd(this),
-                            new MessagelogCmd(this),
-                            new ModlogCmd(this),
-                            new ServerlogCmd(this),
-                            new VoicelogCmd(this),
-                            new AvatarlogCmd(this),
-                            new TimezoneCmd(this),
-                            new ModroleCmd(this),
-                            new PrefixCmd(this),
-                            new SettingsCmd(this),
-                            new AddTagCmd(this),
-                            new DelTagCmd(this),
-
-                            // Automoderation
-                            new AntiinviteCmd(this),
-                            new AnticopypastaCmd(this),
-                            new AntieveryoneCmd(this),
-                            new AntirefCmd(this),
-                            new MaxlinesCmd(this),
-                            new MaxmentionsCmd(this),
-                            new AntiduplicateCmd(this),
-                            new AutodehoistCmd(this),
-                            new FilterCmd(this),
-                            new ResolvelinksCmd(this),
-                            new AutoraidmodeCmd(this),
-                            new IgnoreCmd(this),
-                            new UnignoreCmd(this),
-                            
-                            // Tools
-                            new AnnounceCmd(),
-                            new AuditCmd(),
-                            new DehoistCmd(),
-                            new InvitepruneCmd(this),
-                            new LookupCmd(this),
-                            new TagCmd(this),
-                            new TagsCmd(this),
-
-                            // Owner
-                            new EvalCmd(this),
-                            new DebugCmd(this),
-                            new PremiumCmd(this),
-                            new ReloadCmd(this)
-                            //new TransferCmd(this)
-                        )
-                        .setHelpConsumer(event -> event.replyInDm(FormatUtil.formatHelp(event, this), m -> 
-                        {
-                            if(event.isFromType(ChannelType.TEXT))
-                                try
+                        .addCommands(commands)
+                        .addSlashCommands(slashCommands)
+                        .forceGuildOnly(developerMode ? config.getString("uploader.guild") : null)
+                        .setHelpConsumer(e -> OtherUtil.commandEventReplyDm(e, FormatUtil.formatHelp(e, this), m ->
                                 {
-                                    event.getMessage().addReaction(Constants.HELP_REACTION).queue(s->{}, f->{});
-                                } catch(PermissionException ignore) {}
-                        }, t -> event.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
-                        .setDiscordBotsKey(config.getString("listing.discord-bots"))
-                        //.setCarbonitexKey(config.getString("listing.carbon"))
-                        .build();
-        shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
+                                    if(e.isFromType(ChannelType.TEXT))
+                                        try
+                                        {
+                                            e.getMessage().addReaction(Emoji.fromFormatted(Constants.HELP_REACTION)).queue(s->{}, f->{});
+                                        } catch(PermissionException ignore) {}
+                                }, t -> e.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
+                                //.setDiscordBotsKey(config.getString("listing.discord-bots"))
+                                //.setCarbonitexKey(config.getString("listing.carbon"))
+                                .build();
+        // TODO: Support custom amount of shards via shard-total in config
+        shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MODERATION, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES)
                 .addEventListeners(new Listener(this), client, waiter)
-                .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
+                .setStatus(OnlineStatus.ONLINE)
+                .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
+                .disableCache(CacheFlag.EMOJI, CacheFlag.ACTIVITY, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS, CacheFlag.FORUM_TAGS) //TODO: figure out why it said dont disable game and see if disabling it (as done) will break anything internally
                 .setSessionController(new BlockingSessionController())
-                .setCompressionEnabled(false)
+                .setCompression(Compression.NONE)
                 .build();
         
         modlog.start();
-        
-        threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
-        threadpool.scheduleWithFixedDelay(() -> System.gc(), 12, 6, TimeUnit.HOURS);
+        threadpool.scheduleWithFixedDelay(System::gc, 12, 6, TimeUnit.HOURS);
     }
     
     
@@ -264,7 +280,8 @@ public class Vortex
     {
         return automod;
     }
-    
+
+    @Deprecated
     public StrikeHandler getStrikeHandler()
     {
         return strikehandler;

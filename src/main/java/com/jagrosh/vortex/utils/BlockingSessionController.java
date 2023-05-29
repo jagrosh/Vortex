@@ -15,9 +15,9 @@
  */
 package com.jagrosh.vortex.utils;
 
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.utils.JDALogger;
-import net.dv8tion.jda.core.utils.SessionControllerAdapter;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.utils.SessionControllerAdapter;
+import net.dv8tion.jda.internal.utils.JDALogger;
 
 /**
  *

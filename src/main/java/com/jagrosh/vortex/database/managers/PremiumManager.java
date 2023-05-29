@@ -29,12 +29,13 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.api.entities.Guild;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class PremiumManager extends DataManager
 {
     public static final SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L, true);
@@ -192,7 +193,7 @@ public class PremiumManager extends DataManager
                 return "This server has " + level.name + " permanently";
             return "This server has " + level.name + " until";
         }
-        
+
         public Instant getTimestamp()
         {
             if(level==Level.NONE || until==null || until.getEpochSecond()==Instant.MAX.getEpochSecond())

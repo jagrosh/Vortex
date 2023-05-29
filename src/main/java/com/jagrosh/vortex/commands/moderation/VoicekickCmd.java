@@ -20,14 +20,14 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import java.util.List;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 /**
  *
@@ -68,7 +68,7 @@ public class VoicekickCmd extends ModCommand
                 builder.append("\n").append(event.getClient().getError()).append(" You do not have permission to voicekick ").append(FormatUtil.formatUser(m.getUser()));
             else if(!event.getSelfMember().canInteract(m))
                 builder.append("\n").append(event.getClient().getError()).append(" I am unable to voicekick ").append(FormatUtil.formatUser(m.getUser()));
-            else if(!m.getVoiceState().inVoiceChannel())
+            else if(m.getVoiceState() == null || !m.getVoiceState().inAudioChannel())
                 builder.append("\n").append(event.getClient().getWarning()).append(" ").append(FormatUtil.formatUser(m.getUser())).append(" is not in a voice channel!");
             else if(modrole!=null && m.getRoles().contains(modrole))
                 builder.append("\n").append(event.getClient().getError()).append(" I won't voicekick ").append(FormatUtil.formatUser(m.getUser())).append(" because they have the Moderator Role");
@@ -97,8 +97,8 @@ public class VoicekickCmd extends ModCommand
             VoiceChannel vc;
             try
             {
-                vc = (VoiceChannel)event.getGuild().getController().createVoiceChannel("Voice Kick Channel")
-                    .setParent(toKick.get(0).getVoiceState().getChannel().getParent()).reason(reason).complete();
+                vc = event.getGuild().createVoiceChannel("Voice Kick Channel")
+                    .setParent(toKick.get(0).getVoiceState().getChannel().getParentCategory()).reason(reason).complete();
             }
             catch(Exception ex)
             {
@@ -106,16 +106,11 @@ public class VoicekickCmd extends ModCommand
                 event.reply(builder.toString());
                 return;
             }
-            for(int i=0; i<toKick.size(); i++)
-            {
-                Member m = toKick.get(i);
-                try
-                {
-                    event.getGuild().getController().moveVoiceMember(m, vc).complete();
+            for (Member m : toKick) {
+                try {
+                    event.getGuild().moveVoiceMember(m, vc).complete();
                     builder.append("\n").append(event.getClient().getSuccess()).append(" Successfully voicekicked ").append(FormatUtil.formatUser(m.getUser()));
-                }
-                catch(Exception ex)
-                {
+                } catch (Exception ex) {
                     builder.append("\n").append(event.getClient().getError()).append(" Failed to move ").append(FormatUtil.formatUser(m.getUser())).append(" to the voice kick channel.");
                 }
             }

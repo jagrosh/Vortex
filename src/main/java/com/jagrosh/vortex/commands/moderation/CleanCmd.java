@@ -25,13 +25,13 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorExceptio
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningException;
 import com.jagrosh.vortex.commands.ModCommand;
 import java.util.LinkedList;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageHistory;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageHistory;
 import com.jagrosh.vortex.utils.LogUtil;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.EmbedType;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.EmbedType;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 /**
  *
@@ -39,9 +39,6 @@ import net.dv8tion.jda.core.entities.TextChannel;
  */
 public class CleanCmd extends ModCommand
 {
-    private final static String VIEW = "\uD83D\uDCC4"; // 📄
-    private final static String DOWNLOAD = "\uD83D\uDCE9"; // 📩
-    
     private final Pattern LINK_PATTERN = Pattern.compile("https?:\\/\\/.+");
     private final Pattern QUOTES_PATTERN = Pattern.compile("[\"“”](.*?)[\"“”]", Pattern.DOTALL);
     private final Pattern CODE_PATTERN = Pattern.compile("`(.*?)`", Pattern.DOTALL);
@@ -51,13 +48,14 @@ public class CleanCmd extends ModCommand
     private final String week2limit = " Note: Messages older than 2 weeks cannot be cleaned.";
     private final String noparams = "**No valid cleaning parameters included!**\n"
                 +"This command is to remove many messages quickly. Pinned messages are ignored. "
-                + "Messages can be filtered with various parameters. Mutliple arguments can be used, and "
+                + "Messages can be filtered with various parameters. Mutliple arguments can be used and "
                 + "the order of parameters does not matter. The following parameters are supported:\n"
-                + " `<numPosts>` - number of posts to delete; between 2 and 1000\n"
+                + " `<numPosts>` - number of posts to delete; between 2 and 1000. This is the only required parameter\n"
                 + " `bots` - cleans messages by bots\n"
                 + " `embeds` - cleans messages with embeds\n"
                 + " `links` - cleans messages containing links\n"
                 + " `images` - cleans messages with uploaded or embeded images or videos\n"
+                + " `mentions` - cleans messages that mentions someone"
                 + " `@user` - cleans messages only from the provided user\n"
                 + " `userId` - cleans messages only from the provided user (via id)\n"
                 + " `\"quotes\"` - cleans messages containing the text in quotes\n"
@@ -67,15 +65,13 @@ public class CleanCmd extends ModCommand
     {
         super(vortex, Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY);
         this.name = "clean";
-        this.aliases = new String[]{"clear"};
+        this.aliases = new String[]{"clear", "purge"};
         this.arguments = "<parameters>";
         this.help = "cleans messages matching filters";
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.guildOnly = true;
-        this.cooldown = 10;
-        this.cooldownScope = CooldownScope.CHANNEL;
     }
-    
+
     @Override
     protected void execute(CommandEvent event)
     {
@@ -119,23 +115,19 @@ public class CleanCmd extends ModCommand
         boolean embeds = parameters.contains("embed");
         boolean links = parameters.contains("link");
         boolean images = parameters.contains("image");
+        boolean mentions = parameters.contains("mentions");
         
-        boolean all = quotes.isEmpty() && pattern==null && ids.isEmpty() && !bots && !embeds && !links && !images;
+        boolean all = quotes.isEmpty() && pattern==null && ids.isEmpty() && !bots && !embeds && !links && !images && !mentions;
         
         if(num==-1)
         {
-            if(all)
-            {
-                event.replyWarning(noparams);
-                return;
-            }
-            else
-                num=100;
+            event.replyWarning(noparams);
+            return;
         }
         if(num>1000 || num<2)
         {
-            event.getClient().applyCooldown(getCooldownKey(event), 1);
-            throw new CommandErrorException("Number of messages must be between 2 and 1000");
+            event.replyWarning("Can only delete 2 to 1000 messages");
+            return;
         }
         
         int val2 = num+1;
@@ -144,12 +136,12 @@ public class CleanCmd extends ModCommand
             int val = val2;
             List<Message> msgs = new LinkedList<>();
             MessageHistory mh = event.getChannel().getHistory();
-            OffsetDateTime earliest = event.getMessage().getCreationTime().minusHours(335);
+            OffsetDateTime earliest = event.getMessage().getTimeCreated().minusHours(335);
             while(val>100)
             {
                 msgs.addAll(mh.retrievePast(100).complete());
                 val-=100;
-                if(msgs.get(msgs.size()-1).getCreationTime().isBefore(earliest))
+                if(msgs.get(msgs.size()-1).getTimeCreated().isBefore(earliest))
                 {
                     val=0;
                     break;
@@ -163,7 +155,7 @@ public class CleanCmd extends ModCommand
             List<Message> del = new LinkedList<>();
             for(Message msg : msgs)
             {
-                if(msg.getCreationTime().isBefore(earliest))
+                if(msg.getTimeCreated().isBefore(earliest))
                 {
                     week2 = true;
                     break;
@@ -171,13 +163,13 @@ public class CleanCmd extends ModCommand
                 if(msg.isPinned())
                     continue;
                 if(all || ids.contains(msg.getAuthor().getId()) || (bots && msg.getAuthor().isBot()) || (embeds && !msg.getEmbeds().isEmpty())
-                    || (links && LINK_PATTERN.matcher(msg.getContentRaw()).find()) || (images && hasImage(msg)))
+                    || (links && LINK_PATTERN.matcher(msg.getContentRaw()).find()) || (images && hasImage(msg)) || (mentions && MENTION_PATTERN.matcher(msg.getContentRaw()).find()))
                 {
                     del.add(msg);
                     continue;
                 }
                 String lowerContent = msg.getContentRaw().toLowerCase();
-                if(quotes.stream().anyMatch(quote -> lowerContent.contains(quote)))
+                if(quotes.stream().anyMatch(lowerContent::contains))
                 {
                     del.add(msg);
                     continue;
@@ -235,16 +227,15 @@ public class CleanCmd extends ModCommand
                 params = "all";
             vortex.getTextUploader().upload(LogUtil.logMessagesBackwards("Cleaned Messages", del), "CleanedMessages", (view, download) -> 
             {
-                vortex.getModLogger().postCleanCase(event.getMember(), event.getMessage().getCreationTime(), del.size(),
-                        event.getTextChannel(), params, null, new EmbedBuilder().setColor(event.getSelfMember().getColor())
-                                .appendDescription("[`"+VIEW+" View`]("+view+")  |  [`"+DOWNLOAD+" Download`]("+download+")").build());
+                vortex.getBasicLogger().postCleanCase(event.getMember(), event.getMessage().getTimeCreated(), del.size(),
+                        event.getTextChannel(), params, null, view, download);
             });
         });
     }
     
     private static boolean hasImage(Message message)
     {
-        if(message.getAttachments().stream().anyMatch(a -> a.isImage()))
+        if(message.getAttachments().stream().anyMatch(Message.Attachment::isImage))
             return true;
         if(message.getEmbeds().stream().anyMatch(e -> e.getType()==EmbedType.IMAGE))
             return true;

@@ -18,23 +18,36 @@ package com.jagrosh.vortex.commands.general;
 import java.time.format.DateTimeFormatter;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.SlashCommand;
+import com.jagrosh.jdautilities.command.SlashCommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.CommandTools;
 import com.jagrosh.vortex.utils.FormatUtil;
+
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import java.util.Objects;
+
+import com.jagrosh.vortex.utils.ToycatPallete;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.utils.TimeFormat;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class RoleinfoCmd extends Command
+public class RoleinfoCmd extends SlashCommand
 {
     private final static String LINESTART = "\u25AB"; // ▫
     private final static String ROLE_EMOJI = "\uD83C\uDFAD"; // 🎭
@@ -48,8 +61,20 @@ public class RoleinfoCmd extends Command
         this.arguments = "<role>";
         this.guildOnly = true;
         this.vortex = vortex;
+        this.options = Collections.singletonList(new OptionData(OptionType.ROLE, "role", "The role", true));
     }
-    
+
+    @Override
+    protected void execute(SlashCommandEvent event) {
+        if (!CommandTools.hasGeneralCommandPerms(vortex, event, Permission.MESSAGE_MANAGE)) {
+            event.reply(CommandTools.COMMAND_NO_PERMS).setEphemeral(true).queue();
+            return;
+        }
+
+        event.reply(getRoleInfoEmbed(event.getOption("role").getAsRole())).queue();
+
+    }
+
     @Override
     protected void execute(CommandEvent event) 
     {
@@ -65,42 +90,39 @@ public class RoleinfoCmd extends Command
             if(found.isEmpty())
             {
                 event.replyError("I couldn't find the role you were looking for!");
-                return;
             }
             else if(found.size()>1)
             {
                 event.replyWarning(FormatUtil.listOfRoles(found, event.getArgs()));
-                return;
             }
             else
             {
-                role = found.get(0);
+                event.reply(getRoleInfoEmbed(found.get(0)));
             }
         }
-        
-        String title = ROLE_EMOJI + " Information about **"+role.getName()+"**:";
-        List<Member> list = role.isPublicRole() ? event.getGuild().getMembers() : event.getGuild().getMembersWithRoles(role);
-        StringBuilder desr = new StringBuilder(LINESTART+"ID: **"+role.getId()+"**\n"
-                + LINESTART+"Creation: **"+role.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)+"**\n"
-                + LINESTART+"Position: **"+role.getPosition()+"**\n"
-                + LINESTART+"Color: **#"+(role.getColor()==null ? "000000" : Integer.toHexString(role.getColor().getRGB()).toUpperCase().substring(2))+"**\n"
-                + LINESTART+"Mentionable: **"+role.isMentionable()+"**\n"
-                + LINESTART+"Hoisted: **"+role.isHoisted()+"**\n"
-                + LINESTART+"Managed: **"+role.isManaged()+"**\n"
-                + LINESTART+"Permissions: ");
-        if(role.getPermissions().isEmpty())
-            desr.append("None");
-        else
-            desr.append(role.getPermissions().stream().map(p -> "`, `"+p.getName()).reduce("", String::concat).substring(3)).append("`");
-        desr.append("\n").append(LINESTART).append("Members: **").append(list.size()).append("**\n");
-        if(list.size()*24<=2048-desr.length())
-            list.forEach(m -> desr.append("<@").append(m.getUser().getId()).append("> "));
-        
-        event.reply(new MessageBuilder()
-                .append(FormatUtil.filterEveryone(title))
-                .setEmbed(new EmbedBuilder()
-                        .setDescription(desr.toString().trim())
-                        .setColor(role.getColor()).build())
-                .build());
+
+
+    }
+
+    public MessageCreateData getRoleInfoEmbed(Role role) {
+        EmbedBuilder builder = new EmbedBuilder()
+                .setColor(role.getColor() == null ? ToycatPallete.DEFAULT_ROLE_WHITE : role.getColor())
+                .setDescription("## Showing Info For " + role.getAsMention())
+                .addField("ID", role.getId(), true)
+                .addField("Color", FormatUtil.formatRoleColor(role), true)
+                .addField("Created", TimeFormat.DATE_SHORT.format(role.getTimeCreated()), true)
+                .addField("Hoisted", role.isHoisted() ? "Yes" : "No", true)
+                .addField("Position", role.getPosition() + "/" + role.getGuild().getRoles().size(), true)
+                .addField("Permissions", FormatUtil.formatRolePermissions(role), false);
+
+        if (role.isPublicRole()) {
+            builder.appendDescription("\nThis is the special @everyone role, which everyone technically has");
+        }else if (Objects.equals(role, role.getGuild().getBoostRole())) {
+            builder.appendDescription("\nThis is the server booster role");
+        } else if (role.isManaged()) {
+            builder.appendDescription("\nThis role is managed by an integration");
+        }
+
+        return MessageCreateData.fromEmbeds(builder.build());
     }
 }

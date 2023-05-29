@@ -19,7 +19,7 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.CommandListener;
 import com.jagrosh.vortex.utils.Usage;
-import net.dv8tion.jda.core.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public class CommandExceptionListener implements CommandListener
     @Override
     public void onCommand(CommandEvent event, Command command)
     {
-        if(event.isFromType(ChannelType.TEXT))
+        if (event.isFromType(ChannelType.TEXT))
             usage.increment(event.getGuild().getIdLong());
     }
     

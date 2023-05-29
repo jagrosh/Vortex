@@ -23,16 +23,16 @@ import com.jagrosh.vortex.commands.CommandExceptionListener.CommandWarningExcept
 import com.jagrosh.vortex.utils.FormatUtil;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.audit.ActionType;
-import net.dv8tion.jda.core.audit.AuditLogChange;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.requests.restaction.pagination.AuditLogPaginationAction;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.ActionType;
+import net.dv8tion.jda.api.audit.AuditLogChange;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.requests.restaction.pagination.AuditLogPaginationAction;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 /**
  *
@@ -66,7 +66,7 @@ public class AuditCmd extends Command
     protected void execute(CommandEvent event)
     {
         String[] parts = event.getArgs().split("\\s+", 2);
-        AuditLogPaginationAction action = event.getGuild().getAuditLogs().cache(false).limit(10); 
+        AuditLogPaginationAction action = event.getGuild().retrieveAuditLogs().cache(false).limit(10);
         switch(parts[0].toLowerCase())
         {
             case "all":
@@ -124,10 +124,10 @@ public class AuditCmd extends Command
                                 .append(tc==null ? UNKNOWN : "**#"+tc.getName()+"**")
                                 .append(" (ID:").append(ale.getTargetId()).append(")"); 
                         break;
-                    case EMOTE:
-                        Emote e = event.getGuild().getEmoteById(ale.getTargetIdLong());
+                    case EMOJI:
+                        Emoji e = event.getGuild().getEmojiById(ale.getTargetIdLong());
                         sb.append("\n").append(LINESTART).append("Emote: ")
-                                .append(e==null ? UNKNOWN : e.getAsMention())
+                                .append(e==null ? UNKNOWN : e.getFormatted())
                                 .append(" (ID:").append(ale.getTargetId()).append(")");
                         break;
                     case GUILD:
@@ -169,13 +169,13 @@ public class AuditCmd extends Command
                 });
                 if(ale.getReason()!=null)
                     sb.append("\n").append(LINESTART).append("Reason: ").append(ale.getReason());
-                sb.append("\n").append(LINESTART).append("Time: **").append(ale.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
+                sb.append("\n").append(LINESTART).append("Time: **").append(ale.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME)).append("**\n\u200B");
                 String str = sb.length()>1024 ? sb.substring(0,1020)+" ..." : sb.toString();
                 eb.addField(actionToEmote(ale.getType())+" "+fixCase(ale.getType().name()), str, true);
             });
-            event.reply(new MessageBuilder()
+            event.reply(new MessageCreateBuilder()
                     .setContent(event.getClient().getSuccess()+" Recent Audit Logs in **"+FormatUtil.filterEveryone(event.getGuild().getName())+"**:")
-                    .setEmbed(eb.build()).build());
+                    .addEmbeds(eb.build()).build());
         }, f -> event.replyWarning("Failed to retrieve audit logs"));
     }
     
@@ -209,9 +209,9 @@ public class AuditCmd extends Command
             case CHANNEL_OVERRIDE_DELETE: return "<:deleteChannel:417574812622258186>";
             case CHANNEL_OVERRIDE_UPDATE: return "<:updateChannel:417574812240576514>";
             
-            case EMOTE_CREATE:            return "<:createEmoji:417574812689498112>";
-            case EMOTE_DELETE:            return "<:deleteEmoji:417574812521725962>";
-            case EMOTE_UPDATE:            return "<:updateEmoji:417574812601548800>";
+            case EMOJI_CREATE:            return "<:createEmoji:417574812689498112>";
+            case EMOJI_DELETE:            return "<:deleteEmoji:417574812521725962>";
+            case EMOJI_UPDATE:            return "<:updateEmoji:417574812601548800>";
             
             case GUILD_UPDATE:            return "<:updateServer:417574812534177793>";
             

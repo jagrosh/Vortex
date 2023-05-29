@@ -23,12 +23,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.dv8tion.jda.bot.sharding.ShardManager;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+
+import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -116,17 +117,14 @@ public class LogUtil
     
     public static String logMessagesForwards(String title, List<Message> messages)
     {
-        TextChannel deltc = messages.get(0).getTextChannel();
+        TextChannel deltc = messages.get(0).getChannel().asTextChannel();
         Guild delg = messages.get(0).getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
-        Message m;
-        for(int i=0; i<messages.size(); i++)
-        {
-            m = messages.get(i);
+        for (Message m : messages) {
             sb.append("\r\n\r\n[")
-                .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
+                    .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                    .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
+                    .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
             m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
         }
         return sb.toString().trim();
@@ -138,14 +136,13 @@ public class LogUtil
         Guild delg = deltc.getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         CachedMessage m;
-        for(int i=0; i<messages.size(); i++)
-        {
-            m = messages.get(i);
+        for (CachedMessage message : messages) {
+            m = message;
             User author = m.getAuthor(shardManager);
             sb.append("\r\n\r\n[")
-                .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ");
-            if(author==null)
+                    .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                    .append("] ");
+            if (author == null)
                 sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
             else
                 sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
@@ -157,7 +154,7 @@ public class LogUtil
     
     public static String logMessagesBackwards(String title, List<Message> messages)
     {
-        TextChannel deltc = messages.get(0).getTextChannel();
+        TextChannel deltc = messages.get(0).getChannel().asTextChannel();
         Guild delg = messages.get(0).getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;
@@ -165,7 +162,7 @@ public class LogUtil
         {
             m = messages.get(i);
             sb.append("\r\n\r\n[")
-                .append(m.getCreationTime().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                 .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
                 .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
             m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
@@ -214,7 +211,7 @@ public class LogUtil
                 Member mem = OtherUtil.findMember(m.group(1), m.group(2), guild);
                 if(mem==null)
                     return null;
-                Integer minutes = Integer.parseInt(m.group(3));
+                int minutes = Integer.parseInt(m.group(3));
                 return new ParsedAuditReason(mem, minutes, reasonF(m.group(4)));
             }
             

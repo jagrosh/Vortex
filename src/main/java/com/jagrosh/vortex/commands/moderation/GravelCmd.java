@@ -1,26 +1,47 @@
+/*
+ * Copyright 2016 John Grosh (jagrosh).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.jagrosh.vortex.commands.moderation;
 
 import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.commands.CommandExceptionListener.CommandErrorException;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import com.jagrosh.vortex.utils.ArgsUtil;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedList;
 
-
+/**
+ *
+ * @author John Grosh (jagrosh)
+ */
 public class GravelCmd extends ModCommand
 {
     public GravelCmd(Vortex vortex)
     {
         super(vortex, Permission.MANAGE_ROLES);
         this.name = "gravel";
-        this.arguments = "<@users> [reason]";
-        this.help = "gravels users";
+        this.arguments = "<@users> [time] [reason]";
+        this.help = "applies graveled role to users";
         this.botPermissions = new Permission[]{Permission.MANAGE_ROLES};
         this.guildOnly = true;
     }
@@ -31,12 +52,12 @@ public class GravelCmd extends ModCommand
         Role gravelRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild());
         if(gravelRole == null)
         {
-            event.replyError("No Gravel role exists!");
+            event.replyError("No Graveled role exists!");
             return;
         }
         if(!event.getMember().canInteract(gravelRole))
         {
-            event.replyError("You do not have permission to gravel people!");
+            event.replyError("You do not have permissions to assign the '"+gravelRole.getName()+"' role!");
             return;
         }
         if(!event.getSelfMember().canInteract(gravelRole))
@@ -45,14 +66,22 @@ public class GravelCmd extends ModCommand
             return;
         }
 
-        ArgsUtil.ResolvedArgs args = ArgsUtil.resolve(event.getArgs(), false, event.getGuild());
+        ArgsUtil.ResolvedArgs args = ArgsUtil.resolve(event.getArgs(), true, event.getGuild());
         if(args.isEmpty())
         {
             event.replyError("Please include at least one user to gravel (@mention or ID)!");
             return;
         }
-
-        String reason = LogUtil.auditReasonFormat(event.getMember(), args.reason);
+        int minutes;
+        if(args.time < 0)
+            throw new CommandErrorException("Timed gravels cannot be negative time!");
+        else if(args.time == 0)
+            minutes = 0;
+        else if(args.time > 60)
+            minutes = (int)Math.round(args.time/60.0);
+        else
+            minutes = 1;
+        String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
         Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();
         List<Member> toGravel = new LinkedList<>();
@@ -86,24 +115,28 @@ public class GravelCmd extends ModCommand
         if(toGravel.size() > 5)
             event.reactSuccess();
 
+        Instant ungravelTime = Instant.now().plus(minutes, ChronoUnit.MINUTES);
+        String time = minutes==0 ? "" : " for "+FormatUtil.secondsToTimeCompact(minutes*60);
         for(int i=0; i<toGravel.size(); i++)
         {
             Member m = toGravel.get(i);
             boolean last = i+1 == toGravel.size();
-            event.getGuild().getController().addSingleRoleToMember(m, gravelRole).reason(reason).queue(success ->
+            String user = FormatUtil.formatUser(m.getUser());
+            String[] messages = {
+                    " "+user+" was banished to the gravel pit",
+                    " "+user+" was graveled",
+                    " "+user+" was sent to find flint",
+                    " Added gravel to " + user,
+                    " "+user+" fell in a pit of gravel",
+                    " Successfully poured some gravel on "+user
+            };
+            event.getGuild().addRoleToMember(m, gravelRole).reason(reason).queue(success ->
             {
-                vortex.getDatabase().gravels.gravel(event.getGuild(), m.getUser().getIdLong());
-                String user = FormatUtil.formatUser(m.getUser());
-                String[] messages = {
-                        " "+user+" was banished to the gravel pit",
-                        " "+user+" was graveled",
-                        " "+user+" was sent to find flint",
-                        " Added gravel to " + user,
-                        " "+user+" fell in a pit of gravel",
-                        " Successfully poured some gravel on "+user
-                };
-
                 builder.append("\n").append(event.getClient().getSuccess()).append(messages[(int) (Math.random()*messages.length+0.5)]);
+                if(minutes>0)
+                    vortex.getDatabase().gravels.overrideGravel(event.getGuild(), m.getUser().getIdLong(), event.getAuthor().getIdLong(), ungravelTime, args.reason);
+                else
+                    vortex.getDatabase().gravels.overrideGravel(event.getGuild(), m.getUser().getIdLong(), event.getAuthor().getIdLong(), Instant.MAX, args.reason);
                 if(last)
                     event.reply(builder.toString());
             }, failure ->

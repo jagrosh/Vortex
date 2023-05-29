@@ -21,13 +21,14 @@ import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import java.util.HashMap;
 import java.util.Map;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class StrikeManager extends DataManager
 {
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID", false, 0L);

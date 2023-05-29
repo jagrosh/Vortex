@@ -21,10 +21,11 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.ModCommand;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.VoiceChannel;
-import net.dv8tion.jda.core.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import com.jagrosh.vortex.utils.FormatUtil;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 
 /**
  *
@@ -45,17 +46,17 @@ public class VoicemoveCmd extends ModCommand
     @Override
     protected void execute(CommandEvent event)
     {
-        if(event.getGuild().getSelfMember().getVoiceState().inVoiceChannel())
+        if(event.getGuild().getSelfMember().getVoiceState().inAudioChannel())
         {
             event.replyWarning("I am already in a voice channel; move me to drag all users.");
             return;
         }
-        if(event.getArgs().isEmpty() && !event.getMember().getVoiceState().inVoiceChannel())
+        if(event.getArgs().isEmpty() && !event.getMember().getVoiceState().inAudioChannel())
         {
             event.replyError("You must be in or specify a voice channel to move users from!");
             return;
         }
-        VoiceChannel vc;
+        AudioChannel vc;
         if(!event.getArgs().isEmpty())
         {
             List<VoiceChannel> list = FinderUtil.findVoiceChannels(event.getArgs(), event.getGuild());
@@ -94,12 +95,12 @@ public class VoicemoveCmd extends ModCommand
             event.replyWarning("I could not connect to **"+vc.getName()+"**");
             return;
         }
-        vortex.getEventWaiter().waitForEvent(GuildVoiceMoveEvent.class,
-                (GuildVoiceMoveEvent e) -> 
-                    e.getGuild().equals(event.getGuild()) && e.getMember().equals(event.getGuild().getSelfMember()), 
-                (GuildVoiceMoveEvent e) -> {
+        vortex.getEventWaiter().waitForEvent(GuildVoiceUpdateEvent.class,
+                (GuildVoiceUpdateEvent e) ->
+                    e.getGuild().equals(event.getGuild()) && e.getMember().equals(event.getGuild().getSelfMember()) && e.getChannelJoined() != null && e.getChannelLeft() != null,
+                (GuildVoiceUpdateEvent e) -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
-                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().getController().moveVoiceMember(m, e.getChannelJoined()).queue());
+                    e.getChannelLeft().getMembers().stream().forEach(m -> event.getGuild().moveVoiceMember(m, e.getChannelJoined()).queue());
                 }, 1, TimeUnit.MINUTES, () -> {
                     event.getGuild().getAudioManager().closeAudioConnection();
                     event.replyWarning("You waited too long, "+event.getMember().getAsMention());
