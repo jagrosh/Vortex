@@ -17,16 +17,19 @@ package com.jagrosh.vortex.commands.tools;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.jdautilities.command.CooldownScope;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.Database;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.utils.FileUpload;
 import org.json.JSONObject;
 
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Deprecated
 public class ExportCmd extends Command
 {
     private final Vortex vortex;
@@ -53,11 +56,11 @@ public class ExportCmd extends Command
                 .put("automod", db.automod.getSettingsJson(g))
                 .put("settings", db.settings.getSettingsJson(g))
                 .put("ignores", db.ignores.getIgnoresJson(g))
-                .put("tempmutes", db.tempmutes.getAllMutesJson(g))
+                //.put("tempmutes", db.tempmutes.getAllMutesJson(g))
                 .put("tempbans", db.tempbans.getAllBansJson(g))
                 .put("tempslowmodes", db.tempslowmodes.getAllSlowmodesJson(g))
                 .put("inviteWhitelist", db.inviteWhitelist.getWhitelistJson(g))
                 .put("filters", db.filters.getFiltersJson(g));
-        event.getChannel().sendFile(obj.toString(1).getBytes(), "vortex_data_" + g.getId() + ".json").queue();
+        event.getChannel().sendFiles(FileUpload.fromData(obj.toString(1).getBytes(), "vortex_data_" + g.getId() + ".json")).queue();
     }
 }

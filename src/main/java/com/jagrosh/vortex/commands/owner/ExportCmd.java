@@ -15,12 +15,14 @@
  */
 package com.jagrosh.vortex.commands.owner;
 
+import net.dv8tion.jda.api.Permission;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
-import net.dv8tion.jda.core.Permission;
 import org.json.JSONObject;
 
+
+// TODO: Check if this is still needed
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)

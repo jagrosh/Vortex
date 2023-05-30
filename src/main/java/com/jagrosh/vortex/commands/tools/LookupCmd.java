@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.tools;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Constants;
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import com.jagrosh.vortex.utils.FormatUtil;
@@ -88,7 +89,7 @@ public class LookupCmd extends Command
             }
             catch(NumberFormatException ignore) {}
             
-            // if it's valid and we find a user, we're done
+            // if it's valid, and we find a user, we're done
             if(id > 0 && lookupUser(id, event))
                 return;
             
@@ -107,10 +108,10 @@ public class LookupCmd extends Command
     
     private boolean lookupUser(long userId, CommandEvent event)
     {
-        User u = vortex.getShardManager().getUserById(userId);
+        User u = vortex.getJda().getUserById(userId);
         if(u==null) try
         {
-            u = vortex.getShardManager().retrieveUserById(userId).complete(false);
+            u = vortex.getJda().retrieveUserById(userId).complete(false);
         }
         catch(RateLimitedException ratelimited)
         {

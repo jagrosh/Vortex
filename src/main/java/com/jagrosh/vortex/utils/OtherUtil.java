@@ -127,7 +127,7 @@ public class OtherUtil
         }
         catch(Exception ex)
         {
-            return 0;
+            return -1;
         }
         return timeinseconds;
     }
@@ -151,6 +151,7 @@ public class OtherUtil
         }
     }
 
+    @Deprecated // TODO: Maybe undeprecate when the emojis are sorted out and stuff
     public static String getEmoji(UserFlag flag)
     {
         switch(flag)
@@ -169,7 +170,6 @@ public class OtherUtil
             case TEAM_USER:            return "\u2753";
             case UNKNOWN:              return "\u2753";
             case VERIFIED_BOT:         return Emoji.BOT_VERIFIED;
-            case SYSTEM:               return Emoji.BOT_SYSTEM;
             default:                   return "\u2753";
         }
     }

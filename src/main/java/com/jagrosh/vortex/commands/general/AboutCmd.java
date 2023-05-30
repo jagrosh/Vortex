@@ -28,6 +28,8 @@ import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 /**
  *
@@ -68,7 +70,7 @@ public class AboutCmd extends SlashCommand
         ShardManager sm = jda.getShardManager();
         return new MessageCreateBuilder()
                 .setContent(Constants.VORTEX_EMOJI + " **All about Vortex** " + Constants.VORTEX_EMOJI)
-                .setEmbed(new EmbedBuilder()
+                .setEmbeds(new EmbedBuilder()
                         .setColor(g==null ? Color.GRAY : g.getSelfMember().getColor())
                         .setDescription("Hi! I'm Toybot!\n"
                                 + "I'm a modified version of [Vortex](https://github.com/jagrosh/Vortex) which was written in Java by [jagrosh#4824](https://github.com/jagrosh)\n"

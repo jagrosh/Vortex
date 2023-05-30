@@ -15,15 +15,11 @@
  */
 package com.jagrosh.vortex.commands.owner;
 
-import java.time.OffsetDateTime;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.utils.FormatUtil;
-import java.time.temporal.ChronoUnit;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.utils.TimeFormat;
 
 /**
  *
@@ -48,17 +44,12 @@ public class DebugCmd extends Command
     {
         long totalMb = Runtime.getRuntime().totalMemory()/(1024*1024);
         long usedMb = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory())/(1024*1024);
-        StringBuilder sb = new StringBuilder("**"+event.getSelfUser().getName()+"** statistics:"
-                + "\nLast Startup: "+FormatUtil.secondsToTime(Constants.STARTUP.until(OffsetDateTime.now(), ChronoUnit.SECONDS))+" ago"
-                + "\nGuilds: **"+vortex.getShardManager().getGuildCache().size()+"**"
-                + "\nMemory: **"+usedMb+"**Mb / **"+totalMb+"**Mb"
-                + "\nAverage Ping: **"+vortex.getShardManager().getAverageGatewayPing()+"**ms"
-                + "\nShard Total: **"+vortex.getShardManager().getShardsTotal()+"**"
-                + "\nShard Connectivity: ```diff");
-        vortex.getShardManager().getShards().forEach(jda -> sb.append("\n").append(jda.getStatus()==JDA.Status.CONNECTED ? "+ " : "- ")
-                .append(jda.getShardInfo().getShardId()<10 ? "0" : "").append(jda.getShardInfo().getShardId()).append(": ").append(jda.getStatus())
-                .append(" ~ ").append(jda.getGuildCache().size()).append(" guilds"));
-        sb.append("\n```");
-        event.reply(sb.toString().trim());
+        String sb = "**" + event.getSelfUser().getName() + "** statistics:"
+                + "\nLast Startup: " + TimeFormat.RELATIVE.format(Constants.STARTUP)
+                + "\nGuilds: **" + vortex.getJda().getGuildCache().size() + "**"
+                + "\nMemory: **" + usedMb + "**Mb / **" + totalMb + "**Mb"
+                + "\nGateway Ping: **" + vortex.getJda().getGatewayPing() + "**ms"
+                + "\nShard Connectivity: ```diff" + "\n```";
+        event.reply(sb.trim());
     }
 }

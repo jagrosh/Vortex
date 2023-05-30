@@ -36,49 +36,33 @@ import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandClientBuilder;
 import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
 import com.jagrosh.vortex.automod.AutoMod;
-import com.jagrosh.vortex.automod.StrikeHandler;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.Arrays;
 
+import com.jagrosh.vortex.utils.BlockingSessionController;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 
 import com.jagrosh.vortex.utils.OtherUtil;
-import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
 import com.jagrosh.vortex.database.Database;
 import com.jagrosh.vortex.logging.BasicLogger;
 import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
-import com.jagrosh.jdautilities.command.CommandClient;
-import com.jagrosh.jdautilities.command.CommandClientBuilder;
-import com.jagrosh.jdautilities.commons.waiter.EventWaiter;
-import com.jagrosh.vortex.automod.AutoMod;
-import com.jagrosh.vortex.commands.CommandExceptionListener;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import java.util.concurrent.TimeUnit;
 
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.sharding.DefaultShardManagerBuilder;
-import net.dv8tion.jda.api.sharding.ShardManager;
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 import net.dv8tion.jda.api.utils.Compression;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.exceptions.PermissionException;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
-import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 /**
  * Main class for Vortex
@@ -88,20 +72,18 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 public class Vortex
 {
     public static final Config config;
-    public  final boolean developerMode;
+    public final boolean developerMode;
     private final @Getter EventWaiter eventWaiter;
     private final @Getter ScheduledExecutorService threadpool;
     private final @Getter Database database;
     private final @Getter TextUploader textUploader;
-    private final @Getter MultiBotManager multiBotManager;
+    private final @Getter JDA jda;
     private final @Getter ModLogger modLogger;
     private final @Getter BasicLogger basicLogger;
     private final @Getter MessageCache messageCache;
     private final @Getter WebhookClient logWebhook;
     private final @Getter AutoMod autoMod;
     private final @Getter CommandExceptionListener listener;
-    private final Command[] commands;
-    private final SlashCommand[] slashCommands;
 
     static {
         System.setProperty("config.file", System.getProperty("config.file", "application.conf"));
@@ -140,9 +122,8 @@ public class Vortex
     }
 
 
-    public Vortex() throws Exception
-    {
-        commands = new Command[]{
+    public Vortex() throws Exception {
+        Command[] commands = new Command[]{
                 // General
                 new AboutCmd(this),
                 new PingCmd(this),
@@ -155,8 +136,8 @@ public class Vortex
                 new KickCmd(this),
                 new BanCmd(this),
                 new SoftbanCmd(this),
-                new SilentbanCmd(this),
                 new UnbanCmd(this),
+                new ModlogsCmd(this),
                 new CleanCmd(this),
                 new VoicemoveCmd(this),
                 new VoicekickCmd(this),
@@ -165,18 +146,12 @@ public class Vortex
                 new UngravelCmd(this),
                 new UnmuteCmd(this),
                 new RaidCmd(this),
-                new CheckCmd(this),
-                new ModlogsCmd(this),
+                // new CheckCmd(this),
                 new WarnCmd(this),
-                new DelModlogCmd(this),
-                // TODO: Is there a difference between update and reason?
-                new UpdateCmd(this),
-                new ReasonCmd(this),
                 new SlowmodeCmd(this),
 
                 // Settings
                 new SetupCmd(this),
-                new PunishmentCmd(this),
                 new MessagelogCmd(this),
                 new ModlogCmd(this),
                 new ServerlogCmd(this),
@@ -216,11 +191,12 @@ public class Vortex
                 new ReloadCmd(this)
                 //new TransferCmd(this)
         };
-        slashCommands = Arrays.stream(commands)
+
+        SlashCommand[] slashCommands = Arrays.stream(commands)
                 .filter(command -> command instanceof SlashCommand)
                 .toArray(SlashCommand[]::new);
-        developerMode = config.getBoolean("developer-mode");
-        eventWaiter = new eventWaiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
+        developerMode = config.getBoolean("developer-mode"); // TODO: Maybe make dev mode a bit better
+        eventWaiter = new EventWaiter(Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "eventwaiter")), false);
         threadpool = Executors.newScheduledThreadPool(100, r -> new Thread(r, "vortex"));
         database = new Database(config.getString("database.host"),
                 config.getString("database.username"),
@@ -248,50 +224,30 @@ public class Vortex
                 .forceGuildOnly(developerMode ? config.getString("uploader.guild") : null) //  TODO: Maybe make not guild only
                 .setHelpConsumer(e -> OtherUtil.commandEventReplyDm(e, FormatUtil.formatHelp(e, this), m -> // TODO: Consider using "event.replyInDm(FormatUtil.formatHelp(event, this)" if that is newer/better
                 {
-                    if(e.isFromType(ChannelType.TEXT))
-                        try
-                        {
-                            e.getMessage().addReaction(Emoji.fromFormatted(Constants.HELP_REACTION)).queue(s->{}, f->{});
-                        } catch(PermissionException ignore) {}
+                    if (e.isFromType(ChannelType.TEXT))
+                        try {
+                            e.getMessage().addReaction(Emoji.fromFormatted(Constants.HELP_REACTION)).queue(s -> {
+                            }, f -> {
+                            });
+                        } catch (PermissionException ignore) {
+                        }
                 }, t -> e.replyWarning("Help cannot be sent because you are blocking Direct Messages.")))
                 .build();
-        MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL)); // TODO: Figure out what this does
-        shards = new DefaultShardManagerBuilder()
-                .setShardsTotal(config.getInt("shards-total"))
-                .setToken(config.getString("bot-token"))
-                .addEventListeners(new Listener(this), client, waiter)
-                .setStatus(OnlineStatus.DO_NOT_DISTURB)
-                .setGame(Game.playing("loading..."))
-                .setBulkDeleteSplittingEnabled(false)
-                .setRequestTimeoutRetry(true)
-                .setDisabledCacheFlags(EnumSet.of(CacheFlag.EMOTE, CacheFlag.GAME)) //TODO: dont disable GAME
-                .setSessionController(new BlockingSessionController())
-                .setCompressionEnabled(false)
-                .build();
-        
-        modLogger.start();
-
-        // TODO: Check tempgravels
-        // TODO: Support custom amount of shards via shard-total in config (?)
-// TODO: Nevermind, maybe it might be better to remove sharding alltogether . . .
-        shards = DefaultShardManagerBuilder.create(config.getString("bot-token"), GatewayIntent.GUILD_MEMBERS,            GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MODERATION, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES)
-                .addEventListeners(new Listener(this), client, waiter)
+        //MessageAction.setDefaultMentions(Arrays.asList(Message.MentionType.EMOTE, Message.MentionType.CHANNEL)); // TODO: Figure out what this does
+        jda = JDABuilder.create(config.getString("bot-token"), GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MODERATION, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_PRESENCES)
+                .addEventListeners(new Listener(this), client, eventWaiter)
                 .setStatus(OnlineStatus.ONLINE)
                 .setActivity(Activity.playing("loading..."))
                 .setBulkDeleteSplittingEnabled(false)
                 .setRequestTimeoutRetry(true)
-                .disableCache(CacheFlag.EMOJI, CacheFlag.ACTIVITY, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS, CacheFlag.FORUM_TAGS) //TODO: figure out why it said dont disable game and see if disabling it (as done) will break anything internally
                 .setSessionController(new BlockingSessionController())
                 .setCompression(Compression.NONE)
                 .build();
 
+
+
         modLogger.start();
-
-// TODO: VERY IMPORTANT: Add check ungravels as well
-        threadpool.scheduleWithFixedDelay(() -> database.tempbans.checkUnbans(multiBotManager), 0, 2, TimeUnit.MINUTES);
-        threadpool.scheduleWithFixedDelay(() -> database.tempmutes.checkUnmutes(multiBotManager, database.settings), 0, 45, TimeUnit.SECONDS);
-        threadpool.scheduleWithFixedDelay(() -> database.tempslowmodes.checkSlowmode(multiBotManager), 0, 45, TimeUnit.SECONDS);
-
+    }
 
     /**
      * @param args the command line arguments

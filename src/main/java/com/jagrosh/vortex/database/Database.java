@@ -18,6 +18,7 @@ package com.jagrosh.vortex.database;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.database.managers.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -65,7 +66,7 @@ public class Database extends DatabaseConnector
         }
     }
 
-    public static class Modlog
+    public static class Modlog implements Comparable<Modlog>
     {
         private final long modId, saviorId, userId;
         private final int id;
@@ -127,6 +128,11 @@ public class Database extends DatabaseConnector
         public Instant getFinnish() { return finnish;}
 
         public Instant getStart() { return start; }
+
+        @Override
+        public int compareTo(@NotNull Modlog m) {
+            return this.id - m.id;
+        }
     }
 
     public Database(String host, String user, String pass) throws Exception
@@ -185,6 +191,7 @@ public class Database extends DatabaseConnector
         List<Modlog> modlogs = new ArrayList<>();
         for (ModlogManager manager: managers)
             modlogs.addAll(manager.getModlogs(guildId, userId));
+        modlogs.sort(Database.Modlog::compareTo);
         return modlogs;
     }
 

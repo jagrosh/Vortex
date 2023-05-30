@@ -140,7 +140,7 @@ public class ModLogger
                     for(long gid: toUpdate)
                     {
                         time = System.currentTimeMillis();
-                        update(vortex.getShardManager().getGuildById(gid));
+                        update(vortex.getJda().getGuildById(gid));
                         diff = System.currentTimeMillis() - time;
                         if(diff > 10000)
                             LOG.warn("Took " + diff + "ms to update " + gid);
@@ -352,7 +352,7 @@ public class ModLogger
                         continue; // restoring muted or gravel role (aka role persist) shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes;
-                    User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
+                    User target = vortex.getJda().getUserById(ale.getTargetIdLong());
                     if(target==null)
                         target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).complete();
                     ZoneId timezone = vortex.getDatabase().settings.getSettings(guild).getTimezone();

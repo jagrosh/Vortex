@@ -58,14 +58,14 @@ public class BanCmd extends ModCommand {
             return;
         }
         int minutes;
-        if (args.time < 0)
+        if (args.time < -1)
             throw new CommandErrorException("Timed bans cannot be negative time!");
         else if (args.time == 0)
             minutes = 0;
         else if (args.time > 60)
             minutes = (int) Math.round(args.time / 60.0);
         else
-            minutes = 1;
+            minutes = 0;
         String reason = LogUtil.auditReasonFormat(event.getMember(), minutes, args.reason);
         Role modrole = vortex.getDatabase().settings.getSettings(event.getGuild()).getModeratorRole(event.getGuild());
         StringBuilder builder = new StringBuilder();

@@ -22,7 +22,6 @@ import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandExceptionListener;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.database.managers.AutomodManager;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
 
 /**
  *

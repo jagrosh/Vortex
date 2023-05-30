@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -88,9 +90,9 @@ public class MessageCache
             return attachments;
         }
         
-        public User getAuthor(MultiBotManager botManager)
+        public User getAuthor(JDA jda)
         {
-            return botManager.getUserById(author);
+            return jda.getUserById(author);
         }
 
         public User getAuthor(ShardManager shardManager)
@@ -103,11 +105,11 @@ public class MessageCache
             return author;
         }
         
-        public TextChannel getTextChannel(MultiBotManager botManager)
+        public TextChannel getTextChannel(JDA jda)
         {
             if (guild == 0L)
                 return null;
-            Guild g = botManager.getGuildById(guild);
+            Guild g = jda.getGuildById(guild);
             if (g == null)
                 return null;
             return g.getTextChannelById(channel);
@@ -133,18 +135,11 @@ public class MessageCache
             return guild.getTextChannelById(channel);
         }
         
-        public Guild getGuild(MultiBotManager botManager)
+        public Guild getGuild(JDA jda)
         {
             if (guild == 0L)
                 return null;
-            return botManager.getGuildById(guild);
-        }
-
-        public Guild getGuild(ShardManager shardManager)
-        {
-            if (guild == 0L)
-                return null;
-            return shardManager.getGuildById(guild);
+            return jda.getGuildById(guild);
         }
 
         @Override

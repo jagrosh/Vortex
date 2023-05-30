@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.sharding.ShardManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -110,13 +111,13 @@ public class LogUtil
         return sb.toString().trim();
     }
 
-    public static String logCachedMessagesForwards(String title, List<CachedMessage> messages, MultiBotManager botManager)
+    public static String logCachedMessagesForwards(String title, List<CachedMessage> messages, JDA jda)
     {
-        TextChannel deltc = messages.get(0).getTextChannel(botManager);
+        TextChannel deltc = messages.get(0).getTextChannel(jda);
         Guild delg = deltc.getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         for(int i=0; i<messages.size(); i++)
-            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(botManager));
+            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(jda));
         return sb.toString().trim();
     }
     
@@ -132,7 +133,7 @@ public class LogUtil
     
     public static String logMessagesBackwards(String title, List<Message> messages)
     {
-        TextChannel deltc = messages.get(0).getChannel().getTextChannel();
+        TextChannel deltc = messages.get(0).getChannel().asTextChannel();
         Guild delg = messages.get(0).getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;

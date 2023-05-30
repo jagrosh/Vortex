@@ -21,6 +21,7 @@ import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.Filter;
+import com.jagrosh.vortex.database.managers.FilterManager;
 import com.jagrosh.vortex.database.managers.PremiumManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;

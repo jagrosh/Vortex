@@ -20,12 +20,11 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.InstantColumn;
 import com.jagrosh.easysql.columns.LongColumn;
-import com.jagrosh.vortex.utils.MultiBotManager;
 import com.jagrosh.vortex.utils.Pair;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.json.JSONObject;
 
 import java.time.Instant;
@@ -108,13 +107,13 @@ public class TempSlowmodeManager extends DataManager
         });
     }
     
-    public void checkSlowmode(MultiBotManager shards)
+    public void checkSlowmode(JDA jda)
     {
         readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())), rs -> 
         {
             while(rs.next())
             {
-                TextChannel tc = shards.getTextChannelById(CHANNEL_ID.getValue(rs));
+                TextChannel tc = jda.getTextChannelById(CHANNEL_ID.getValue(rs));
                 if(tc==null)
                     continue;
                 if(tc.getGuild().getSelfMember().hasPermission(tc, Permission.MANAGE_CHANNEL))

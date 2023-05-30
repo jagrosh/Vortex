@@ -15,10 +15,8 @@
  */
 package com.jagrosh.vortex.logging;
 
-import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.Database.Modlog;
-mport com.jagrosh.vortex.database.Database.Modlog;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -33,24 +31,6 @@ import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.audit.AuditLogEntry;
-import net.dv8tion.jda.api.audit.AuditLogKey;
-import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
-import net.dv8tion.jda.api.exceptions.PermissionException;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.utils.FileUpload;
-import java.time.Instant;
-import java.time.temporal.Temporal;
-import java.util.*;
-import java.util.function.Function;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -123,7 +103,7 @@ public class BasicLogger
     {
         if(oldMessage==null)
             return;
-        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        TextChannel mtc = oldMessage.getTextChannel(newMessage.getGuild());
         PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
@@ -162,10 +142,10 @@ public class BasicLogger
     {
         if(oldMessage==null)
             return;
-        Guild guild = oldMessage.getGuild(vortex.getShardManager());
+        Guild guild = oldMessage.getGuild(vortex.getJda());
         if(guild==null)
             return;
-        TextChannel mtc = oldMessage.getTextChannel(vortex.getShardManager());
+        TextChannel mtc = oldMessage.getTextChannel(vortex.getJda());
         PermissionOverride po = mtc.getPermissionOverride(guild.getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
@@ -175,7 +155,7 @@ public class BasicLogger
         String formatted = FormatUtil.formatMessage(oldMessage);
         if(formatted.isEmpty())
             return;
-        User author = oldMessage.getAuthor(vortex.getShardManager());
+        User author = oldMessage.getAuthor(vortex.getJda());
         log(guild, embedBuilder -> embedBuilder
             .setColor(Color.yellow)
             .setAuthor(author==null ? getLoggingName(oldMessage) : getLoggingName(guild, author), null, author == null ? null : author.getEffectiveAvatarUrl())
@@ -196,14 +176,14 @@ public class BasicLogger
             return;
         if(messages.isEmpty())
             return;
-        TextChannel mtc = messages.get(0).getTextChannel(vortex.getShardManager());
+        TextChannel mtc = messages.get(0).getTextChannel(vortex.getJda());
         PermissionOverride po = mtc.getPermissionOverride(mtc.getGuild().getSelfMember());
         if(po!=null && po.getDenied().contains(Permission.MESSAGE_HISTORY))
             return;
         if(messages.size()==1)
             logMessageDelete(messages.get(0));
         vortex.getTextUploader().upload(
-                LogUtil.logCachedMessagesForwards("Deleted Messages", messages, vortex.getShardManager()), "DeletedMessages", (view, download) ->
+                LogUtil.logCachedMessagesForwards("Deleted Messages", messages, vortex.getJda()), "DeletedMessages", (view, download) ->
                     log(guild, embedBuilder -> embedBuilder
                             .setColor(Color.YELLOW)
                             .setDescription(

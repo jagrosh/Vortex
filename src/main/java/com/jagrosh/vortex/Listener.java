@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.api.JDA.ShardInfo;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.channel.update.ChannelUpdateSlowmodeEvent;
 import net.dv8tion.jda.api.events.guild.GuildBanEvent;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
-import net.dv8tion.jda.api.events.guild.t
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -185,21 +185,26 @@ public class Listener implements EventListener
             if(!gevent.getMember().getUser().isBot()) // ignore bots
                 vortex.getBasicLogger().logVoiceUpdate(gevent);
         }
-        else if (event instanceof TextChannelUpdateSlowmodeEvent)
+        else if (event instanceof ChannelUpdateSlowmodeEvent)
         {
-            vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
+            // TODO: Check if this logic is correct, no funky thread things etc.
+            vortex.getDatabase().tempslowmodes.clearSlowmode(((ChannelUpdateSlowmodeEvent) event).getChannel().asTextChannel());
         }
         else if (event instanceof ReadyEvent)
         {
             // Log the shard that has finished loading
             ShardInfo si = event.getJDA().getShardInfo();
-            String shardinfo = si==null ? "1/1" : (si.getShardId()+1)+"/"+si.getShardTotal();
+            String shardinfo = si==null ? "N/A" : (si.getShardId()+1)+"/"+si.getShardTotal();
             LOG.info("Shard "+shardinfo+" is ready.");
+
+            // TODO: Make sure gravels and mutes are checked from before the bot is on
             vortex.getLogWebhook().send("\uD83C\uDF00 Shard `"+shardinfo+"` has connected. Guilds: `" // 🌀
                     +event.getJDA().getGuildCache().size()+"` Users: `"+event.getJDA().getUserCache().size()+"`");
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempbans.checkUnbans(vortex, event.getJDA()), 0, 2, TimeUnit.MINUTES);
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempmutes.checkUnmutes(event.getJDA(), vortex.getDatabase().settings), 0, 45, TimeUnit.SECONDS);
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().gravels.checkGravels(event.getJDA(), vortex.getDatabase().settings), 0, 45, TimeUnit.SECONDS);
+            vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempslowmodes.checkSlowmode(event.getJDA()), 0, 45, TimeUnit.SECONDS);
+
         }
         else if (event instanceof GuildJoinEvent)
         {
