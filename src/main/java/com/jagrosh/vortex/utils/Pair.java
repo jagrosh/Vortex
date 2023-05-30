@@ -15,32 +15,14 @@
  */
 package com.jagrosh.vortex.utils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import lombok.Data;
 
 /**
- *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
-public class Usage
+@Data
+public class Pair<K,V>
 {
-    private final HashMap<Long,Integer> map = new HashMap<>();
-    
-    public void increment(long key)
-    {
-        map.put(key, map.getOrDefault(key, 0) + 1);
-    }
-    
-    public Map<Long,Integer> getMap()
-    {
-        return map;
-    }
-    
-    public List<Entry<Long,Integer>> higher(int val)
-    {
-        return map.entrySet().stream().filter(e -> e.getValue() >= val).collect(Collectors.toList());
-    }
+    private final K key;
+    private final V value;
 }

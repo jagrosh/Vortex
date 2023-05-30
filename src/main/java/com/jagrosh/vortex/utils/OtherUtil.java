@@ -15,12 +15,16 @@
  */
 package com.jagrosh.vortex.utils;
 
+import com.jagrosh.vortex.Emoji;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.entities.User.UserFlag;
 
 import com.jagrosh.jdautilities.command.CommandEvent;
 import net.dv8tion.jda.api.entities.Guild;
@@ -36,9 +40,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+@Slf4j
 public class OtherUtil
 {
-    private final static Logger LOG = LoggerFactory.getLogger(OtherUtil.class);
     
     public final static char[] DEHOIST_ORIGINAL =     {'!',      '"',      '#',      '$',      '%',      
         '&',      '\'',     '(',      ')',      '*',      '+',      ',',      '-',      '.',      '/'};
@@ -46,7 +50,7 @@ public class OtherUtil
         '\u214B', '\u2018', '\u2768', '\u2769', '\u2217', '\u2722', '\u201A', '\u2013', '\u2024', '\u2044'}; // similar
     public final static String DEHOIST_JOINED = "`"+FormatUtil.join("`, `", DEHOIST_ORIGINAL)+"`";
     
-    public final static boolean dehoist(Member m, char symbol)
+    public static boolean dehoist(Member m, char symbol)
     {
         if(!m.getGuild().getSelfMember().canInteract(m))
             return false;
@@ -107,12 +111,17 @@ public class OtherUtil
             for(int j=0; j<vals.length; j+=2)
             {
                 int num = Integer.parseInt(vals[j]);
-                if(vals[j+1].toLowerCase().startsWith("m"))
-                    num*=60;
-                else if(vals[j+1].toLowerCase().startsWith("h"))
-                    num*=60*60;
-                else if(vals[j+1].toLowerCase().startsWith("d"))
-                    num*=60*60*24;
+
+                if(vals.length > j+1)
+                {
+                    if(vals[j+1].toLowerCase().startsWith("m"))
+                        num*=60;
+                    else if(vals[j+1].toLowerCase().startsWith("h"))
+                        num*=60*60;
+                    else if(vals[j+1].toLowerCase().startsWith("d"))
+                        num*=60*60*24;
+                }
+
                 timeinseconds+=num;
             }
         }
@@ -132,13 +141,36 @@ public class OtherUtil
             String[] list = new String[values.size()];
             for(int i=0; i<list.length; i++)
                 list[i] = values.get(i);
-            LOG.info("Successfully read "+list.length+" entries from '"+filename+"'");
+            log.info("Successfully read "+list.length+" entries from '"+filename+"'");
             return list;
         }
         catch(Exception ex)
         {
-            LOG.error("Failed to read '"+filename+"':"+ ex);
+            log.error("Failed to read '"+filename+"':"+ ex);
             return new String[0];
+        }
+    }
+
+    public static String getEmoji(UserFlag flag)
+    {
+        switch(flag)
+        {
+            case BUG_HUNTER_LEVEL_1:   return Emoji.BADGE_BUG_HUNTER;
+            case BUG_HUNTER_LEVEL_2:   return Emoji.BADGE_BUG_HUNTER;
+            case EARLY_SUPPORTER:      return Emoji.BADGE_EARLY_SUPPORTER;
+            case HYPESQUAD:            return Emoji.BADGE_HYPESQUAD;
+            case HYPESQUAD_BALANCE:    return Emoji.BADGE_HYPESQUAD_BALANCE;
+            case HYPESQUAD_BRAVERY:    return Emoji.BADGE_HYPESQUAD_BRAVERY;
+            case HYPESQUAD_BRILLIANCE: return Emoji.BADGE_HYPESQUAD_BRILLIANCE;
+            case PARTNER:              return Emoji.BADGE_PARTNER;
+            case STAFF:                return Emoji.BADGE_STAFF;
+            case VERIFIED_DEVELOPER:   return Emoji.BADGE_VERIFIED_DEVELOPER;
+            case CERTIFIED_MODERATOR:  return Emoji.BADGE_CERTIFIED_MODERATOR;
+            case TEAM_USER:            return "\u2753";
+            case UNKNOWN:              return "\u2753";
+            case VERIFIED_BOT:         return Emoji.BOT_VERIFIED;
+            case SYSTEM:               return Emoji.BOT_SYSTEM;
+            default:                   return "\u2753";
         }
     }
 }

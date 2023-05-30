@@ -48,15 +48,10 @@ public class AvatarlogCmd extends LogCommand
     @Override
     protected void setLogChannel(CommandEvent event, TextChannel tc)
     {
-        if(vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
-        {
-            vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
-            if(tc==null)
-                event.replySuccess("Avatar Logs will not be sent");
-            else
-                event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
-        }
+        vortex.getDatabase().settings.setAvatarLogChannel(event.getGuild(), tc);
+        if(tc==null)
+            event.replySuccess("Avatar Logs will not be sent");
         else
-            event.reply(PremiumManager.Level.PRO.getRequirementMessage());
+            event.replySuccess("Avatar Logs will now be sent in "+tc.getAsMention());
     }
 }

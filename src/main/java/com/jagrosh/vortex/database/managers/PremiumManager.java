@@ -26,10 +26,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
+import org.json.JSONObject;
 
 /**
  *
@@ -48,18 +48,7 @@ public class PremiumManager extends DataManager
     {
         super(connector, "PREMIUM");
     }
-    
-    public List<Long> getPremiumGuilds()
-    {
-        return read(selectAll(LEVEL.isGreaterThan(-1)), rs -> 
-        {
-            List<Long> list = new ArrayList<>();
-            while(rs.next())
-                list.add(GUILD_ID.getValue(rs));
-            return list;
-        });
-    }
-    
+
     public PremiumInfo getPremiumInfo(Guild guild)
     {
         return read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> 
@@ -73,6 +62,14 @@ public class PremiumManager extends DataManager
         });
     }
     
+    public JSONObject getPremiumInfoJson(Guild guild)
+    {
+        PremiumInfo info = getPremiumInfo(guild);
+        return new JSONObject()
+                .put("level", info.level.name())
+                .put("until", info.until == null ? 0 : info.until.getEpochSecond());
+    }
+
     public void addPremiumForever(Guild guild, Level level)
     {
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> 
@@ -146,9 +143,9 @@ public class PremiumManager extends DataManager
     public static enum Level
     {
         NONE("No Premium"),
-        PLUS("Vortex Plus"),
+        PLUS("Vortex Pro Lite"),
         PRO("Vortex Pro"),
-        ULTRA("Vortex Ultra");
+        ULTRA("Vortex Experimental");
         
         public final String name;
         
@@ -164,7 +161,7 @@ public class PremiumManager extends DataManager
         
         public String getRequirementMessage()
         {
-            return Constants.WARNING + " Sorry, this feature requires " + name + ". " + name + " is not available yet.";
+            return Constants.WARNING + " Sorry, this is a premium feature. Yaya has to remove the paywall first";
         }
     }
     

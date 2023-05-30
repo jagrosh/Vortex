@@ -15,10 +15,14 @@
  */
 package com.jagrosh.vortex;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 /**
  *
  * @author John Grosh (jagrosh)
  */
+@AllArgsConstructor
 public enum Action
 {
     GRAVEL(    "graveled",    "\uD83E\uDD10", 18), // 🔇
@@ -27,7 +31,6 @@ public enum Action
     NORAIDMODE("",            "\uD83D\uDD13", 15), // 🔓
     PARDON(    "pardoned",    "\uD83C\uDFF3", 14), // 🏳
     RAIDMODE(  "",            "\uD83D\uDD12", 13), // 🔒
-    STRIKE(    "",            "\uD83D\uDEA9", 12), // 🚩
     UNMUTE(    "unmuted",     "\uD83D\uDD0A", 11), // 🔊
     UNBAN(     "unbanned",    "\uD83D\uDD27", 10), // 🔧
     BAN(       "banned",      "\uD83D\uDD28",  9), // 🔨
@@ -41,31 +44,9 @@ public enum Action
     DELETE(    "deleted",     "\uD83D\uDDD1",  1), // 🗑
     NONE(      "did not act", "\uD83D\uDE36",  0); // 😶
 
-    private final String verb;
-    private final String emoji;
-    private final int bit;
-    
-    Action(String verb, String emoji, int bit)
-    {
-        this.verb = verb;
-        this.emoji = emoji;
-        this.bit = bit;
-    }
-    
-    public String getVerb()
-    {
-        return verb;
-    }
-    
-    public String getEmoji()
-    {
-        return emoji;
-    }
-    
-    public int getBit()
-    {
-        return bit;
-    }
+    private final @Getter String verb;
+    private final @Getter String emoji;
+    private final @Getter int bit;
     
     public static Action fromBit(int bit)
     {

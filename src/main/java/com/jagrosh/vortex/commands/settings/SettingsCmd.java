@@ -45,17 +45,13 @@ public class SettingsCmd extends Command
     @Override
     protected void execute(CommandEvent event)
     {
-        PremiumInfo pi = vortex.getDatabase().premium.getPremiumInfo(event.getGuild());
         event.getChannel().sendMessage(new MessageCreateBuilder()
                 .setContent(FormatUtil.filterEveryone("**" + event.getSelfUser().getName() + "** settings on **" + event.getGuild().getName() + "**:"))
                 .addEmbeds(new EmbedBuilder()
                         //.setThumbnail(event.getGuild().getIconId()==null ? event.getSelfUser().getEffectiveAvatarUrl() : event.getGuild().getIconUrl())
                         .addField(vortex.getDatabase().settings.getSettingsDisplay(event.getGuild()))
-                        .addField(vortex.getDatabase().actions.getAllPunishmentsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().automod.getSettingsDisplay(event.getGuild()))
                         .addField(vortex.getDatabase().filters.getFiltersDisplay(event.getGuild()))
-                        .setFooter(pi.getFooterString(), null)
-                        .setTimestamp(pi.getTimestamp())
                         .setColor(event.getSelfMember().getColor())
                         .build()).build()).queue();
     }

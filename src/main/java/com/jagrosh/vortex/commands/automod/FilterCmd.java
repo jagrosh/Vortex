@@ -26,6 +26,10 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
@@ -51,7 +55,9 @@ public class FilterCmd extends Command
     protected void execute(CommandEvent event)
     {
         StringBuilder sb = new StringBuilder(Constants.VORTEX_EMOJI);
-        sb.append(" The filter command is used to create and remove word filters. Each filter can contain "
+        sb.append(" The filter command is used to add and remove words from the bad words filter and the very bad words filter. "
+                + " The difference between the two filters is that the very bad words filter will be logged to the \"important modlogs\" channel,"
+                + " as its meant to log messages deleted because of slurs or other things that require a mods attention, opposed to being drowned out by the countless other logs. "
                 + "multiple words which are individually checked for within every message sent on the server. "
                 + "Additionally, a regex can be checked by surrounding the word in grave accents (\\`), or an exact "
                 + "quote can be checked for by surrounding the word in double quotation marks (\"). \n");
@@ -63,7 +69,7 @@ public class FilterCmd extends Command
         event.reply(sb.toString());
     }
     
-    private class FilterAddCmd extends Command
+    private static class FilterAddCmd extends Command
     {
         public FilterAddCmd()
         {
@@ -71,60 +77,15 @@ public class FilterCmd extends Command
             this.name = "add";
             this.category = new Category("AutoMod");
             this.aliases = new String[]{"create"};
-            this.arguments = "<name> <strikes> <words to filter>";
-            this.help = "adds a filter";
+            this.arguments = "<name> <badWords | veryBadWords> <words to add>";
+            this.help = "adds words to the filter";
             this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         }
 
         @Override
         protected void execute(CommandEvent event)
         {
-            if(!vortex.getDatabase().premium.getPremiumInfo(event.getGuild()).level.isAtLeast(PremiumManager.Level.PRO))
-            {
-                event.reply(PremiumManager.Level.PRO.getRequirementMessage());
-                return;
-            }
-            
-            String[] parts = event.getArgs().split("\\s+", 3);
-            if(parts.length < 3)
-            {
-                event.replyError("Please include a filter name, number of strikes, and words to filter!");
-                return;
-            }
-            
-            int strikes;
-            try
-            {
-                strikes = Integer.parseInt(parts[1]);
-            }
-            catch(NumberFormatException ex)
-            {
-                strikes = -1;
-            }
-            
-            if(strikes < 0)
-            {
-                event.replyError("`<strikes>` must be a valid integer greater than zero!");
-                return;
-            }
-            
-            try
-            {
-                Filter filter = Filter.parseFilter(parts[0], strikes, parts[2]);
-                if(vortex.getDatabase().filters.addFilter(event.getGuild(), filter))
-                {
-                    event.replySuccess("Filter *" + filter.name + "* (`" + filter.strikes + " " + Action.STRIKE.getEmoji() 
-                            + "`) successfully created with filtered terms:\n" + filter.printContentEscaped());
-                }
-                else
-                {
-                    event.replyError("Filter name contains no alphanumeric characters, or filter with the same name already exists!");
-                }
-            }
-            catch(IllegalArgumentException ex)
-            {
-                event.replyError(ex.getMessage());
-            }
+                // TODO: IMplement? idk
         }
     }
     
@@ -136,29 +97,55 @@ public class FilterCmd extends Command
             this.name = "remove";
             this.category = new Category("AutoMod");
             this.aliases = new String[]{"delete"};
-            this.arguments = "<name>";
-            this.help = "removes a filter";
+            this.arguments = "<name> <badWords | veryBadWords> <words to add>";
+            this.help = "removes words from the filter";
             this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         }
 
         @Override
         protected void execute(CommandEvent event)
         {
-            if(event.getArgs().isEmpty())
-            {
-                event.replyError("Please include the name of the filter to remove");
+            long guildId = event.getGuild().getIdLong();
+            String[] parts = event.getArgs().split("\\s+", 2);
+            String filterName = parts[0].toLowerCase();
+            if (parts.length < 2) {
+                event.replyError("Please include a filter name and the words to filter!");
                 return;
             }
-            
-            Filter filter = vortex.getDatabase().filters.deleteFilter(event.getGuild(), event.getArgs());
-            if(filter == null)
-            {
-                event.replyError("Filter `" + event.getArgs() + "` could not be found");
+
+            boolean isVeryBadFilter;
+
+            if (filterName.startsWith("verybadword")) {
+                isVeryBadFilter = true;
+            } else if (filterName.startsWith("badword")) {
+                isVeryBadFilter = false;
+            } else {
+                event.replyWarning("Please specify if you are trying to remove from the `veryBadWords` or `badWords` filter");
+                return;
             }
-            else
-            {
-                event.replySuccess("Removed filter `" + filter.name + "`");
+
+            try {
+                FilterManager filters = vortex.getDatabase().filters;
+                if (isVeryBadFilter) {
+                    filters.updateVeryBadWordsFilter(event.getGuild(), removeWordsFromFilter(filters.getVeryBadWordsFilter(guildId), parts[1]));
+                } else {
+                    filters.updateBadWordFilter(event.getGuild(), removeWordsFromFilter(filters.getBadWordsFilter(guildId), parts[1]));
+                }
+                event.reply("Successfully updated the " + (isVeryBadFilter ? "Very " : "") + "Bad Words filter!");
             }
+            catch(IllegalArgumentException ex)
+            {
+                event.replyError(ex.getMessage());
+            }
+        }
+
+        private Filter removeWordsFromFilter(Filter filter, String wordsToRemove) {
+            String[] wordsToRemoveArray = wordsToRemove.split(" ");
+            List<String> filteredWords = Arrays.asList(filter.printContent().split(" "));
+            Arrays.stream(wordsToRemoveArray).forEach(filteredWords::remove);
+            StringBuilder parsedFilteredWords = new StringBuilder();
+            filteredWords.stream().forEachOrdered(s -> parsedFilteredWords.append(s).append(' '));
+            return Filter.parseFilter(parsedFilteredWords.toString().trim());
         }
     }
     
@@ -178,17 +165,21 @@ public class FilterCmd extends Command
         @Override
         protected void execute(CommandEvent event)
         {
-            Field field = vortex.getDatabase().filters.getFiltersDisplay(event.getGuild());
-            if(field == null)
-            {
-                event.replyWarning("There are no filters for **" + event.getGuild().getName() + "**");
-                return;
-            }
-            
+            long guildId = event.getGuild().getIdLong();
+            FilterManager filters = vortex.getDatabase().filters;
+            Filter badWordsFilter = filters.getBadWordsFilter(guildId);
+            Filter veryBadWordsFilter = filters.getVeryBadWordsFilter(guildId);
+
+            String embedContent = String.format("**Bad Words:** %s%n**Very Bad Words:**%s",
+                    badWordsFilter == null ? "_None_" : badWordsFilter.printContentEscaped(),
+                    veryBadWordsFilter == null ? "_None_" : veryBadWordsFilter.printContentEscaped()
+            ).trim();
+
             event.reply(new EmbedBuilder()
                     .setColor(event.getSelfMember().getColor())
-                    .addField(field)
+                    .addField(new Field("\uD83D\uDEAF Filters", embedContent, true))
                     .build());
+            // Todo: add page turning if the embeds are too big
         }
     }
 }

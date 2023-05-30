@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands.automod;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.vortex.Vortex;
+import com.jagrosh.vortex.utils.FormatUtil;
 import net.dv8tion.jda.api.Permission;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class WhitelistInvitesCmd extends Command
         this.guildOnly = true;
         this.category = new Category("AutoMod");
         this.arguments = "<ADD GUILD_ID[ GUILD_ID...]|REMOVE GUILD_ID[ GUILD_ID...]|SHOW>";
-        this.help = "if strikes for invites are enabled, add/remove whitelisted guilds";
+        this.help = "adds/removes whitelisted guild invites from the invites filter.";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
     }
 
@@ -74,8 +75,8 @@ public class WhitelistInvitesCmd extends Command
             return;
         }
         List<Long> currentWL = vortex.getDatabase().inviteWhitelist.readWhitelist(event.getGuild());
-        event.replySuccess("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
-                "`" + currentWL.stream().map(String::valueOf).collect(Collectors.joining("`, `")) + "`"));
+        event.replySuccess(FormatUtil.filterEveryone("Whitelisted Guild IDs:\n" + (currentWL.isEmpty() ? "None" :
+                "`" + currentWL.stream().map(String::valueOf).collect(Collectors.joining("`, `")) + "`")));
     }
 
     private void handleAdd(CommandEvent event, String[] args)

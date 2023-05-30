@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.moderation;
 
@@ -31,7 +31,9 @@ import net.dv8tion.jda.api.entities.User;
 /**
  *
  * @author John Grosh (john.a.grosh@gmail.com)
+ * @deprecated Will be replaced by the modlogs command, just here for reference if needed later
  */
+@Deprecated
 public class CheckCmd extends ModCommand
 {
     public CheckCmd(Vortex vortex)
@@ -40,7 +42,6 @@ public class CheckCmd extends ModCommand
         this.name = "check";
         this.arguments = "<user>";
         this.help = "checks a user";
-        this.guildOnly = true;
         this.botPermissions = new Permission[]{Permission.BAN_MEMBERS};
     }
     
@@ -68,7 +69,7 @@ public class CheckCmd extends ModCommand
         try
         {
             Long uid = Long.parseLong(event.getArgs());
-            User u = vortex.getShardManager().getUserById(uid);
+            User u = vortex.getMultiBotManager().getUserById(uid);
             if(u!=null)
                 check(event, u);
             else
@@ -78,7 +79,7 @@ public class CheckCmd extends ModCommand
         }
         catch(Exception ex)
         {
-            event.replyError("Could not find a user `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("Could not find a user `"+event.getArgs()+"`"));
         }
     }
     
@@ -92,14 +93,12 @@ public class CheckCmd extends ModCommand
     
     private void check(CommandEvent event, User user, Ban ban)
     {
-        int strikes = vortex.getDatabase().strikes.getStrikes(event.getGuild(), user.getIdLong());
         int minutesMuted = vortex.getDatabase().tempmutes.timeUntilUnmute(event.getGuild(), user.getIdLong());
         int minutesGraveled = vortex.getDatabase().gravels.timeUntilGravel(event.getGuild(), user.getIdLong());
         Role mRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getMutedRole(event.getGuild());
         Role gRole = vortex.getDatabase().settings.getSettings(event.getGuild()).getGravelRole(event.getGuild());
         int minutesBanned = vortex.getDatabase().tempbans.timeUntilUnban(event.getGuild(), user.getIdLong());
         String str = "Moderation Information for "+FormatUtil.formatFullUser(user)+":\n"
-                + Action.STRIKE.getEmoji() + " Strikes: **"+strikes+"**\n"
                 + Action.MUTE.getEmoji() + " Muted: **" + (event.getGuild().isMember(user) 
                         ? (event.getGuild().getMember(user).getRoles().contains(mRole) ? "Yes" : "No") 
                         : "Not In Server") + "**\n"
@@ -110,6 +109,6 @@ public class CheckCmd extends ModCommand
                 + Action.TEMPGRAVEL.getEmoji() + " Gravel Time Remaining: " + (minutesGraveled <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesGraveled * 60)) + "\n"
                 + Action.BAN.getEmoji() + " Banned: **" + (ban==null ? "No**" : "Yes** (`" + ban.getReason() + "`)") + "\n"
                 + Action.TEMPBAN.getEmoji() + " Ban Time Remaining: " + (minutesBanned <= 0 ? "N/A" : FormatUtil.secondsToTime(minutesBanned * 60));
-        event.replySuccess(str);
+        event.replySuccess(FormatUtil.filterEveryone(str));
     }
 }

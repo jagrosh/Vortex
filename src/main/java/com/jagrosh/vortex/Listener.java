@@ -31,6 +31,7 @@ import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
 import net.dv8tion.jda.api.events.guild.member.*;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.api.events.guild.t
 import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -183,6 +184,10 @@ public class Listener implements EventListener
 
             if(!gevent.getMember().getUser().isBot()) // ignore bots
                 vortex.getBasicLogger().logVoiceUpdate(gevent);
+        }
+        else if (event instanceof TextChannelUpdateSlowmodeEvent)
+        {
+            vortex.getDatabase().tempslowmodes.clearSlowmode(((TextChannelUpdateSlowmodeEvent) event).getChannel());
         }
         else if (event instanceof ReadyEvent)
         {

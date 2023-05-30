@@ -28,8 +28,6 @@ import net.dv8tion.jda.api.JDAInfo;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.sharding.ShardManager;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
-import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 /**
  *
@@ -70,11 +68,11 @@ public class AboutCmd extends SlashCommand
         ShardManager sm = jda.getShardManager();
         return new MessageCreateBuilder()
                 .setContent(Constants.VORTEX_EMOJI + " **All about Vortex** " + Constants.VORTEX_EMOJI)
-                .addEmbeds(new EmbedBuilder()
+                .setEmbed(new EmbedBuilder()
                         .setColor(g==null ? Color.GRAY : g.getSelfMember().getColor())
-                        .setDescription("Hello, I am Vortex, a bot designed to keep your server safe and make moderating fast and easy!\n"
-                                + "I was written in Java by **jagrosh**#4824 using [JDA](" + JDAInfo.GITHUB + ") and [JDA-Utilities](" + JDAUtilitiesInfo.GITHUB + "),\n"
-                                + "And I was customised by <@477372275230900224> for this server with the help of <@384774787823828995>, <@407632536177475586>, and <@250735862734782464>"
+                        .setDescription("Hi! I'm Toybot!\n"
+                                + "I'm a modified version of [Vortex](https://github.com/jagrosh/Vortex) which was written in Java by [jagrosh#4824](https://github.com/jagrosh)\n"
+                                + "I was customised for this server by <@791520107939102730> with the help of <@384774787823828995>, <@523655829279342593> and <@105725338541101056> as well as some other contributers that can be found on [GitHub](https://github.com/ya64/Vortex)"
                                 + "Type `" + commandClient.getPrefix() + commandClient.getHelpWord() + "` for help and information.\n\n"
                                 + FormatUtil.helpLinks(jda, commandClient))
                         .addField("Stats", sm.getShardsTotal()+ " Shards\n" + sm.getGuildCache().size() + " Servers", true)

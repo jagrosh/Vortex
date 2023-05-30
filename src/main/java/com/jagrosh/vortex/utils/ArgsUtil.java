@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.utils;
 
@@ -21,6 +21,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
@@ -87,7 +93,7 @@ public class ArgsUtil
                 args = args.substring(mat.group().length()).trim();
                 if(found)
                     continue;
-                unresolved.add(mat.group());
+                unresolved.add(FormatUtil.filterEveryone(mat.group()));
                 found = true;
                 continue;
             }
@@ -112,7 +118,7 @@ public class ArgsUtil
                 found = true;
             }
         }
-        int time = 0;
+        int time = -1;
         if(allowTime)
         {
             String timeString = args.replaceAll(TIME_REGEX, "$1");
@@ -124,7 +130,8 @@ public class ArgsUtil
         }
         return new ResolvedArgs(members, users, ids, unresolved, time, args);
     }
-    
+
+    @Data
     public static class ResolvedArgs
     {
         public final Set<Member> members;
@@ -133,17 +140,7 @@ public class ArgsUtil
         public final Set<String> unresolved;
         public final int time;
         public final String reason;
-        
-        private ResolvedArgs(Set<Member> members, Set<User> users, Set<Long> ids, Set<String> unresolved, int time, String reason)
-        {
-            this.members = members;
-            this.users = users;
-            this.ids = ids;
-            this.unresolved = unresolved;
-            this.time = time;
-            this.reason = reason;
-        }
-        
+
         public boolean isEmpty()
         {
             return members.isEmpty() && users.isEmpty() && ids.isEmpty() && unresolved.isEmpty();

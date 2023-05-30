@@ -11,13 +11,13 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.utils;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -31,9 +31,10 @@ public class FixedCache<K, V>
     private final K[] keys;
     private int currIndex = 0;
 
+    @SuppressWarnings("unchecked")
     public FixedCache(int size)
     {
-        this.map = new HashMap<>();
+        this.map = new ConcurrentHashMap<>();
         if(size < 1)
             throw new IllegalArgumentException("Cache size must be at least 1!");
         this.keys = (K[]) new Object[size];

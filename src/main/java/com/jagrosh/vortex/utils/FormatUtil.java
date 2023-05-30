@@ -19,7 +19,6 @@ import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandClient;
 import com.jagrosh.jdautilities.command.CommandEvent;
 
-import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
@@ -28,7 +27,8 @@ import java.time.temporal.TemporalAmount;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import com.jagrosh.vortex.database.Database;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -94,7 +94,8 @@ public class FormatUtil {
         return input.replace("\u202E","") // RTL override
                 .replace("@everyone","@\u0435veryone") // cyrillic e
                 .replace("@here","@h\u0435re") // cyrillic e
-                .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c
+                .replace("discord.gg/", "discord\u2024gg/") // one dot leader
+                .replace("@&", "\u0DB8&"); // role failsafe
     }
     
     public static String formatMessage(Message m)
@@ -183,7 +184,7 @@ public class FormatUtil {
     public static String listOfRolesMention(List<Role> roles) {
         return formatList(" ", roles.stream().map(Role::getAsMention).toArray(String[]::new));
     }
-    
+
     public static String listOfText(List<TextChannel> list, String query)
     {
         String out = String.format(MULTIPLE_FOUND, "text channels", query);
@@ -528,5 +529,19 @@ public class FormatUtil {
         public String toString() {
             return formatList(formattedIconUrls, ", ");
         }
+    }
+
+    public static String formatPing(long ping) {
+        String formattedPing = "";
+
+        if (ping >= 60000) {
+            formattedPing += (ping / 60000) + "m " ;
+        }
+
+        if (ping >= 1000) {
+            formattedPing += ((ping %= 60000) / 1000) + "s ";
+        }
+
+        return formattedPing + (ping % 1000) + "ms";
     }
 }

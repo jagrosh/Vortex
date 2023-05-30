@@ -18,6 +18,7 @@ package com.jagrosh.vortex.commands;
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jdautilities.command.CommandListener;
+import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.Usage;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import org.slf4j.Logger;
@@ -36,9 +37,9 @@ public class CommandExceptionListener implements CommandListener
     public void onCommandException(CommandEvent event, Command command, Throwable throwable)
     {
         if (throwable instanceof CommandErrorException)
-            event.replyError(throwable.getMessage());
+            event.replyError(FormatUtil.filterEveryone(throwable.getMessage()));
         else if (throwable instanceof CommandWarningException)
-            event.replyWarning(throwable.getMessage());
+            event.replyWarning(FormatUtil.filterEveryone(throwable.getMessage()));
         else
             log.error("An exception occurred in a command: "+command, throwable);
     }

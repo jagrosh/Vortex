@@ -11,16 +11,16 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.commands.automod;
 
 import com.jagrosh.jdautilities.command.Command;
 import com.jagrosh.jdautilities.command.CommandEvent;
+import com.jagrosh.vortex.commands.CommandTools;
 import net.dv8tion.jda.api.Permission;
 import com.jagrosh.vortex.Vortex;
-import com.jagrosh.vortex.database.managers.AutomodManager;
-import com.jagrosh.vortex.database.managers.PunishmentManager;
+import com.jagrosh.vortex.commands.CommandExceptionListener;
 
 /**
  *
@@ -35,44 +35,32 @@ public class AntiinviteCmd extends Command
         this.vortex = vortex;
         this.name = "antiinvite";
         this.guildOnly = true;
-        this.aliases = new String[]{"antinvite","anti-invite"};
+        this.aliases = new String[] {
+                "antinvite", "antiinvites", "antinvites", "invitefiltering",
+                "anti-invite", "anti-invites", "invite-filter", "invitefilter"
+        };
         this.category = new Category("AutoMod");
-        this.arguments = "<strikes|whitelist...>";
-        this.help = "sets strikes for posting invites";
+        this.arguments = "<on/off|whitelist...>";
+        this.help = "enables/disabled invite filter, adds invites to whitelist";
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.children = new Command[] {new WhitelistInvitesCmd(vortex)};
     }
 
     @Override
-    protected void execute(CommandEvent event)
-    {
+    protected void execute(CommandEvent event) {
+        boolean enabled = false;
         if(event.getArgs().isEmpty())
         {
-            event.replyError("Please provide a number of strikes!");
-            return;
-        }
-        int numstrikes;
-        try
-        {
-            numstrikes = Integer.parseInt(event.getArgs());
-        }
-        catch(NumberFormatException ex)
-        {
-            if(event.getArgs().equalsIgnoreCase("none") || event.getArgs().equalsIgnoreCase("off"))
-                numstrikes = 0;
-            else
-            {
-                event.replyError("`"+event.getArgs()+"` is not a valid integer!");
+            event.replyError("Please specify if you want to turn on or off invites");
+            try {
+                enabled = CommandTools.parseEnabledDisabled(event.getArgs().split(" ")[0]);
+            } catch (IllegalArgumentException e){
+                event.replyError("Please specify if invite filtering should be on or off.");
                 return;
             }
         }
-        if(numstrikes<0 || numstrikes>AutomodManager.MAX_STRIKES)
-        {
-            event.replyError("The number of strikes must be between 0 and "+AutomodManager.MAX_STRIKES);
-            return;
-        }
-        vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), numstrikes);
-        boolean also = vortex.getDatabase().actions.useDefaultSettings(event.getGuild());
-        event.replySuccess("Users will now receive `"+numstrikes+"` strikes for posting invite links."+(also ? PunishmentManager.DEFAULT_SETUP_MESSAGE : ""));
+
+        vortex.getDatabase().automod.enableInviteFilter(event.getGuild(), enabled);
+        event.replySuccess("Invite filter turned " + (enabled ? "on." : "off."));
     }
 }

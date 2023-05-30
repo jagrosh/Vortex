@@ -25,6 +25,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.sharding.ShardManager;
+import lombok.Getter;
+
 
 /**
  *
@@ -55,10 +57,12 @@ public class MessageCache
             return Collections.EMPTY_LIST;
         return cache.get(guild.getIdLong()).getValues().stream().filter(predicate).collect(Collectors.toList());
     }
-    
-    public class CachedMessage implements ISnowflake
+
+    public static class CachedMessage implements ISnowflake
     {
-        private final String content, username, discriminator;
+        private final String content;
+        private final @Getter String username;
+        private final @Getter String discriminator;
         private final long id, author, channel, guild;
         private final List<Attachment> attachments;
         
@@ -70,7 +74,7 @@ public class MessageCache
             username = message.getAuthor().getName();
             discriminator = message.getAuthor().getDiscriminator();
             channel = message.getChannel().getIdLong();
-            guild = message.getGuild()==null ? 0L : message.getGuild().getIdLong();
+            guild = message.isFromGuild() ? message.getGuild().getIdLong() : 0L;
             attachments = message.getAttachments();
         }
         
@@ -84,26 +88,31 @@ public class MessageCache
             return attachments;
         }
         
+        public User getAuthor(MultiBotManager botManager)
+        {
+            return botManager.getUserById(author);
+        }
+
         public User getAuthor(ShardManager shardManager)
         {
             return shardManager.getUserById(author);
         }
-        
-        public String getUsername()
-        {
-            return username;
-        }
-        
-        public String getDiscriminator()
-        {
-            return discriminator;
-        }
-        
+
         public long getAuthorId()
         {
             return author;
         }
         
+        public TextChannel getTextChannel(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            Guild g = botManager.getGuildById(guild);
+            if (g == null)
+                return null;
+            return g.getTextChannelById(channel);
+        }
+
         public TextChannel getTextChannel(ShardManager shardManager)
         {
             if (guild == 0L)
@@ -124,6 +133,13 @@ public class MessageCache
             return guild.getTextChannelById(channel);
         }
         
+        public Guild getGuild(MultiBotManager botManager)
+        {
+            if (guild == 0L)
+                return null;
+            return botManager.getGuildById(guild);
+        }
+
         public Guild getGuild(ShardManager shardManager)
         {
             if (guild == 0L)

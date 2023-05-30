@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. Furthermore, I'm putting this sentence in all files because I messed up git and its not showing files as edited -\\_( :) )_/-
  */
 package com.jagrosh.vortex.database.managers;
 
@@ -19,13 +19,13 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
-import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.utils.FixedCache;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
  *
@@ -33,7 +33,6 @@ import net.dv8tion.jda.api.entities.MessageEmbed.Field;
  */
 public class AutomodManager extends DataManager
 {
-    public final static int MAX_STRIKES = 100;
     public final static int MENTION_MINIMUM = 4;
     public final static int ROLE_MENTION_MINIMUM = 2;
     private static final String SETTINGS_TITLE = "\uD83D\uDEE1 Automod Settings"; // 🛡
@@ -49,15 +48,10 @@ public class AutomodManager extends DataManager
     public final static SQLColumn<Integer> RAIDMODE_NUMBER = new IntegerColumn("RAIDMODE_NUMBER", false, 0);
     public final static SQLColumn<Integer> RAIDMODE_TIME = new IntegerColumn("RAIDMODE_TIME", false, 0);
     
-    public final static SQLColumn<Integer> INVITE_STRIKES = new IntegerColumn("INVITE_STRIKES", false, 0);
-    public final static SQLColumn<Integer> REF_STRIKES = new IntegerColumn("REF_STRIKES", false, 0);
-    public final static SQLColumn<Integer> COPYPASTA_STRIKES = new IntegerColumn("COPYPASTA_STRIKES", false, 0);
-    public final static SQLColumn<Integer> EVERYONE_STRIKES = new IntegerColumn("EVERYONE_STRIKES", false, 0);
-    
-    public final static SQLColumn<Integer> DUPE_STRIKES = new IntegerColumn("DUPE_STRIKES", false, 0);
+    public final static SQLColumn<Boolean> FILTER_INVITES = new BooleanColumn("FILTER_INVITES", false, true);
+    public final static SQLColumn<Boolean> FILTER_REFS = new BooleanColumn("REF_STRIKES", false, true);
+    public final static SQLColumn<Boolean> FILTER_COPYPASTAS = new BooleanColumn("FILTER_COPYPASTAS", false, true);
     public final static SQLColumn<Integer> DUPE_DELETE_THRESH = new IntegerColumn("DUPE_DELETE_THRESH", false, 0);
-    public final static SQLColumn<Integer> DUPE_STRIKE_THRESH = new IntegerColumn("DUPE_STRIKES_THRESH", false, 0);
-    
     public final static SQLColumn<Integer> DEHOIST_CHAR = new IntegerColumn("DEHOIST_CHAR", false, 0);
             
     // Cache
@@ -83,25 +77,21 @@ public class AutomodManager extends DataManager
     {
         AutomodSettings settings = getSettings(guild);
         return new Field(SETTINGS_TITLE, 
-                  "__Anti-Advertisement__\n" + (settings.inviteStrikes==0 && settings.refStrikes==0
+                  "__Anti-Advertisement__\n" + (!settings.filterInvites && !settings.filterRefs
                     ? "Disabled\n\n"
-                    : "Invite Links: `" + settings.inviteStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
-                      "Referral Links: `" + settings.refStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
+                    : "Invite Filter: `" + (settings.filterInvites ? "ON" : "OFF") + "`\n" +
+                      "Referral Link Filter: `" + (settings.filterRefs ? "ON" : "OFF") + "`\n" +
                       "Resolve Links: `" + (settings.resolveUrls ? "ON" : "OFF") + "`\n\n")
-                + "__Anti-Duplicate__\n" + (settings.useAntiDuplicate() 
-                    ? "Strike Threshold: `" + settings.dupeStrikeThresh + "`\n" +
-                     "Delete Threshold: `" + settings.dupeDeleteThresh + "`\n" +
-                      "Strikes: `" + settings.dupeStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n" 
-                    : "Disabled\n\n")
+                + "__Anti-Duplicate__\n" + (settings.useAntiDuplicate() ?
+                     "Delete Threshold: `" + settings.dupeDeleteThresh + "`\n\n" : "Disabled\n\n")
                 + "__Maximum Mentions__\n" + (settings.maxMentions==0 && settings.maxRoleMentions==0 
                     ? "Disabled\n\n" 
                     : "User Mentions: " + (settings.maxMentions==0 ? "None\n" : "`" + settings.maxMentions + "`\n") +
                       "Role Mentions: " + (settings.maxRoleMentions==0 ? "None\n\n" : "`" + settings.maxRoleMentions + "`\n\n"))
-                + "__Misc Msg Settings__\n" + (settings.maxLines==0 && settings.copypastaStrikes==0 && settings.everyoneStrikes==0
+                + "__Misc Msg Settings__\n" + (settings.maxLines==0 && !settings.filterCopypastas
                     ? "Disabled\n\n"
-                    : "Max Lines / Msg: "+(settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") + 
-                      "Copypasta: `" + settings.copypastaStrikes + " " + Action.STRIKE.getEmoji() + "`\n" +
-                      "@\u0435very1 Attempt: `" + settings.everyoneStrikes + " " + Action.STRIKE.getEmoji() + "`\n\n") // cyrillic e
+                    : "Max Lines / Msg: " + (settings.maxLines==0 ? "Disabled\n" : "`"+settings.maxLines+"`\n") +
+                      "Copypasta: `" + settings.filterCopypastas + "`\n")
                 + "__Miscellaneous__\n"
                     + "Auto AntiRaid: " + (settings.useAutoRaidMode() 
                         ? "`" + settings.raidmodeNumber + "` joins/`" + settings.raidmodeTime + "`s\n" 
@@ -112,9 +102,26 @@ public class AutomodManager extends DataManager
                 /*+ "\u200B"*/, true);
     }
     
+    public JSONObject getSettingsJson(Guild guild)
+    {
+        AutomodSettings settings = getSettings(guild);
+        return new JSONObject()
+                .put("filterCopypastas", settings.filterCopypastas)
+                .put("dehoistChar", ""+settings.dehoistChar)
+                .put("dupeDeleteThresh", settings.dupeDeleteThresh)
+                .put("filterInvites", settings.filterInvites)
+                .put("maxLines", settings.maxLines)
+                .put("maxMentions", settings.maxMentions)
+                .put("maxRoleMentions", settings.maxRoleMentions)
+                .put("raidmodeNumber", settings.raidmodeNumber)
+                .put("raidmodeTime", settings.raidmodeTime)
+                .put("filterRefs", settings.filterRefs)
+                .put("resolveUrls", settings.resolveUrls);
+    }
+
     public boolean hasSettings(Guild guild)
     {
-        return read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> {return rs.next();});
+        return read(selectAll(GUILD_ID.is(guild.getIdLong())), ResultSet::next);
     }
     
     // Setters
@@ -239,105 +246,82 @@ public class AutomodManager extends DataManager
         });
     }
     
-    public void setInviteStrikes(Guild guild, int strikes)
+    public void enableInviteFilter(Guild guild, boolean enabled)
     {
         invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             if(rs.next())
             {
-                INVITE_STRIKES.updateValue(rs, strikes);
+                FILTER_INVITES.updateValue(rs, enabled);
                 rs.updateRow();
             }
             else
             {
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
-                INVITE_STRIKES.updateValue(rs, strikes);
+                FILTER_INVITES.updateValue(rs, enabled);
                 rs.insertRow();
             }
         });
     }
     
-    public void setRefStrikes(Guild guild, int strikes)
+    public void enableReferalFilter(Guild guild, boolean enabled)
     {
         invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             if(rs.next())
             {
-                REF_STRIKES.updateValue(rs, strikes);
+                FILTER_REFS.updateValue(rs, enabled);
                 rs.updateRow();
             }
             else
             {
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
-                REF_STRIKES.updateValue(rs, strikes);
+                FILTER_REFS.updateValue(rs, enabled);
                 rs.insertRow();
             }
         });
     }
     
-    public void setCopypastaStrikes(Guild guild, int strikes)
+    public void enableCopypastaFilter(Guild guild, boolean enabled)
     {
         invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             if(rs.next())
             {
-                COPYPASTA_STRIKES.updateValue(rs, strikes);
+                FILTER_COPYPASTAS.updateValue(rs, enabled);
                 rs.updateRow();
             }
             else
             {
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
-                COPYPASTA_STRIKES.updateValue(rs, strikes);
+                FILTER_COPYPASTAS.updateValue(rs, enabled);
                 rs.insertRow();
             }
         });
     }
-    
-    public void setEveryoneStrikes(Guild guild, int strikes)
+
+
+    public void setDupeThresh(Guild guild, int deleteThresh)
     {
         invalidateCache(guild);
         readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
         {
             if(rs.next())
             {
-                EVERYONE_STRIKES.updateValue(rs, strikes);
-                rs.updateRow();
-            }
-            else
-            {
-                rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
-                EVERYONE_STRIKES.updateValue(rs, strikes);
-                rs.insertRow();
-            }
-        });
-    }
-    
-    public void setDupeSettings(Guild guild, int strikes, int deleteThresh, int strikeThresh)
-    {
-        invalidateCache(guild);
-        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
-        {
-            if(rs.next())
-            {
-                DUPE_STRIKES.updateValue(rs, strikes);
                 DUPE_DELETE_THRESH.updateValue(rs, deleteThresh);
-                DUPE_STRIKE_THRESH.updateValue(rs, strikeThresh);
                 rs.updateRow();
             }
             else
             {
                 rs.moveToInsertRow();
                 GUILD_ID.updateValue(rs, guild.getIdLong());
-                DUPE_STRIKES.updateValue(rs, strikes);
                 DUPE_DELETE_THRESH.updateValue(rs, deleteThresh);
-                DUPE_STRIKE_THRESH.updateValue(rs, strikeThresh);
                 rs.insertRow();
             }
         });
@@ -373,50 +357,43 @@ public class AutomodManager extends DataManager
         cache.pull(guildId);
     }
     
-    public class AutomodSettings
+    public static class AutomodSettings
     {
-        public final boolean resolveUrls;
+        public final boolean resolveUrls, filterInvites, filterRefs, filterCopypastas;
         public final int maxMentions, maxRoleMentions;
         public final int maxLines;
         public final int raidmodeNumber, raidmodeTime;
-        public final int inviteStrikes, refStrikes, copypastaStrikes, everyoneStrikes;
-        public final int dupeStrikes, dupeDeleteThresh, dupeStrikeThresh;
+        public final int dupeDeleteThresh;
         public final char dehoistChar;
         
         private AutomodSettings()
         {
+            this.filterRefs = true;
+            this.filterCopypastas = true;
             this.resolveUrls = false;
+            this.filterInvites = true;
             this.maxMentions = 0;
             this.maxRoleMentions = 0;
             this.maxLines = 0;
             this.raidmodeNumber = 0;
             this.raidmodeTime = 0;
-            this.inviteStrikes = 0;
-            this.refStrikes = 0;
-            this.copypastaStrikes = 0;
-            this.everyoneStrikes = 0;
-            this.dupeStrikes = 0;
             this.dupeDeleteThresh = 0;
-            this.dupeStrikeThresh = 0;
             this.dehoistChar = 0;
         }
         
         private AutomodSettings(ResultSet rs) throws SQLException
         {
+            this.filterRefs = FILTER_REFS.getValue(rs);
             this.resolveUrls = RESOLVE_URLS.getValue(rs);
             this.maxMentions = MAX_MENTIONS.getValue(rs);
             this.maxRoleMentions = MAX_ROLE_MENTIONS.getValue(rs);
             this.maxLines = MAX_LINES.getValue(rs);
             this.raidmodeNumber = RAIDMODE_NUMBER.getValue(rs);
             this.raidmodeTime = RAIDMODE_TIME.getValue(rs);
-            this.inviteStrikes = INVITE_STRIKES.getValue(rs);
-            this.refStrikes = REF_STRIKES.getValue(rs);
-            this.copypastaStrikes = COPYPASTA_STRIKES.getValue(rs);
-            this.everyoneStrikes = EVERYONE_STRIKES.getValue(rs);
-            this.dupeStrikes = DUPE_STRIKES.getValue(rs);
+            this.filterInvites = FILTER_INVITES.getValue(rs);
             this.dupeDeleteThresh = DUPE_DELETE_THRESH.getValue(rs);
-            this.dupeStrikeThresh = DUPE_STRIKE_THRESH.getValue(rs);
             this.dehoistChar = (char)((int)DEHOIST_CHAR.getValue(rs));
+            this.filterCopypastas = FILTER_COPYPASTAS.getValue(rs);
         }
         
         public boolean useAutoRaidMode()
@@ -426,7 +403,7 @@ public class AutomodManager extends DataManager
         
         public boolean useAntiDuplicate()
         {
-            return dupeStrikes>0 && dupeDeleteThresh>0 && dupeStrikeThresh>0;
+            return dupeDeleteThresh != 0;
         }
     }
 }

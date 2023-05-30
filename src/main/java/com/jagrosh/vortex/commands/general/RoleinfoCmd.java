@@ -90,10 +90,11 @@ public class RoleinfoCmd extends SlashCommand
             if(found.isEmpty())
             {
                 event.replyError("I couldn't find the role you were looking for!");
+                return;
             }
             else if(found.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfRoles(found, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(found, event.getArgs())));
             }
             else
             {

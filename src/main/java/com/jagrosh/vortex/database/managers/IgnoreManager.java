@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import org.json.JSONArray;
 
 /**
  *
@@ -47,6 +48,13 @@ public class IgnoreManager extends DataManager
         super(connector, "IGNORED");
     }
     
+    public JSONArray getIgnoresJson(Guild guild)
+    {
+        JSONArray array = new JSONArray();
+        getIgnores(guild).forEach(array::put);
+        return array;
+    }
+
     public boolean isIgnored(TextChannel tc)
     {
         return getIgnores(tc.getGuild()).contains(tc.getIdLong());

@@ -67,7 +67,7 @@ public class VoicemoveCmd extends ModCommand
             }
             if(list.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfVoice(list, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfVoice(list, event.getArgs())));
                 return;
             }
             vc = list.get(0);
@@ -92,7 +92,7 @@ public class VoicemoveCmd extends ModCommand
         }
         catch(Exception e) 
         {
-            event.replyWarning("I could not connect to **"+vc.getName()+"**");
+            event.replyWarning(FormatUtil.filterEveryone("I could not connect to **"+vc.getName()+"**"));
             return;
         }
         vortex.getEventWaiter().waitForEvent(GuildVoiceUpdateEvent.class,

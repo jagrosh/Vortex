@@ -169,13 +169,14 @@ public class TempMuteManager extends DataManager implements ModlogManager
             return 0;
         });
     }
-    
+
     public void checkUnmutes(JDA jda, GuildSettingsDataManager data)
     {
         readWrite(selectAll(FINISH.isLessThan(Instant.now().getEpochSecond())+" AND IS_MUTED=TRUE"), rs ->
         {
             while(rs.next())
             {
+                // TODO: Do we really want g.getMemberCache().isEmpty()?
                 Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
                 if(g==null || jda.isUnavailable(g.getIdLong()) || !g.getSelfMember().hasPermission(Permission.MANAGE_ROLES))
                     continue;

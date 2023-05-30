@@ -52,8 +52,6 @@ public class LogUtil
     private final static String MODLOG_USER_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + REASON;
     private final static String MODLOG_TIME_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + " for %s" + REASON;
     private final static String MODLOG_CLEAN_FORMAT  = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + " `%d` messages in %s\n`[Criteria]` %s" + REASON;
-    private final static String MODLOG_STRIKE_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " gave `%d` strikes `[%d → %d]` to" + TARGET_USER + REASON;
-    private final static String MODLOG_PARDON_FORMAT = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " pardoned `%d` strikes `[%d → %d]` from" + TARGET_USER + REASON;
     private final static String MODLOG_RAID_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + " `%s` anti-raid mode" + REASON;
     
     private final static String BASICLOG_FORMAT = LOG_TIME + EMOJI + " %s";
@@ -78,21 +76,7 @@ public class LogUtil
         return String.format(MODLOG_CLEAN_FORMAT, timeF(time, zone), caseNum, Action.CLEAN.getEmoji(), moderator.getName(), 
                 moderator.getDiscriminator(), Action.CLEAN.getVerb(), numMessages, channel.getAsMention(), criteria, reasonF(reason));
     }
-    
-    public static String modlogStrikeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        return String.format(MODLOG_STRIKE_FORMAT, timeF(time, zone), caseNum, Action.STRIKE.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), givenStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
-                reasonF(reason));
-    }
-    
-    public static String modlogPardonFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        return String.format(MODLOG_PARDON_FORMAT, timeF(time, zone), caseNum, Action.PARDON.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), pardonedStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
-                reasonF(reason));
-    }
-    
+
     public static String modlogRaidFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, boolean enabled, String reason)
     {
         return String.format(MODLOG_RAID_FORMAT, timeF(time, zone), caseNum, enabled ? Action.RAIDMODE.getEmoji() : Action.NORAIDMODE.getEmoji(), moderator.getName(),
@@ -120,13 +104,19 @@ public class LogUtil
         TextChannel deltc = messages.get(0).getChannel().asTextChannel();
         Guild delg = messages.get(0).getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
-        for (Message m : messages) {
-            sb.append("\r\n\r\n[")
-                    .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                    .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                    .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+        Message m;
+        for(int i=0; i<messages.size(); i++)
+            appendMessage(sb, messages.get(i));
+        return sb.toString().trim();
+    }
+
+    public static String logCachedMessagesForwards(String title, List<CachedMessage> messages, MultiBotManager botManager)
+    {
+        TextChannel deltc = messages.get(0).getTextChannel(botManager);
+        Guild delg = deltc.getGuild();
+        StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
+        for(int i=0; i<messages.size(); i++)
+            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(botManager));
         return sb.toString().trim();
     }
     
@@ -135,39 +125,42 @@ public class LogUtil
         TextChannel deltc = messages.get(0).getTextChannel(shardManager);
         Guild delg = deltc.getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
-        CachedMessage m;
-        for (CachedMessage message : messages) {
-            m = message;
-            User author = m.getAuthor(shardManager);
-            sb.append("\r\n\r\n[")
-                    .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                    .append("] ");
-            if (author == null)
-                sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
-            else
-                sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
-            sb.append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+        for(int i=0; i<messages.size(); i++)
+            appendMessage(sb, messages.get(i), messages.get(i).getAuthor(shardManager));
         return sb.toString().trim();
     }
     
     public static String logMessagesBackwards(String title, List<Message> messages)
     {
-        TextChannel deltc = messages.get(0).getChannel().asTextChannel();
+        TextChannel deltc = messages.get(0).getChannel().getTextChannel();
         Guild delg = messages.get(0).getGuild();
         StringBuilder sb = new StringBuilder("-- "+title+" -- #"+deltc.getName()+" ("+deltc.getId()+") -- "+delg.getName()+" ("+delg.getId()+") --");
         Message m;
         for(int i=messages.size()-1; i>=0; i--)
-        {
-            m = messages.get(i);
-            sb.append("\r\n\r\n[")
-                .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
-                .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
-            m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
-        }
+            appendMessage(sb, messages.get(i));
         return sb.toString().trim();
+    }
+
+    private static void appendMessage(StringBuilder sb, Message m)
+    {
+        sb.append("\r\n\r\n[")
+            .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+            .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
+            .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
+        m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
+    }
+
+    private static void appendMessage(StringBuilder sb, CachedMessage m, User author)
+    {
+        sb.append("\r\n\r\n[")
+            .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+            .append("] ");
+        if(author==null)
+            sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
+        else
+            sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
+        sb.append(") : ").append(m.getContentRaw());
+        m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
     }
     
     // Audit logging formats
@@ -181,11 +174,6 @@ public class LogUtil
     private final static Pattern AUDIT_TIMED_PATTERN = Pattern.compile("^(\\S.{0,32}\\S)#(\\d{4}) \\((\\d{1,9})m\\): (.*)$", Pattern.DOTALL);
     
     // Auditlog methods
-    public static String auditStrikeReasonFormat(Member moderator, int minutes, int oldstrikes, int newstrikes, String reason)
-    {
-        return auditReasonFormat(moderator, minutes, "["+oldstrikes+" → "+newstrikes+" strikes] "+reason);
-    }
-    
     public static String auditReasonFormat(Member moderator, String reason)
     {
         return limit512(String.format(AUDIT_BASIC_FORMAT, moderator.getUser().getName(), moderator.getUser().getDiscriminator(), reasonF(reason)));

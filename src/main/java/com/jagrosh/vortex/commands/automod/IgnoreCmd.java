@@ -60,7 +60,7 @@ public class IgnoreCmd extends Command
                     builder.append("\n").append(r.getAsMention()).append(" [elevated perms]");
             });
             channels.forEach(c -> builder.append("\n").append(c.getAsMention()));
-            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2048) + "..." : builder.toString());
+            ebuilder.setDescription(builder.length() > 2045 ? builder.substring(0, 2045) + "..." : builder.toString());
             event.reply(ebuilder.build());
             return;
         }
@@ -81,13 +81,13 @@ public class IgnoreCmd extends Command
         
         List<Role> roles = FinderUtil.findRoles(event.getArgs(), event.getGuild());
         if(roles.isEmpty())
-            event.replyError("No roles or text channels found for `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("No roles or text channels found for `"+event.getArgs()+"`"));
         else if (roles.size()==1)
         {
             vortex.getDatabase().ignores.ignore(roles.get(0));
-            event.replySuccess("Automod is now ignoring role `"+roles.get(0).getName()+"`");
+            event.replySuccess(FormatUtil.filterEveryone("Automod is now ignoring role `"+roles.get(0).getName()+"`"));
         }
         else
-            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(roles, event.getArgs())));
     }
 }

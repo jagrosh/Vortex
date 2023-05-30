@@ -71,18 +71,18 @@ public class UnignoreCmd extends Command {
         
         List<Role> roles = FinderUtil.findRoles(event.getArgs(), event.getGuild());
         if(roles.isEmpty())
-            event.replyError("No roles or text channels found for `"+event.getArgs()+"`");
+            event.replyError(FormatUtil.filterEveryone("No roles or text channels found for `"+event.getArgs()+"`"));
         else if (roles.size()==1)
         {
             if(vortex.getDatabase().ignores.unignore(roles.get(0)))
                 event.replySuccess("Automod is no longer ignoring role `"+roles.get(0).getName()+"`");
             else
-                event.replyError("Automod was not ignoring role `"+roles.get(0).getName()+"`"
+                event.replyError(FormatUtil.filterEveryone("Automod was not ignoring role `"+roles.get(0).getName()+"`"
                         + "\n"+event.getClient().getWarning()+" If this role is still listed when using `"+event.getClient().getPrefix()+"ignore`:"
                         + "\n`[can't interact]` - the role is above "+event.getSelfUser().getName()+"'s highest role; try moving the '"+event.getSelfUser().getName()+"' role higher"
-                        + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator");
+                        + "\n`[elevated perms]` - the role has one of the following permissions: Kick Members, Ban Members, Manage Server, Manage Messages, Administrator"));
         }
         else
-            event.replyWarning(FormatUtil.listOfRoles(roles, event.getArgs()));
+            event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfRoles(roles, event.getArgs())));
     }
 }

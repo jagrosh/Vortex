@@ -22,9 +22,11 @@ import com.jagrosh.jdautilities.commons.utils.FinderUtil;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.commands.CommandTools;
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.utils.FormatUtil;
 
 import java.time.OffsetDateTime;
+import com.jagrosh.vortex.utils.OtherUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,7 +51,7 @@ public class UserinfoCmd extends SlashCommand
     private final static String USER_EMOJI = "\uD83D\uDC64"; // 👤
     private final static String LINESTART = "\u25AB"; // ▫
     private final Vortex vortex;
-    
+
     public UserinfoCmd(Vortex vortex)
     {
         this.name = "whois";
@@ -100,7 +102,7 @@ public class UserinfoCmd extends SlashCommand
             }
             else if(found.size()>1)
             {
-                event.replyWarning(FormatUtil.listOfMember(found, event.getArgs()));
+                event.replyWarning(FormatUtil.filterEveryone(FormatUtil.listOfMember(found, event.getArgs())));
                 return;
             }
             else
@@ -111,38 +113,7 @@ public class UserinfoCmd extends SlashCommand
 
         User user = member.getUser();
         event.reply(generateInfoEmbed(user, member));
-/*
-        String title = (user.isBot() ? BOT_EMOJI : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
-        StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + user.getId() + "**" + (user.getAvatarId() != null && user.getAvatarId().startsWith("a_") ? " <:nitro:314068430611415041>" : ""));
-        if(member.getNickname()!=null)
-            str.append("\n" + LINESTART + "Nickname: **").append(member.getNickname()).append("**");
-        String roles="";
-        roles = member.getRoles().stream().map((rol) -> "`, `"+rol.getName()).reduce(roles, String::concat);
-        if(roles.isEmpty())
-            roles="None";
-        else
-            roles=roles.substring(3)+"`";
-        str.append("\n" + LINESTART + "Roles: ").append(roles);
-        str.append("\n" + LINESTART + "Status: ").append(statusToEmote(member.getOnlineStatus(), member.getActivities())).append("**").append(member.getOnlineStatus().name()).append("**");
-        List<String> formattedActivities = new LinkedList<>();
-        for (Activity activity : member.getActivities()) {
-            if (activity != null) {
-                formattedActivities.add(formatActivity(activity));
-            }
-        }
-        str.append(FormatUtil.formatList(formattedActivities, ", "));
-        str.append("\n" + LINESTART + "Account Creation: ").append(TimeFormat.DATE_TIME_SHORT.format(user.getTimeCreated()));
-        List<Member> joins = new ArrayList<>(event.getGuild().getMembers());
-        joins.sort(Comparator.comparing(Member::getTimeJoined));
 
-        
-        event.reply(new MessageCreateBuilder()
-                .setContent(FormatUtil.filterEveryone(title))
-                .addEmbeds(new EmbedBuilder()
-                        .setDescription(str.toString())
-                        .setThumbnail(user.getEffectiveAvatarUrl())
-                        .setColor(member.getColor()).build())
-                .build());*/
     }
     
     private static String statusToEmote(OnlineStatus status, List<Activity> activities)
@@ -154,11 +125,11 @@ public class UserinfoCmd extends SlashCommand
         }
 
         switch(status) {
-            case ONLINE: return "<:online:313956277808005120>";
-            case IDLE: return "<:away:313956277220802560>";
-            case DO_NOT_DISTURB: return "<:dnd:313956276893646850>";
-            case INVISIBLE: return "<:invisible:313956277107556352>";
-            case OFFLINE: return "<:offline:313956277237710868>";
+            case ONLINE:         return Emoji.STATUS_ONLINE;
+            case IDLE:           return Emoji.STATUS_IDLE;
+            case DO_NOT_DISTURB: return Emoji.STATUS_DO_NOT_DISTURB;
+            case INVISIBLE:      return Emoji.STATUS_INVISIBLE;
+            case OFFLINE:        return Emoji.STATUS_OFFLINE;
             default: return "";
         }
     }

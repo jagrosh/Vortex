@@ -33,9 +33,10 @@ public abstract class ModCommand extends Command
     public ModCommand(Vortex vortex, Permission... altPerms)
     {
         this.vortex = vortex;
-        this.category = new Category("Moderation", event -> 
+        this.guildOnly = true;
+        this.category = new Category("Moderation", event ->
         {
-            if(event.getGuild()==null)
+            if(!event.getChannelType().isGuild())
             {
                 event.replyError("This command is not available in Direct Messages!");
                 return false;

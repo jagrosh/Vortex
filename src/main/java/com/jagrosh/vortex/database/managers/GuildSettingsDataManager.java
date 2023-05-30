@@ -34,6 +34,7 @@ import net.dv8tion.jda.api.entities.Guild.VerificationLevel;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import org.json.JSONObject;
 
 /**
  *
@@ -64,7 +65,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     // level to set permission when finished
     
     // Cache
-    private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+    private final FixedCache<Long, GuildSettings> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE * 3);
     private final GuildSettings blankSettings = new GuildSettings();
     
     public GuildSettingsDataManager(DatabaseConnector connector)
@@ -106,6 +107,23 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
                 + "\nTimezone: **"+settings.timezone+"**\n\u200B", true);
     }
     
+    public JSONObject getSettingsJson(Guild guild)
+    {
+        GuildSettings settings = getSettings(guild);
+        return new JSONObject()
+                .put("avatarlog", settings.avatarlog)
+                .put("messagelog", settings.messagelog)
+                .put("modRole", settings.modRole)
+                .put("modlog", settings.modlog)
+                .put("maxLoggedCase", settings.maxLoggedCase)
+                .put("muteRole", settings.muteRole)
+                .put("prefix", settings.prefix)
+                .put("raidMode", settings.raidMode)
+                .put("serverlog", settings.serverlog)
+                .put("timezone", settings.timezone)
+                .put("voicelog", settings.voicelog);
+    }
+
     public boolean hasSettings(Guild guild)
     {
         return read(selectAll(GUILD_ID.is(guild.getIdLong())), rs -> {return rs.next();});
@@ -134,8 +152,13 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
     
     public void setServerLogChannel(Guild guild, TextChannel tc)
     {
-        invalidateCache(guild);
-        readWrite(select(GUILD_ID.is(guild.getIdLong()), GUILD_ID, SERVERLOG_ID), rs -> 
+        setServerLogChannel(guild.getIdLong(), tc);
+    }
+
+    public void setServerLogChannel(long guildId, TextChannel tc)
+    {
+        invalidateCache(guildId);
+        readWrite(select(GUILD_ID.is(guildId), GUILD_ID, SERVERLOG_ID), rs ->
         {
             if(rs.next())
             {
@@ -145,7 +168,7 @@ public class GuildSettingsDataManager extends DataManager implements GuildSettin
             else
             {
                 rs.moveToInsertRow();
-                GUILD_ID.updateValue(rs, guild.getIdLong());
+                GUILD_ID.updateValue(rs, guildId);
                 SERVERLOG_ID.updateValue(rs, tc==null ? 0L : tc.getIdLong());
                 rs.insertRow();
             }

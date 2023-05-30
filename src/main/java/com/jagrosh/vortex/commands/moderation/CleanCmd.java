@@ -71,7 +71,7 @@ public class CleanCmd extends ModCommand
         this.botPermissions = new Permission[]{Permission.MESSAGE_MANAGE, Permission.MESSAGE_HISTORY};
         this.guildOnly = true;
     }
-
+    
     @Override
     protected void execute(CommandEvent event)
     {
@@ -116,7 +116,7 @@ public class CleanCmd extends ModCommand
         boolean links = parameters.contains("link");
         boolean images = parameters.contains("image");
         boolean mentions = parameters.contains("mentions");
-        
+
         boolean all = quotes.isEmpty() && pattern==null && ids.isEmpty() && !bots && !embeds && !links && !images && !mentions;
         
         if(num==-1)

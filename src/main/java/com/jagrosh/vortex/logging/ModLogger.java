@@ -19,6 +19,7 @@ import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.automod.AutoMod;
 import com.jagrosh.vortex.database.managers.GuildSettingsDataManager.GuildSettings;
+import com.jagrosh.vortex.utils.FixedCache;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
 import com.jagrosh.vortex.utils.LogUtil.ParsedAuditReason;
@@ -28,6 +29,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,6 +41,7 @@ import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.audit.AuditLogKey;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.exceptions.PermissionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +50,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author John Grosh (john.a.grosh@gmail.com)
  */
+// TODO: Try to rework/understand this entire thing because what is this
 public class ModLogger
 {
     private final static int LIMIT = 40;
@@ -109,6 +113,8 @@ public class ModLogger
         return null;
     }
 
+
+    // TODO: Double check this is thread safe
     /**
      * Starts the thread that executes every 3 seconds to check for new audit log entries
      */
@@ -127,7 +133,7 @@ public class ModLogger
             }
             if(!toUpdate.isEmpty())
             {
-                LOG.info("DEBUG Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
+                LOG.debug("Modlog updating " + toUpdate.size() + " guilds: " + toUpdate.toString());
                 try
                 {
                     long time, diff;
@@ -148,6 +154,7 @@ public class ModLogger
         }, 0, 3, TimeUnit.SECONDS);
     }
 
+    // TODO check if this is neccessary
     /**
      * Method for interacting with the needsUpdate map in a thread-safe manner
      * @param guild If none are passed in, the clear() method will be invoked. If a (or multiple) guild's IDs are passed in,
@@ -188,6 +195,7 @@ public class ModLogger
         catch (NullPointerException e)
         {
             return;
+            // TODO: Maybe set as needs update?????
         }
 
         List<Long> aleIds = (List<Long>) beginningCache("get", entries.get(0).getGuild().getIdLong());
@@ -230,33 +238,6 @@ public class ModLogger
         vortex.getThreadpool().schedule(() -> modifyUpdate(guild.getIdLong()), 2, TimeUnit.SECONDS);
     }
 
-    @Deprecated
-    public void postStrikeCase(Member moderator, OffsetDateTime now, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
-        if(modlog==null || !modlog.canTalk())
-            return;
-        getCaseNumberAsync(modlog, i -> 
-        {
-            modlog.sendMessage(FormatUtil.filterEveryone(LogUtil.modlogStrikeFormat(now, 
-                    vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone(), i, 
-                    moderator.getUser(), givenStrikes, oldStrikes, newStrikes, target, reason))).queue();
-        });
-    }
-
-    @Deprecated
-    public void postPardonCase(Member moderator, OffsetDateTime now, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
-    {
-        TextChannel modlog = vortex.getDatabase().settings.getSettings(moderator.getGuild()).getModLogChannel(moderator.getGuild());
-        if(modlog==null || !modlog.canTalk())
-            return;
-        getCaseNumberAsync(modlog, i -> 
-        {
-            modlog.sendMessage(FormatUtil.filterEveryone(LogUtil.modlogPardonFormat(now, 
-                    vortex.getDatabase().settings.getSettings(moderator.getGuild()).getTimezone(), i, 
-                    moderator.getUser(), pardonedStrikes, oldStrikes, newStrikes, target, reason))).queue();
-        });
-    }
 
     @Deprecated
     public void postRaidmodeCase(Member moderator, OffsetDateTime now, boolean enabled, String reason)
@@ -371,6 +352,10 @@ public class ModLogger
                         continue; // restoring muted or gravel role (aka role persist) shouldn't trigger a log entry
                     String reason = ale.getReason()==null ? "" : ale.getReason();
                     int minutes;
+                    User target = vortex.getShardManager().getUserById(ale.getTargetIdLong());
+                    if(target==null)
+                        target = modlog.getJDA().retrieveUserById(ale.getTargetIdLong()).complete();
+                    ZoneId timezone = vortex.getDatabase().settings.getSettings(guild).getTimezone();
                     if(mod.isBot())
                     {
                         ParsedAuditReason parsed = LogUtil.parse(guild, reason);
@@ -390,9 +375,10 @@ public class ModLogger
                             }
                         }
                     }
-                    if(act==Action.UNBAN)
+                    if(act==Action.UNBAN) {
+                        // TODO: figure out why this was commented
                         // vortex.getDatabase().tempbans.clearBan(guild, ale.getTargetIdLong(), mod.getIdLong());
-                    if(act==Action.UNMUTE)
+                    } if(act==Action.UNMUTE)
                         vortex.getDatabase().tempmutes.removeMute(guild, ale.getTargetIdLong(), ale.getUser().getIdLong());
                     if(act==Action.UNGRAVEL)
                         vortex.getDatabase().gravels.removeGravel(guild, ale.getTargetIdLong(), ale.getUser().getIdLong());

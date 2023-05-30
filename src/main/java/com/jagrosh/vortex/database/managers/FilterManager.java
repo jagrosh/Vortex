@@ -19,32 +19,31 @@ import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
-import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Constants;
 import com.jagrosh.vortex.automod.Filter;
 import com.jagrosh.vortex.utils.FixedCache;
-import java.util.ArrayList;
-import java.util.List;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageEmbed.Field;
+import org.json.JSONObject;
 
 /**
- *
+ * A database manager for storing a guilds bad words and very bad words filter.
+ * The distinction between the two is that while messages that violate the bad word filter will be logged in
+ * the regular modlogs, messages that violate the very bad words filter (eg., slurs opposed to normal curses),
+ * will be logged to the important modlogs channel for attention from the mod team.
  * @author John Grosh (john.a.grosh@gmail.com)
  */
 public class FilterManager extends DataManager
 {
-    private final static int MAX_FILTERS = 15;
     private final static String SETTINGS_TITLE = "\uD83D\uDEAF Filters"; // 🚯
     
     public final static SQLColumn<Long> GUILD_ID = new LongColumn("GUILD_ID",false,0L);
-    public final static SQLColumn<String> SHORTNAME = new StringColumn("SHORTNAME",false,"",Filter.MAX_NAME_LENGTH);
-    public final static SQLColumn<String> NAME = new StringColumn("NAME",false,"",Filter.MAX_NAME_LENGTH);
-    public final static SQLColumn<Integer> STRIKES = new IntegerColumn("STRIKES", false, 0);
-    public final static SQLColumn<String> CONTENT = new StringColumn("CONTENT", false, "", Filter.MAX_CONTENT_LENGTH);
-    
-    private final FixedCache<Long, List<Filter>> cache = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
-    
+    public final static SQLColumn<String> BAD_WORDS = new StringColumn("BAD_WORDS", false, "", Filter.MAX_CONTENT_LENGTH);
+    public final static SQLColumn<String> VERY_BAD_WORDS = new StringColumn("VERY_BAD_WORDS", false, "", Filter.MAX_CONTENT_LENGTH);
+
+    private final FixedCache<Long, Filter> BAD_WORDS_CACHE = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+    private final FixedCache<Long, Filter> VERY_BAD_WORDS_CACHE = new FixedCache<>(Constants.DEFAULT_CACHE_SIZE);
+
     public FilterManager(DatabaseConnector connector)
     {
         super(connector, "FILTERS");
@@ -53,116 +52,96 @@ public class FilterManager extends DataManager
     @Override
     protected String primaryKey()
     {
-        return GUILD_ID+", "+SHORTNAME;
+        return GUILD_ID.toString();
     }
-    
-    public List<Filter> getFilters(Guild guild)
-    {
-        if(cache.contains(guild.getIdLong()))
-            return cache.get(guild.getIdLong());
-        List<Filter> filters = read(selectAll(GUILD_ID.is(guild.getId())), rs -> 
-        {
-            List<Filter> list = new ArrayList<>();
-            while(rs.next())
-            {
-                try
-                {
-                    Filter filter = Filter.parseFilter(NAME.getValue(rs), STRIKES.getValue(rs), CONTENT.getValue(rs));
-                    if(filter != null)
-                        list.add(filter);
+
+    public Filter getBadWordsFilter(long guildId) {
+        Filter filter = BAD_WORDS_CACHE.get(guildId);
+        if (filter == null) {
+            filter = read(selectAll(GUILD_ID.is(guildId)), rs -> {
+                if (rs.next()) {
+                    try {
+                        return Filter.parseFilter(BAD_WORDS.getValue(rs));
+                    } catch (IllegalArgumentException e) {
+                        return null;
+                    }
                 }
-                catch(IllegalArgumentException ignore) {}
-            }
-            return list;
-        });
-        cache.put(guild.getIdLong(), filters);
-        return filters;
+                return null;
+            });
+        }
+
+        return filter;
     }
-    
+
+    public Filter getVeryBadWordsFilter(long guildId) {
+        Filter filter = VERY_BAD_WORDS_CACHE.get(guildId);
+        if (filter == null) {
+            filter = read(selectAll(GUILD_ID.is(guildId)), rs -> {
+                if (rs.next()) {
+                    try {
+                        return Filter.parseFilter(VERY_BAD_WORDS.getValue(rs));
+                    } catch (IllegalArgumentException e) {
+                        return null;
+                    }
+                }
+                return null;
+            });
+        }
+
+        return filter;
+    }
+
     public Field getFiltersDisplay(Guild guild)
     {
-        List<Filter> filters = getFilters(guild);
-        if(filters.isEmpty())
+        Filter badWordsFilter = getBadWordsFilter(guild.getIdLong());
+        Filter veryBadWordsFilter = getVeryBadWordsFilter(guild.getIdLong());
+        if (badWordsFilter == null && veryBadWordsFilter == null) {
             return null;
-        StringBuilder sb = new StringBuilder();
-        filters.forEach(f -> sb.append("\n**").append(f.name).append("** (`").append(f.strikes).append(" ")
-                .append(Action.STRIKE.getEmoji()).append("`): ").append(f.printContentEscaped()));
-        return new Field(SETTINGS_TITLE, sb.toString().trim(), true);
+        }
+
+        String embedContent = String.format("**Bad Words:** %s%n**Very Bad Words:**%s",
+            badWordsFilter == null ? "_None_" : badWordsFilter.printContentEscaped(),
+            veryBadWordsFilter == null ? "_None_" : veryBadWordsFilter.printContentEscaped()
+        ).trim();
+
+        return new Field(SETTINGS_TITLE, embedContent, true);
     }
     
-    public boolean addFilter(Guild guild, Filter filter)
-    {
-        String shortname = shortnameOf(filter.name);
-        if(shortname.isEmpty())
-            return false;
-        if(getFilters(guild).size() >= MAX_FILTERS)
-            return false;
-        invalidateCache(guild);
-        return readWrite(selectAll(GUILD_ID.is(guild.getId()) + " AND " + SHORTNAME.is("'"+shortname+"'")), rs -> 
-        {
-            if(rs.next())
-                return false;
-            rs.moveToInsertRow();
-            GUILD_ID.updateValue(rs, guild.getIdLong());
-            SHORTNAME.updateValue(rs, shortname);
-            NAME.updateValue(rs, filter.name);
-            STRIKES.updateValue(rs, filter.strikes);
-            CONTENT.updateValue(rs, filter.printContent());
-            rs.insertRow();
-            return true;
-        });
+    public JSONObject getFiltersJson(Guild guild) {
+        Filter badWordsFilter = getBadWordsFilter(guild.getIdLong());
+        Filter veryBadWordsFilter = getVeryBadWordsFilter(guild.getIdLong());
+        return new JSONObject()
+                .put("badWords", badWordsFilter == null ? JSONObject.NULL : badWordsFilter.printContent())
+                .put("veryBadWords", badWordsFilter == null ? JSONObject.NULL : veryBadWordsFilter.printContent());
     }
-    
-    public Filter deleteFilter(Guild guild, String name)
-    {
-        String shortname = shortnameOf(name);
-        if(shortname.isEmpty())
-            return null;
-        invalidateCache(guild);
-        return readWrite(selectAll(GUILD_ID.is(guild.getId()) + " AND " + SHORTNAME.is("'"+shortname+"'")), rs -> 
-        {
-            if(rs.next())
-            {
-                Filter filter = null;
-                try
-                {
-                    filter = Filter.parseFilter(NAME.getValue(rs), STRIKES.getValue(rs), CONTENT.getValue(rs));
-                }
-                catch(IllegalArgumentException ignore) {}
-                rs.deleteRow();
-                return filter;
+
+    public void updateBadWordFilter(Guild guild, Filter filter) {
+        long guildId = guild.getIdLong();
+        readWrite(selectAll(GUILD_ID.is(guildId)), rs -> {
+            if (rs.next()) {
+                BAD_WORDS.updateValue(rs, filter.printContent());
+            } else {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guildId);
+                BAD_WORDS.updateValue(rs, filter.printContent());
+                rs.insertRow();
             }
-            return null;
         });
+        BAD_WORDS_CACHE.put(guildId, filter);
     }
-    
-    public int deleteAllFilters(long guildId)
-    {
-        invalidateCache(guildId);
-        return readWrite(selectAll(GUILD_ID.is(guildId)), rs -> 
-        {
-            int count = 0;
-            while(rs.next())
-            {
-                rs.deleteRow();
-                count++;
+
+    public void updateVeryBadWordsFilter(Guild guild, Filter filter) {
+        long guildId = guild.getIdLong();
+        readWrite(selectAll(GUILD_ID.is(guildId)), rs -> {
+            if (rs.next()) {
+                VERY_BAD_WORDS.updateValue(rs, filter.printContent());
+            } else {
+                rs.moveToInsertRow();
+                GUILD_ID.updateValue(rs, guildId);
+                VERY_BAD_WORDS.updateValue(rs, filter.printContent());
+                rs.insertRow();
             }
-            return count;
         });
-    }
-    
-    private void invalidateCache(Guild guild)
-    {
-        invalidateCache(guild.getIdLong());
-    }
-    
-    private void invalidateCache(long guildId)
-    {
-        cache.pull(guildId);
-    }
-    
-    private String shortnameOf(String name)
-    {
-        return name.toLowerCase().replaceAll("[^a-z0-9]", "");
+        VERY_BAD_WORDS_CACHE.put(guildId, filter);
     }
 }

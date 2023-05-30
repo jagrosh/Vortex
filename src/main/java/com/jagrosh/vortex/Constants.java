@@ -16,6 +16,9 @@
 package com.jagrosh.vortex;
 
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 /**
  *
@@ -75,10 +78,7 @@ public class Constants
     public final static class Wiki
     {
         public final static String PRIMARY_LINK = "https://jagrosh.com/vortex";
-        
-        public final static String SHORT_WIKI     = "https://git.io/fxHam";
-        public final static String SHORT_COMMANDS = "https://git.io/vAr0G";
-        
+
         public final static String WIKI_BASE    = "https://github.com/jagrosh/Vortex/wiki";
         public final static String START        = WIKI_BASE + "/Getting-Started";
         public final static String LOG_TIMEZONE = WIKI_BASE + "/Log-Timezone";

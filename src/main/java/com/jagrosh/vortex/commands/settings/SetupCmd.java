@@ -49,7 +49,7 @@ public class SetupCmd extends Command
         this.guildOnly = true;
         this.userPermissions = new Permission[]{Permission.MANAGE_SERVER};
         this.botPermissions = new Permission[]{Permission.ADMINISTRATOR};
-        this.children = new Command[]{new MuteSetupCmd(), new GravelSetupCmd(), new AutomodSetupCmd()};
+        this.children = new Command[]{new MuteSetupCmd(), new GravelSetupCmd(), new AutomodSetupCmd()}; // TODO: Maybe set automod setup as not a child?
     }
     
     @Override
@@ -83,33 +83,33 @@ public class SetupCmd extends Command
             {
                 event.getChannel().sendTyping().queue();
                 StringBuilder sb = new StringBuilder("**Automod setup complete!**");
-                if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
+                //if(vortex.getDatabase().actions.useDefaultSettings(event.getGuild()))
+                //    sb.append("\n").append(event.getClient().getSuccess()).append(" Set up default punishments");
                 AutomodSettings ams = vortex.getDatabase().automod.getSettings(event.getGuild());
-                if(ams.inviteStrikes==0)
+                if(!ams.filterInvites)
                 {
-                    vortex.getDatabase().automod.setInviteStrikes(event.getGuild(), 2);
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-invite set to `2` strikes");
+                    vortex.getDatabase().automod.enableInviteFilter(event.getGuild(), true);
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-invite enabled");
                 }
-                if(ams.refStrikes==0)
+                if(!ams.filterRefs)
                 {
-                    vortex.getDatabase().automod.setRefStrikes(event.getGuild(), 3);
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-referral set to `3` strikes");
+                    vortex.getDatabase().automod.enableReferalFilter(event.getGuild(), true);
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-referral enabled");
                 }
                 if(!ams.useAntiDuplicate())
                 {
-                    vortex.getDatabase().automod.setDupeSettings(event.getGuild(), 1, 2, 4);
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-duplicate will start deleting at duplicate `2`, and will assign `1` strike each duplicate starting at duplicate `4`");
+                    vortex.getDatabase().automod.setDupeThresh(event.getGuild(), 2);
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-duplicate will start deleting at duplicate `2`");
                 }
-                if(ams.copypastaStrikes==0)
+                if(!ams.filterCopypastas)
                 {
-                    vortex.getDatabase().automod.setCopypastaStrikes(event.getGuild(), 1);
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-copypasta set to `1` strikes");
+                    vortex.getDatabase().automod.enableCopypastaFilter(event.getGuild(), true);
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Anti-copypasta enabled");
                 }
                 if(ams.maxMentions==0)
                 {
-                    vortex.getDatabase().automod.setMaxMentions(event.getGuild(), 10);
-                    sb.append("\n").append(event.getClient().getSuccess()).append(" Maximum mentions set to `10` mentions");
+                    vortex.getDatabase().automod.setMaxMentions(event.getGuild(), 3);
+                    sb.append("\n").append(event.getClient().getSuccess()).append(" Maximum mentions set to `3` mentions");
                 }
                 if(ams.maxRoleMentions==0)
                 {

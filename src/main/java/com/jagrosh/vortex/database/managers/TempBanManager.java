@@ -18,6 +18,9 @@ package com.jagrosh.vortex.database.managers;
 import com.jagrosh.easysql.DataManager;
 import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
+import com.jagrosh.easysql.columns.InstantColumn;
+import com.jagrosh.easysql.columns.LongColumn;
+import com.jagrosh.vortex.utils.Pair;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.Vortex;
@@ -31,6 +34,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONObject;
 
 /**
  *
@@ -56,7 +60,14 @@ public class TempBanManager extends DataManager implements ModlogManager
     @Override
     protected String primaryKey()
     {
+        // This method has caused a lot of pain
         return GUILD_ID+", "+CASE_ID;
+    }
+    
+    public JSONObject getAllBansJson(Guild guild)
+    {
+        // TODO: Implement, but probably not idk if this is going to be useful
+       return null;
     }
 
     public synchronized void setBan(Vortex vortex, Guild guild, long userId, long modId, Instant finish, String reason)
@@ -156,8 +167,9 @@ public class TempBanManager extends DataManager implements ModlogManager
         {
             while(rs.next())
             {
+                // TODO: do we really want g.getMemberCache().isEmpty() ?
                 Guild g = jda.getGuildById(GUILD_ID.getValue(rs));
-                if(g==null || jda.isUnavailable(g.getIdLong()) || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
+                if(g==null || g.getMemberCache().isEmpty() || jda.isUnavailable(g.getIdLong()) || !g.getSelfMember().hasPermission(Permission.BAN_MEMBERS))
                     continue;
                 g.unban(User.fromId(USER_ID.getValue(rs))).reason("Temporary Ban Completed").queue(s->{}, f->{});
                 Instant now = Instant.now();

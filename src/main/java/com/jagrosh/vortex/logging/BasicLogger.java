@@ -15,8 +15,10 @@
  */
 package com.jagrosh.vortex.logging;
 
+import com.jagrosh.vortex.Emoji;
 import com.jagrosh.vortex.Vortex;
 import com.jagrosh.vortex.database.Database.Modlog;
+mport com.jagrosh.vortex.database.Database.Modlog;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import com.jagrosh.vortex.utils.FormatUtil;
 import com.jagrosh.vortex.utils.LogUtil;
@@ -31,6 +33,24 @@ import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.audit.AuditLogEntry;
+import net.dv8tion.jda.api.audit.AuditLogKey;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.utils.FileUpload;
+import java.time.Instant;
+import java.time.temporal.Temporal;
+import java.util.*;
+import java.util.function.Function;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -218,7 +238,7 @@ public class BasicLogger
         );
     }
 
-    // Will be worked on in the future
+    //TODO: Will be worked on in the future
     public void logRedirectPath(Message message, String link, List<String> redirects)
     {
         TextChannel tc = vortex.getDatabase().settings.getSettings(message.getGuild()).getMessageLogChannel(message.getGuild());
