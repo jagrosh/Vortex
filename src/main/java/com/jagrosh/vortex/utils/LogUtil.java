@@ -15,6 +15,7 @@
  */
 package com.jagrosh.vortex.utils;
 
+import com.jagrosh.vortex.managers.MultiBotManager;
 import com.jagrosh.vortex.Action;
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
 import java.time.OffsetDateTime;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.jagrosh.vortex.utils;
+package com.jagrosh.vortex.managers;
 
 import net.dv8tion.jda.api.utils.ConcurrentSessionController;
 

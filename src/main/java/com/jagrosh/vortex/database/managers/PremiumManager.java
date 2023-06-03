@@ -20,7 +20,7 @@ import com.jagrosh.easysql.DatabaseConnector;
 import com.jagrosh.easysql.SQLColumn;
 import com.jagrosh.easysql.columns.*;
 import com.jagrosh.vortex.Constants;
-import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.managers.MultiBotManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;

@@ -222,7 +222,7 @@ public class BasicLogger
             });
     }
     
-    public void logNameChange(UserUpdateDiscriminatorEvent event)
+    public void logDiscrimChange(UserUpdateDiscriminatorEvent event)
     {
         OffsetDateTime now = OffsetDateTime.now();
         event.getJDA().getMutualGuilds(event.getEntity()).stream()
@@ -232,7 +232,7 @@ public class BasicLogger
             .forEachOrdered(tc ->
             {
                 log(now, tc, NAME, "**"+event.getUser().getName()+"**#"+event.getOldDiscriminator()+" (ID:"
-                        +event.getUser().getId()+") has changed names to "+FormatUtil.formatUser(event.getUser()), null);
+                        +event.getUser().getId()+") has changed discrims to "+FormatUtil.formatUser(event.getUser()), null);
             });
     }
     

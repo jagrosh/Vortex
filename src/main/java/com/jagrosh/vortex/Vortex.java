@@ -40,7 +40,8 @@ import com.jagrosh.vortex.logging.MessageCache;
 import com.jagrosh.vortex.logging.ModLogger;
 import com.jagrosh.vortex.logging.TextUploader;
 import com.jagrosh.vortex.utils.FormatUtil;
-import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.managers.MultiBotManager;
+import com.jagrosh.vortex.managers.UptimeManager;
 import com.jagrosh.vortex.utils.OtherUtil;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -72,6 +73,7 @@ public class Vortex
     private final WebhookClient logwebhook;
     private final AutoMod automod;
     private final StrikeHandler strikehandler;
+    private final UptimeManager uptime;
     private final CommandExceptionListener listener;
     private final Config config;
     
@@ -91,6 +93,7 @@ public class Vortex
         logwebhook = new WebhookClientBuilder(config.getString("webhook-url")).build();
         automod = new AutoMod(this, config);
         strikehandler = new StrikeHandler(this);
+        uptime = new UptimeManager(logwebhook, database, threadpool, 1);
         listener = new CommandExceptionListener();
         CommandClient client = new CommandClientBuilder()
                         .setPrefix(Constants.PREFIX)
@@ -198,6 +201,7 @@ public class Vortex
                 .build();
         
         modlog.start();
+        uptime.start();
         
         threadpool.scheduleWithFixedDelay(() -> cleanPremium(), 0, 2, TimeUnit.HOURS);
         threadpool.scheduleWithFixedDelay(() -> leavePointlessGuilds(), 5, 30, TimeUnit.MINUTES);

@@ -42,7 +42,7 @@ public class PremiumCmd extends Command
         this.ownerCommand = true;
         this.guildOnly = false;
         this.hidden = true;
-        this.children = new Command[]{ new PremiumAddCmd(), new PremiumInfoCmd(), new PremiumUserCmd() };
+        this.children = new Command[]{ new PremiumAddCmd(), new PremiumInfoCmd(), new PremiumUserCmd(), new PremiumRemoveCmd() };
     }
 
     @Override
@@ -161,6 +161,7 @@ public class PremiumCmd extends Command
         {
             this.name = "info";
             this.help = "shows premium info";
+            this.arguments = "";
             this.ownerCommand = true;
             this.guildOnly = false;
             this.hidden = true;
@@ -176,6 +177,60 @@ public class PremiumCmd extends Command
                         Guild guild = vortex.getShardManager().getGuildById(pinfo.getKey());
                         return pinfo.getKey() + " (" + (guild == null ? "unknown" : "**" + guild.getName() + "**") + ") " + pinfo.getValue().toString();
                     }).collect(Collectors.joining("\n")));
+        }
+    }
+    
+    private class PremiumRemoveCmd extends Command
+    {
+        public PremiumRemoveCmd() 
+        {
+            this.name = "remove";
+            this.help = "removes premium";
+            this.arguments = "<guildId>";
+            this.ownerCommand = true;
+            this.guildOnly = false;
+            this.hidden = true;
+        }
+        
+        @Override
+        protected void execute(CommandEvent event)
+        {
+            String[] parts = event.getArgs().split("\\s+", 1);
+            if(parts.length < 1)
+            {
+                event.replyError("Too few arguments");
+                return;
+            }
+            
+            Guild guild;
+            try
+            {
+                guild = vortex.getShardManager().getGuildById(Long.parseLong(parts[0]));
+            }
+            catch(NumberFormatException ex)
+            {
+                event.replyError("Invalid guild ID");
+                return;
+            }
+            
+            if(guild == null)
+            {
+                event.replyError("No guild found with ID `" + parts[0] + "`");
+                return;
+            }
+            
+            PremiumInfo before = vortex.getDatabase().premium.getPremiumInfo(guild);
+            if(before == null || before.level == PremiumManager.Level.NONE)
+            {
+                event.replyError("Guild `" + guild.getName() + "` does not have premium!");
+                return;
+            }
+            
+            // remove 5 years, so that the cleanup will still happen correctly
+            // tbh there should be a better cleanup system
+            vortex.getDatabase().premium.addPremium(guild, PremiumManager.Level.NONE, -5 * 365, ChronoUnit.DAYS);
+            PremiumInfo after = vortex.getDatabase().premium.getPremiumInfo(guild);
+            event.replySuccess("Before: " + before + "\n" + event.getClient().getSuccess() + " After: " + after);
         }
     }
 }

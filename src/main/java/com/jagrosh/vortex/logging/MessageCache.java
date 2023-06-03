@@ -16,7 +16,7 @@
 package com.jagrosh.vortex.logging;
 
 import com.jagrosh.vortex.utils.FixedCache;
-import com.jagrosh.vortex.utils.MultiBotManager;
+import com.jagrosh.vortex.managers.MultiBotManager;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
