@@ -244,8 +244,6 @@ public class Vortex
                 .setCompression(Compression.NONE)
                 .build();
 
-
-
         modLogger.start();
     }
 

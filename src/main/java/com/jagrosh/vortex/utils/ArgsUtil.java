@@ -37,9 +37,9 @@ import net.dv8tion.jda.api.entities.User;
  */
 public class ArgsUtil
 {
-    private final static Pattern MENTION = Pattern.compile("^<@!?(\\d{17,19})>");
+    private final static Pattern MENTION = Pattern.compile("^<@!?(\\d{17,20})>");
     private final static Pattern BROKEN_MENTION = Pattern.compile("^@(\\S.{0,30}\\S)#(\\d{4})");
-    private final static Pattern ID = Pattern.compile("^(\\d{17,19})");
+    private final static Pattern ID = Pattern.compile("^(\\d{17,20})");
     private final static String TIME_REGEX = "(?is)^((\\s*-?\\s*\\d+\\s*(d(ays?)?|h((ou)?rs?)?|m(in(ute)?s?)?|s(ec(ond)?s?)?)\\s*,?\\s*(and)?)*).*";
     
     public static ResolvedArgs resolve(String args, Guild guild)

@@ -163,22 +163,22 @@ public class FormatUtil {
     
     public static String listOfVoice(List<VoiceChannel> list, String query)
     {
-        String out = String.format(MULTIPLE_FOUND, "voice channels", query);
+        StringBuilder out = new StringBuilder(String.format(MULTIPLE_FOUND, "voice channels", query));
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
+            out.append("\n - ").append(list.get(i).getName()).append(" (ID:").append(list.get(i).getId()).append(")");
         if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
+            out.append("\n**And ").append(list.size() - 6).append(" more...**");
+        return out.toString();
     }
     
     public static String listOfRoles(List<Role> list, String query)
     {
-        String out = String.format(MULTIPLE_FOUND, "roles", query);
+        StringBuilder out = new StringBuilder(String.format(MULTIPLE_FOUND, "roles", query));
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - "+list.get(i).getName()+" (ID:"+list.get(i).getId()+")";
+            out.append("\n - ").append(list.get(i).getName()).append(" (ID:").append(list.get(i).getId()).append(")");
         if(list.size()>6)
-            out+="\n**And "+(list.size()-6)+" more...**";
-        return out;
+            out.append("\n**And ").append(list.size() - 6).append(" more...**");
+        return out.toString();
     }
 
     public static String listOfRolesMention(List<Role> roles) {

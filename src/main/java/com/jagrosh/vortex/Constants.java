@@ -36,8 +36,8 @@ public class Constants
     public final static String ERROR_REACTION      = ERROR.replaceAll("<a?:(.+):(\\d+)>", "$1:$2");
     public final static String VORTEX_EMOJI        = "<:Vortex:386971287282515970>";
     public final static String ACTIVE_DEVELOPER    = "<:active_developer:1109963459929587713>";
-    public final static String BOT                 = "<:bot:1109962368999497748>";
-    public final static String VERIFIED_BOT        = "<:verified_bot:1109962361911124002>";
+    public final static String BOT                 = "<:bot_1:1117663424873246810><:bot_2:1117663423631728670>";
+    public final static String VERIFIED_BOT        = "<:verified_bot_1:1117663419961720832><:verified_bot_2:1117663426534182972><:verified_bot_3:1117663422432157837>";
     public final static String VERIFIED_EARLY_DEV  = "<:verified_developer:1109962363316215860>";
     public final static String BUG_HUNTER_LEVEL_1  = "<:bug_hunter1:1109963458356727851>";
     public final static String BUG_HUNTER_LEVEL_2  = "<:bug_hunter2:1109963456414756915>";
@@ -73,6 +73,7 @@ public class Constants
     //public final static String BOT_INVITE  = "https://discordapp.com/oauth2/authorize?client_id=240254129333731328&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     // public final static String BOT_INVITE    = "https://discordapp.com/oauth2/authorize?client_id=169463754382114816&scope=bot&permissions="+Permission.getRaw(PERMISSIONS);
     public final static String OWNER_ID = Vortex.config.getString("owner-id");
+    public final static long DELETED_USER_ID = 456226577798135808L;
     public final static String DONATION_LINK = "https://patreon.com/jagrosh";
     
     public final static class Wiki

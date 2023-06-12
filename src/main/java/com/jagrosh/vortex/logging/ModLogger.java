@@ -69,11 +69,12 @@ public class ModLogger
     /**
      * Method for interacting with the beginningCache map in a thread-safe and synchronous manner
      * @param method The name of the method to invoke.
-     *               Currently only supports containsKey(Long), get(Long), put(Long, List<​Long>), and putIfAbsent(Long, List<​Long>)
+     *               Currently only supports containsKey(Long), get(Long), put(Long, List<Long>), and putIfAbsent(Long, List<​Long>)
      * @param args The arguments of the specific method.
      * @see HashMap
      * @return
      */
+    @Deprecated
     private synchronized Object beginningCache(String method, Object... args) {
         switch (method) {
             case "containsKey":

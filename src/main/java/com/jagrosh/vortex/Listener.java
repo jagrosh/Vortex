@@ -62,10 +62,9 @@ public class Listener implements EventListener
     @Override
     public void onEvent(@NotNull GenericEvent event)
     {
-        if (event instanceof MessageReceivedEvent)
+        if (event instanceof MessageReceivedEvent mre)
         {
-            Message m = ((MessageReceivedEvent) event).getMessage();
-            
+            Message m = mre.getMessage();
             if(!m.getAuthor().isBot() && m.isFromGuild()) // ignore bot messages
             {
                 // Store the message
@@ -75,10 +74,9 @@ public class Listener implements EventListener
                 vortex.getAutoMod().performAutomod(m);
             }
         }
-        else if (event instanceof MessageUpdateEvent)
+        else if (event instanceof MessageUpdateEvent mue)
         {
-            Message m = ((MessageUpdateEvent) event).getMessage();
-            
+            Message m = mue.getMessage();
             if(!m.getAuthor().isBot() && m.isFromGuild()) // ignore bot edits
             {
                 // Run automod on the message
@@ -89,10 +87,8 @@ public class Listener implements EventListener
                 vortex.getBasicLogger().logMessageEdit(m, old);
             }
         }
-        else if (event instanceof MessageDeleteEvent)
+        else if (event instanceof MessageDeleteEvent mevent)
         {
-            MessageDeleteEvent mevent = (MessageDeleteEvent) event;
-
             if (mevent.isFromGuild()) {
                 // Log the deletion
                 CachedMessage old = vortex.getMessageCache().pullMessage(mevent.getGuild(), mevent.getMessageIdLong());
@@ -100,10 +96,8 @@ public class Listener implements EventListener
                 vortex.getBasicLogger().logMessageDelete(old);
             }
         }
-        else if (event instanceof MessageBulkDeleteEvent)
+        else if (event instanceof MessageBulkDeleteEvent gevent)
         {
-            MessageBulkDeleteEvent gevent = (MessageBulkDeleteEvent) event;
-
             // Get the messages we had cached
             List<CachedMessage> logged = gevent.getMessageIds().stream()
                     .map(id -> vortex.getMessageCache().pullMessage(gevent.getGuild(), Long.parseLong(id)))
@@ -113,82 +107,70 @@ public class Listener implements EventListener
             // Log the deletion
             vortex.getBasicLogger().logMessageBulkDelete(logged, gevent.getMessageIds().size(), gevent.getChannel().asTextChannel());
         }
-        else if (event instanceof GuildMemberJoinEvent)
+        else if (event instanceof GuildMemberJoinEvent gevent)
         {
             OffsetDateTime now = OffsetDateTime.now();
-            GuildMemberJoinEvent gevent = (GuildMemberJoinEvent) event;
-            
+
             // Log the join
             vortex.getBasicLogger().logGuildJoin(gevent, now);
             
             // Perform automod on the newly-joined member
             vortex.getAutoMod().memberJoin(gevent);
         }
-        else if (event instanceof GuildMemberRemoveEvent)
+        else if (event instanceof GuildMemberRemoveEvent gmre)
         {
-            GuildMemberRemoveEvent gmre = (GuildMemberRemoveEvent)event;
-            
             // Log the member leaving
             vortex.getBasicLogger().logGuildLeave(gmre);
             
             // Signal the modlogger because someone might have been kicked
             vortex.getModLogger().setNeedUpdate(gmre.getGuild());
         }
-        else if (event instanceof GuildBanEvent)
+        else if (event instanceof GuildBanEvent gbe)
         {
             // Signal the modlogger because someone was banned
-            GuildBanEvent gbe = (GuildBanEvent) event;
             vortex.getModLogger().setNeedUpdate(gbe.getGuild());
         }
-        else if (event instanceof GuildUnbanEvent)
+        else if (event instanceof GuildUnbanEvent gue)
         {
-            GuildUnbanEvent gue = (GuildUnbanEvent) event;
             // Signal the modlogger because someone was unbanned
             vortex.getModLogger().setNeedUpdate((gue).getGuild());
         }
-        else if (event instanceof GuildMemberRoleAddEvent)
+        else if (event instanceof GuildMemberRoleAddEvent gmrae)
         {
-            GuildMemberRoleAddEvent gmrae = (GuildMemberRoleAddEvent) event;
             vortex.getModLogger().setNeedUpdate(gmrae.getGuild());
         }
-        else if (event instanceof GuildMemberRoleRemoveEvent)
+        else if (event instanceof GuildMemberRoleRemoveEvent gmrre)
         {
-            GuildMemberRoleRemoveEvent gmrre = (GuildMemberRoleRemoveEvent) event;
             vortex.getModLogger().setNeedUpdate(gmrre.getGuild());
         }
-        else if (event instanceof UserUpdateNameEvent)
+        else if (event instanceof UserUpdateNameEvent unue)
         {
-            UserUpdateNameEvent unue = (UserUpdateNameEvent)event;
             // Log the name change
             vortex.getBasicLogger().logNameChange(unue);
             unue.getUser().getMutualGuilds().stream().map(g -> g.getMember(unue.getUser())).forEach(m -> vortex.getAutoMod().dehoist(m));
         }
-        else if (event instanceof UserUpdateDiscriminatorEvent)
+        else if (event instanceof UserUpdateDiscriminatorEvent uude)
         {
-            vortex.getBasicLogger().logNameChange((UserUpdateDiscriminatorEvent)event);
+            vortex.getBasicLogger().logNameChange(uude);
         }
-        else if (event instanceof GuildMemberUpdateNicknameEvent)
+        else if (event instanceof GuildMemberUpdateNicknameEvent gmune)
         {
-            vortex.getAutoMod().dehoist(((GuildMemberUpdateNicknameEvent) event).getMember());
+            vortex.getAutoMod().dehoist(gmune.getMember());
         }
-        else if (event instanceof UserUpdateAvatarEvent)
+        else if (event instanceof UserUpdateAvatarEvent uaue)
         {
-            UserUpdateAvatarEvent uaue = (UserUpdateAvatarEvent)event;
-            
             // Log the avatar change
             if(!uaue.getUser().isBot())
                 vortex.getBasicLogger().logAvatarChange(uaue);
         }
-        else if (event instanceof GuildVoiceUpdateEvent) {
-            GuildVoiceUpdateEvent gevent = (GuildVoiceUpdateEvent) event;
-
+        else if (event instanceof GuildVoiceUpdateEvent gevent) {
             if(!gevent.getMember().getUser().isBot()) // ignore bots
                 vortex.getBasicLogger().logVoiceUpdate(gevent);
         }
-        else if (event instanceof ChannelUpdateSlowmodeEvent)
+        else if (event instanceof ChannelUpdateSlowmodeEvent cuse)
         {
             // TODO: Check if this logic is correct, no funky thread things etc.
-            vortex.getDatabase().tempslowmodes.clearSlowmode(((ChannelUpdateSlowmodeEvent) event).getChannel().asTextChannel());
+            vortex.getDatabase().tempslowmodes.clearSlowmode(cuse.getChannel().asTextChannel());
         }
         else if (event instanceof ReadyEvent)
         {
@@ -206,9 +188,9 @@ public class Listener implements EventListener
             vortex.getThreadpool().scheduleWithFixedDelay(() -> vortex.getDatabase().tempslowmodes.checkSlowmode(event.getJDA()), 0, 45, TimeUnit.SECONDS);
 
         }
-        else if (event instanceof GuildJoinEvent)
+        else if (event instanceof GuildJoinEvent gje)
         {
-            vortex.getModLogger().addNewGuild(((GuildJoinEvent) event).getGuild());
+            vortex.getModLogger().addNewGuild(gje.getGuild());
         }
     }
 }

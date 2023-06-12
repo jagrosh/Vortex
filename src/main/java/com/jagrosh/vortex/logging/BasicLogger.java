@@ -55,8 +55,7 @@ public class BasicLogger
     private final static String REDIRECT = "\uD83D\uDD00"; // 🔀
     private final static String REDIR_MID = "\uD83D\uDD39"; // 🔹
     private final static String REDIR_END = "\uD83D\uDD37"; // 🔷
-    private final static String AVATAR = "\uD83D\uDDBC"; // 🖼
-    
+
     private final Vortex vortex;
     private final AvatarSaver avatarSaver;
     private final Usage usage = new Usage();
