@@ -93,6 +93,13 @@ public class StrikeHandler
                 vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong());
                 return;
             }
+            if(punishments.stream().anyMatch(p -> p.action==Action.SILENTBAN) && canBan)
+            {
+                OtherUtil.safeDM(target, dmmsg + punish(Action.SILENTBAN, moderator.getGuild()), isMember,
+                        () -> moderator.getGuild().ban(target, 0, notimeaudit).queue());
+                vortex.getDatabase().tempbans.clearBan(moderator.getGuild(), target.getIdLong());
+                return;
+            }
             int muteDuration = 0;
             int banDuration = 0;
             for(Punishment p: punishments)

@@ -21,6 +21,7 @@ package com.jagrosh.vortex;
  */
 public enum Action
 {
+    SILENTBAN("banned",             "\uD83D\uDD28", 16), // 🔨
     NORAIDMODE("",            "\uD83D\uDD13", 15), // 🔓
     PARDON(    "pardoned",    "\uD83C\uDFF3", 14), // 🏳
     RAIDMODE(  "",            "\uD83D\uDD12", 13), // 🔒
