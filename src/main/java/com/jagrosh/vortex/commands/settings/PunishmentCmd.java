@@ -127,6 +127,12 @@ public class PunishmentCmd extends Command
                 successMessage = "Users will now be `softbanned` upon reaching `"+numstrikes+"` strikes.";
                 break;
             }
+            case "silentban":
+            {
+                vortex.getDatabase().actions.setAction(event.getGuild(), numstrikes, Action.SILENTBAN);
+                successMessage = "Users will now be `silentbanned` upon reaching `"+numstrikes+"` strikes.";
+                break;
+            }
             case "tempban":
             case "temp-ban":
             case "ban":
