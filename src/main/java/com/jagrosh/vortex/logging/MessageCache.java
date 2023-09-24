@@ -58,7 +58,7 @@ public class MessageCache
     
     public class CachedMessage implements ISnowflake
     {
-        private final String content, username, discriminator;
+        private final String content, username;
         private final long id, author, channel, guild;
         private final List<Attachment> attachments;
         
@@ -68,7 +68,6 @@ public class MessageCache
             id = message.getIdLong();
             author = message.getAuthor().getIdLong();
             username = message.getAuthor().getName();
-            discriminator = message.getAuthor().getDiscriminator();
             channel = message.getChannel().getIdLong();
             guild = message.isFromGuild() ? message.getGuild().getIdLong() : 0L;
             attachments = message.getAttachments();
@@ -97,11 +96,6 @@ public class MessageCache
         public String getUsername()
         {
             return username;
-        }
-        
-        public String getDiscriminator()
-        {
-            return discriminator;
         }
         
         public long getAuthorId()

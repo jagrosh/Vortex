@@ -79,7 +79,7 @@ public class UserinfoCmd extends Command
             }
         }
         User user = member.getUser();
-        String title = (user.isBot() ? Emoji.BOT : USER_EMOJI)+" Information about **"+user.getName()+"** #"+user.getDiscriminator()+":";
+        String title = (user.isBot() ? Emoji.BOT : USER_EMOJI)+" Information about **"+user.getName()+"**:";
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + user.getId() + "** ");
         user.getFlags().forEach(flag -> str.append(OtherUtil.getEmoji(flag)));
         if(user.getAvatarId() != null && user.getAvatarId().startsWith("a_"))

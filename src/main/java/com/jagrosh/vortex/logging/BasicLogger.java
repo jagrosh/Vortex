@@ -38,7 +38,6 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.exceptions.PermissionException;
 
@@ -217,22 +216,8 @@ public class BasicLogger
             .filter(tc -> tc!=null).distinct()
             .forEachOrdered(tc ->
             {
-                log(now, tc, NAME, "**"+event.getOldName()+"**#"+event.getUser().getDiscriminator()+" (ID:"
+                log(now, tc, NAME, "**"+event.getOldName()+"**"+" (ID:"
                         +event.getUser().getId()+") has changed names to "+FormatUtil.formatUser(event.getUser()), null);
-            });
-    }
-    
-    public void logDiscrimChange(UserUpdateDiscriminatorEvent event)
-    {
-        OffsetDateTime now = OffsetDateTime.now();
-        event.getJDA().getMutualGuilds(event.getEntity()).stream()
-            .filter(guild -> vortex.getShardManager().isHighestAccount(guild))
-            .map(guild -> vortex.getDatabase().settings.getSettings(guild).getServerLogChannel(guild))
-            .filter(tc -> tc!=null).distinct()
-            .forEachOrdered(tc ->
-            {
-                log(now, tc, NAME, "**"+event.getUser().getName()+"**#"+event.getOldDiscriminator()+" (ID:"
-                        +event.getUser().getId()+") has changed discrims to "+FormatUtil.formatUser(event.getUser()), null);
             });
     }
     

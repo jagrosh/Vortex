@@ -71,17 +71,17 @@ public class FormatUtil {
     
     public static String formatCachedMessageFullUser(CachedMessage msg)
     {
-        return filterEveryone("**"+msg.getUsername()+"**#"+msg.getDiscriminator()+" (ID:"+msg.getAuthorId()+")");
+        return filterEveryone("**"+msg.getUsername()+"**"+" (ID:"+msg.getAuthorId()+")");
     }
     
     public static String formatUser(User user)
     {
-        return filterEveryone("**"+user.getName()+"**#"+user.getDiscriminator());
+        return filterEveryone("**"+user.getName()+"**");
     }
     
     public static String formatFullUser(User user)
     {
-        return filterEveryone("**"+user.getName()+"**#"+user.getDiscriminator()+" (ID:"+user.getId()+")");
+        return filterEveryone("**"+user.getName()+"**"+" (ID:"+user.getId()+")");
     }
     
     public static String capitalize(String input)
@@ -147,7 +147,7 @@ public class FormatUtil {
     {
         String out = String.format(MULTIPLE_FOUND, "users", query);
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - **"+list.get(i).getName()+"**#"+list.get(i).getDiscriminator()+" (ID:"+list.get(i).getId()+")";
+            out+="\n - **"+list.get(i).getName()+"**"+" (ID:"+list.get(i).getId()+")";
         if(list.size()>6)
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
@@ -157,7 +157,7 @@ public class FormatUtil {
     {
         String out = String.format(MULTIPLE_FOUND, "members", query);
         for(int i=0; i<6 && i<list.size(); i++)
-            out+="\n - **"+list.get(i).getUser().getName()+"**#"+list.get(i).getUser().getDiscriminator()+" (ID:"+list.get(i).getUser().getId()+")";
+            out+="\n - **"+list.get(i).getUser().getName()+"**"+" (ID:"+list.get(i).getUser().getId()+")";
         if(list.size()>6)
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
