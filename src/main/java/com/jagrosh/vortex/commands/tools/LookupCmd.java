@@ -125,7 +125,7 @@ public class LookupCmd extends Command
         catch(Exception ignore) {}
         if(u == null)
             return false;
-        String text = (u.isBot() ? Emoji.BOT : USER_EMOJI) + " Information about **" + u.getName() + "**#" + u.getDiscriminator() + ":";
+        String text = (u.isBot() ? Emoji.BOT : USER_EMOJI) + " Information about **" + u.getName() + "**:";
         EmbedBuilder eb = new EmbedBuilder();
         eb.setThumbnail(u.getEffectiveAvatarUrl());
         StringBuilder str = new StringBuilder(LINESTART + "Discord ID: **" + u.getId() + "** ");

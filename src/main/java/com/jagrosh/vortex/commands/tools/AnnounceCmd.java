@@ -90,7 +90,7 @@ public class AnnounceCmd extends Command
         String fmessage = message;
         if(!role.isMentionable())
         {
-            String reason = "Announcement by "+event.getAuthor().getName()+"#"+event.getAuthor().getDiscriminator();
+            String reason = "Announcement by "+event.getAuthor().getName();
             role.getManager().setMentionable(true).reason(reason).queue(s -> 
             {
                 tc.sendMessage(fmessage).allowedMentions(EnumSet.of(Message.MentionType.ROLE)).queue(m -> 

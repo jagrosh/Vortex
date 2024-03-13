@@ -39,7 +39,6 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
-import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.hooks.EventListener;
 import org.slf4j.Logger;
@@ -175,13 +174,6 @@ public class Listener implements EventListener
                 vortex.getBasicLogger().logNameChange(unue);
                 unue.getUser().getMutualGuilds().stream().map(g -> g.getMember(unue.getUser())).forEach(m -> vortex.getAutoMod().dehoist(m));
             }
-        }
-        else if (event instanceof UserUpdateDiscriminatorEvent)
-        {
-            // Make sure the discrim actually changed
-            UserUpdateDiscriminatorEvent udue = (UserUpdateDiscriminatorEvent) event;
-            if(!udue.getNewDiscriminator().equals(udue.getOldDiscriminator()))
-                vortex.getBasicLogger().logDiscrimChange((UserUpdateDiscriminatorEvent)event);
         }
         else if (event instanceof GuildMemberUpdateNicknameEvent)
         {

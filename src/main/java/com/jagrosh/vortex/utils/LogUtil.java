@@ -45,8 +45,8 @@ public class LogUtil
     private final static String MODLOG_CASE = " `[%d]`";
     private final static String EMOJI = " %s";
     private final static String ACTION = " %s";
-    private final static String MODERATOR = " **%s**#%s";
-    private final static String TARGET_USER = " **%s**#%s (ID:%s)";
+    private final static String MODERATOR = " **%s**";
+    private final static String TARGET_USER = " **%s** (ID:%s)";
     private final static String REASON = "\n`[ Reason ]` %s";
     
     private final static String MODLOG_USER_FORMAT   = LOG_TIME + MODLOG_CASE + EMOJI + MODERATOR + ACTION + TARGET_USER + REASON;
@@ -62,41 +62,40 @@ public class LogUtil
     public static String modlogUserFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, Action action, User target, String reason)
     {
         return String.format(MODLOG_USER_FORMAT, timeF(time, zone), caseNum, action.getEmoji(), moderator.getName(), 
-                moderator.getDiscriminator(), action.getVerb(), target.getName(), target.getDiscriminator(), target.getId(), 
+                action.getVerb(), target.getName(), target.getId(),
                 reasonF(reason));
     }
     
     public static String modlogTimeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, Action action, long minutes, User target, String reason)
     {
         return String.format(MODLOG_TIME_FORMAT, timeF(time, zone), caseNum, action.getEmoji(), moderator.getName(), 
-                moderator.getDiscriminator(), action.getVerb(), target.getName(), target.getDiscriminator(), target.getId(), 
+                action.getVerb(), target.getName(), target.getId(),
                 FormatUtil.secondsToTime(minutes*60), reasonF(reason));
     }
     
     public static String modlogCleanFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int numMessages, TextChannel channel, String criteria, String reason)
     {
         return String.format(MODLOG_CLEAN_FORMAT, timeF(time, zone), caseNum, Action.CLEAN.getEmoji(), moderator.getName(), 
-                moderator.getDiscriminator(), Action.CLEAN.getVerb(), numMessages, channel.getAsMention(), criteria, reasonF(reason));
+                Action.CLEAN.getVerb(), numMessages, channel.getAsMention(), criteria, reasonF(reason));
     }
     
     public static String modlogStrikeFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int givenStrikes, int oldStrikes, int newStrikes, User target, String reason)
     {
         return String.format(MODLOG_STRIKE_FORMAT, timeF(time, zone), caseNum, Action.STRIKE.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), givenStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
-                reasonF(reason));
+                givenStrikes, oldStrikes, newStrikes, target.getName(), target.getId(), reasonF(reason));
     }
     
     public static String modlogPardonFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, int pardonedStrikes, int oldStrikes, int newStrikes, User target, String reason)
     {
         return String.format(MODLOG_PARDON_FORMAT, timeF(time, zone), caseNum, Action.PARDON.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), pardonedStrikes, oldStrikes, newStrikes, target.getName(), target.getDiscriminator(), target.getId(), 
+                pardonedStrikes, oldStrikes, newStrikes, target.getName(), target.getId(),
                 reasonF(reason));
     }
     
     public static String modlogRaidFormat(OffsetDateTime time, ZoneId zone, int caseNum, User moderator, boolean enabled, String reason)
     {
         return String.format(MODLOG_RAID_FORMAT, timeF(time, zone), caseNum, enabled ? Action.RAIDMODE.getEmoji() : Action.NORAIDMODE.getEmoji(), moderator.getName(),
-                moderator.getDiscriminator(), enabled ? "ENABLED" : "DISABLED", reasonF(reason));
+                enabled ? "ENABLED" : "DISABLED", reasonF(reason));
     }
     
     public static int isCase(Message m, int caseNum)
@@ -161,7 +160,7 @@ public class LogUtil
     {
         sb.append("\r\n\r\n[")
             .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-            .append("] ").append(m.getAuthor().getName()).append("#").append(m.getAuthor().getDiscriminator())
+            .append("] ").append(m.getAuthor().getName())
             .append(" (").append(m.getAuthor().getId()).append(") : ").append(m.getContentRaw());
         m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
     }
@@ -172,15 +171,15 @@ public class LogUtil
             .append(m.getTimeCreated().format(DateTimeFormatter.RFC_1123_DATE_TIME))
             .append("] ");
         if(author==null)
-            sb.append(m.getUsername()).append("#").append(m.getDiscriminator()).append(" (").append(m.getAuthorId());
+            sb.append(m.getUsername()).append(" (").append(m.getAuthorId());
         else
-            sb.append(author.getName()).append("#").append(author.getDiscriminator()).append(" (").append(author.getId());
+            sb.append(author.getName()).append(" (").append(author.getId());
         sb.append(") : ").append(m.getContentRaw());
         m.getAttachments().forEach(att -> sb.append("\n").append(att.getUrl()));
     }
     
     // Audit logging formats
-    private final static String A_MOD = "%s#%s";
+    private final static String A_MOD = "%s";
     private final static String A_TIME = " (%dm)";
     private final static String A_REASON = ": %s";
     
@@ -197,14 +196,14 @@ public class LogUtil
     
     public static String auditReasonFormat(Member moderator, String reason)
     {
-        return limit512(String.format(AUDIT_BASIC_FORMAT, moderator.getUser().getName(), moderator.getUser().getDiscriminator(), reasonF(reason)));
+        return limit512(String.format(AUDIT_BASIC_FORMAT, moderator.getUser().getName(), reasonF(reason)));
     }
     
     public static String auditReasonFormat(Member moderator, int minutes, String reason)
     {
         if(minutes<=0)
             return auditReasonFormat(moderator, reason);
-        return limit512(String.format(AUDIT_TIMED_FORMAT, moderator.getUser().getName(), moderator.getUser().getDiscriminator(), minutes, reasonF(reason)));
+        return limit512(String.format(AUDIT_TIMED_FORMAT, moderator.getUser().getName(), minutes, reasonF(reason)));
     }
     
     public static ParsedAuditReason parse(Guild guild, String reason)

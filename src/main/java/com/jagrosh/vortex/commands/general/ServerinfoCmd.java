@@ -54,7 +54,7 @@ public class ServerinfoCmd extends Command
                 .replace("@here", "@h\u0435re") // cyrillic e
                 .replace("discord.gg/", "dis\u0441ord.gg/"); // cyrillic c;
         String str = LINESTART + "ID: **" + guild.getId() + "**\n"
-                + LINESTART + "Owner: " + (owner == null ? "Unknown" : "**" + owner.getUser().getName() + "**#" + owner.getUser().getDiscriminator()) + "\n";
+                + LINESTART + "Owner: " + (owner == null ? "Unknown" : "**" + owner.getUser().getName() + "**") + "\n";
         if(!guild.getVoiceChannels().isEmpty())
         {
             Region reg = guild.getVoiceChannels().get(0).getRegion();
