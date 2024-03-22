@@ -118,6 +118,16 @@ public class InviteWhitelistManager extends DataManager
         }
     }
 
+    public void removeAll(Guild guild)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            while(rs.next())
+                rs.deleteRow();
+        });
+    }
+
     public List<Long> readWhitelist(Guild guild)
     {
         if(cache.contains(guild.getIdLong()))

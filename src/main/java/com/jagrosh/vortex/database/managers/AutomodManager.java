@@ -390,6 +390,16 @@ public class AutomodManager extends DataManager
             }
         });
     }
+
+    public void reset(Guild guild)
+    {
+        invalidateCache(guild);
+        readWrite(selectAll(GUILD_ID.is(guild.getIdLong())), rs ->
+        {
+            if(rs.next())
+                rs.deleteRow();
+        });
+    }
     
     private void invalidateCache(Guild guild)
     {
