@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.net.URLEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,7 @@ public class TextUploader
             if(msg != null)
             {
                 String url = msg.getAttachments().get(0).getUrl();
-                done.accept("https://txt.discord.website?txt=" + url.substring(url.indexOf("s/")+2, url.length()-4), url);
+                done.accept("https://txt.discord.website?txt=" + URLEncoder.encode(url.substring(url.indexOf("s/")+2, url.length()-4), StandardCharsets.UTF_8.toString()), url);
             }
             else if(err != null)
             {
