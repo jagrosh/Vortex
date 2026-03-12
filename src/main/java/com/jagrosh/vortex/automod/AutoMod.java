@@ -254,7 +254,7 @@ public class AutoMod
         catch(Exception ignore) {}
     }
     
-    public void performAutomod(Message message) 
+    public void performAutomod(Message message, boolean isEdit)
     {
         //ignore users with Manage Messages, Kick Members, Ban Members, Manage Server, or anyone the bot can't interact with
         if(!shouldPerformAutomod(message.getMember(), message.getTextChannel()))
@@ -280,18 +280,23 @@ public class AutoMod
         AutomodStatus currentStatus = new AutomodStatus();
         if(preventSpam)
         {
-            runAntiDuplicate(settings, currentStatus, message);
+			if(!isEdit)
+            	runAntiDuplicate(settings, currentStatus, message);
             runMaxLines(settings, currentStatus, message);
             runAntiCopypasta(settings, currentStatus, message);
-            runAntiEveryone(settings, currentStatus, message);
+			if(!isEdit)
+            	runAntiEveryone(settings, currentStatus, message);
         }
         if(preventInvites)
         {
             runAntiInvite(settings, currentStatus, message, inviteWhitelist);
         }
-        runAntiMention(settings, currentStatus, message);
-        runAntiMentionRoles(settings, currentStatus, message);
-        runAntiReferral(settings, currentStatus, message);
+		if(!isEdit)
+		{
+			runAntiMention(settings, currentStatus, message);
+			runAntiMentionRoles(settings, currentStatus, message);
+		}
+		runAntiReferral(settings, currentStatus, message);
         runFilters(settings, currentStatus, message, filters);
         
         // delete the message if applicable

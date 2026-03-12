@@ -74,7 +74,7 @@ public class Listener implements EventListener
                 vortex.getMessageCache().putMessage(m);
                 
                 // Run automod on the message
-                vortex.getAutoMod().performAutomod(m);
+                vortex.getAutoMod().performAutomod(m, false);
             }
         }
         else if (event instanceof GuildMessageUpdateEvent)
@@ -84,7 +84,7 @@ public class Listener implements EventListener
             if(!m.getAuthor().isBot()) // ignore bot edits
             {
                 // Run automod on the message
-                vortex.getAutoMod().performAutomod(m);
+                vortex.getAutoMod().performAutomod(m, true);
                 
                 // Store and log the edit
                 CachedMessage old = vortex.getMessageCache().putMessage(m);
