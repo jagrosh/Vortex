@@ -464,7 +464,7 @@ public class AutoMod
     {
         if(settings.everyoneStrikes <= 0 || message.getMember().hasPermission(message.getTextChannel(), Permission.MESSAGE_MENTION_EVERYONE))
             return;
-        String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "");
+        String filtered = message.getContentRaw().replace("`@everyone`", "").replace("`@here`", "").replace("\\@everyone", "").replace("\\@here", "");
         if(filtered.contains("@everyone") || filtered.contains("@here")
                 || message.getMentionedRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("everyone") || role.getName().equalsIgnoreCase("here")))
         {
