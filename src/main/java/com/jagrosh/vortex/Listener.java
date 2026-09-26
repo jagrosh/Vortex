@@ -16,6 +16,7 @@
 package com.jagrosh.vortex;
 
 import com.jagrosh.vortex.logging.MessageCache.CachedMessage;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import net.dv8tion.jda.api.JDA.ShardInfo;
@@ -83,9 +84,11 @@ public class Listener implements EventListener
             
             if(!m.getAuthor().isBot()) // ignore bot edits
             {
-                // Run automod on the message
-                vortex.getAutoMod().performAutomod(m);
-                
+                // Run automod only on real, recent edits; Discord also sends updates
+                // for old messages (pins, embeds, flags) that must not be re-moderated
+                if(m.isEdited() && m.getTimeEdited().isAfter(OffsetDateTime.now().minusMinutes(1)))
+                    vortex.getAutoMod().performAutomod(m);
+
                 // Store and log the edit
                 CachedMessage old = vortex.getMessageCache().putMessage(m);
                 vortex.getBasicLogger().logMessageEdit(m, old);
